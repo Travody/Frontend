@@ -1,0 +1,111 @@
+import { Star } from 'lucide-react';
+
+const stats = [
+  { value: "4.9", label: "Overall Rating", color: "text-orange-500" },
+  { value: "50K+", label: "Happy Travelers", color: "text-gray-900" },
+  { value: "2.5K+", label: "Verified Reviews", color: "text-green-500" },
+  { value: "98%", label: "Recommend Rate", color: "text-purple-500" }
+];
+
+const testimonials = [
+  {
+    id: 1,
+    rating: 5,
+    date: "2 days ago",
+    review: "Absolutely amazing experience! Rajesh made our Taj Mahal visit unforgettable. His knowledge and passion for the history was incredible.",
+    author: "Sarah Johnson",
+    location: "From USA • Solo Traveler",
+    tags: ["Cultural Tour", "Verified Booking"]
+  },
+  {
+    id: 2,
+    rating: 5,
+    date: "5 days ago",
+    review: "The Kerala houseboat experience with Priya was magical. She showed us the authentic side of Kerala that we would never have discovered on our own.",
+    author: "David & Emma Wilson",
+    location: "From UK • Couple",
+    tags: ["Nature Tour", "Local Expert"]
+  },
+  {
+    id: 3,
+    rating: 5,
+    date: "1 week ago",
+    review: "Marcus made our Goa trip absolutely perfect! From the best beaches to the hidden gems, he knew all the right places. Highly recommended!",
+    author: "Amit & Friends",
+    location: "From Mumbai • Group of 6",
+    tags: ["Beach Tour", "Adventure"]
+  }
+];
+
+export default function Testimonials() {
+  return (
+    <section className="py-16 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            What Our Community Says
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Real experiences from travelers and guides who've found their perfect match on Travody.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center">
+              <div className={`text-4xl md:text-5xl font-bold ${stat.color} mb-2`}>
+                {stat.value}
+              </div>
+              {stat.value === "4.9" && (
+                <div className="flex justify-center mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+              )}
+              <p className="text-gray-600 font-medium">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Testimonials */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {testimonials.map((testimonial) => (
+            <div key={testimonial.id} className="bg-white rounded-xl p-6 shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="flex">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-500 ml-2">{testimonial.date}</span>
+              </div>
+              
+              <p className="text-gray-700 mb-4 italic">
+                "{testimonial.review}"
+              </p>
+              
+              <div className="border-t pt-4">
+                <p className="font-semibold text-gray-900">{testimonial.author}</p>
+                <p className="text-sm text-gray-600 mb-3">{testimonial.location}</p>
+                
+                <div className="flex flex-wrap gap-2">
+                  {testimonial.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-primary-100 text-primary-700 text-xs rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
