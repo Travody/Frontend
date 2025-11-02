@@ -2,31 +2,68 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { apiService } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function GuiderLoginForm() {
+export default function TravelerLoginForm() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: 'raunak@abc.com',
-    password: 'password123'
+    email: '',
+    password: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Guider login:', formData);
+    setIsLoading(true);
+
+    try {
+      const response = await apiService.loginTraveler(formData);
+      
+      if (response.success) {
+        console.log("this is the response", response.data);
+        // Store auth token and user data using context
+        if (response.data?.token && response.data) {
+          // Map API response data to User interface
+          const userData = {
+            id: response.data.id,
+            email: response.data.email,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
+            userType: 'traveler' as const,
+            city: response.data.city,
+            mobile: response.data.mobile,
+            // Add other traveler-specific fields as needed
+          };
+          
+          login(userData, response.data.token);
+        }
+        
+        // Redirect to homepage
+        router.push('/');
+      }
+    } catch (error) {
+      // Error handling is now done by the API service with toaster
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="w-full max-w-md">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Login Guider Account</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Login Traveler Account</h1>
         <p className="text-gray-600 mb-8">
-          Create a new Guider account?{' '}
-          <Link href="/auth/guider/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+          Create a new traveler account?{' '}
+          <Link href="/auth/traveler/signup" className="text-primary-600 hover:text-primary-700 font-medium">
             SignUp
           </Link>
         </p>
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -40,6 +77,7 @@ export default function GuiderLoginForm() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                   required
+                  suppressHydrationWarning
                 />
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -56,12 +94,14 @@ export default function GuiderLoginForm() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                 required
+                suppressHydrationWarning
               />
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                suppressHydrationWarning
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5 text-gray-400" />
@@ -74,9 +114,11 @@ export default function GuiderLoginForm() {
 
           <button
             type="submit"
-            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold"
+            disabled={isLoading}
+            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            suppressHydrationWarning
           >
-            Log In
+            {isLoading ? 'Logging in...' : 'Log In'}
           </button>
 
           <div className="relative">
@@ -91,15 +133,16 @@ export default function GuiderLoginForm() {
           <button
             type="button"
             className="w-full border border-primary-300 text-primary-600 py-3 px-6 rounded-lg hover:bg-primary-50 transition-colors font-semibold flex items-center justify-center"
+            suppressHydrationWarning
           >
             <span className="mr-2">G</span>
             Login with Google
           </button>
 
           <p className="text-center text-gray-600">
-            Not a guider?{' '}
-            <Link href="/auth/traveler/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Login as Traveler
+            Looking to guide travelers?{' '}
+            <Link href="/auth/guider/login" className="text-primary-600 hover:text-primary-700 font-medium">
+              Become a guide
             </Link>
           </p>
         </form>

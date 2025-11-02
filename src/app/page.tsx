@@ -1,24 +1,21 @@
-import Header from '@/components/Header';
-import HeroSection from '@/components/HeroSection';
-import FeaturedTours from '@/components/FeaturedTours';
-import ExploreCategories from '@/components/ExploreCategories';
-import VerifiedGuides from '@/components/VerifiedGuides';
-import Testimonials from '@/components/Testimonials';
-import Footer from '@/components/Footer';
+import AppLayout from '@/components/layout/AppLayout';
+import HeroSection from '@/components/homepage/HeroSection';
+import FeaturedTours from '@/components/homepage/FeaturedTours';
+import ExploreCategories from '@/components/homepage/ExploreCategories';
+import VerifiedGuides from '@/components/homepage/VerifiedGuides';
+import Testimonials from '@/components/homepage/Testimonials';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <main className="pt-16">
+    <AppLayout>
+      <div className="bg-white">
         <HeroSection />
         <FeaturedTours />
         <ExploreCategories />
         <VerifiedGuides />
         <Testimonials />
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </AppLayout>
   );
 }
 

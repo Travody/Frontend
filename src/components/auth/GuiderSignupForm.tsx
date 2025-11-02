@@ -2,24 +2,56 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Phone, MapPin, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { apiService } from '@/lib/api';
+import OtpVerification from './OtpVerification';
 
 export default function GuiderSignupForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [formData, setFormData] = useState({
-    showcaseName: 'Raunak',
-    email: 'raunak@abc.com',
-    password: 'password123',
+    showcaseName: '',
+    email: '',
+    password: '',
     guiderType: 'Professional',
-    mobile: '+91 9876543210',
-    city: 'Bangalore'
+    mobile: '',
+    city: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Guider signup:', formData);
+    setIsLoading(true);
+
+    try {
+      const response = await apiService.registerGuider(formData);
+      if (response.success) {
+        setShowOtpVerification(true);
+      }
+    } catch (error) {
+      // Error handling is now done by the API service with toaster
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleOtpSuccess = () => {
+    // Redirect to verification page after successful OTP verification
+    router.push('/guider/verification');
+  };
+
+  if (showOtpVerification) {
+    return (
+      <OtpVerification
+        email={formData.email}
+        userType="guider"
+        onVerificationSuccess={handleOtpSuccess}
+        onBack={() => setShowOtpVerification(false)}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md">
@@ -31,6 +63,7 @@ export default function GuiderSignupForm() {
             Login
           </Link>
         </p>
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -44,6 +77,7 @@ export default function GuiderSignupForm() {
                 onChange={(e) => setFormData({ ...formData, showcaseName: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                 required
+                suppressHydrationWarning
               />
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -60,6 +94,7 @@ export default function GuiderSignupForm() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                 required
+                suppressHydrationWarning
               />
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -76,12 +111,14 @@ export default function GuiderSignupForm() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                 required
+                suppressHydrationWarning
               />
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                suppressHydrationWarning
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5 text-gray-400" />
@@ -102,10 +139,10 @@ export default function GuiderSignupForm() {
                 onChange={(e) => setFormData({ ...formData, guiderType: e.target.value })}
                 className="w-full pl-10 pr-10 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none text-gray-900"
                 required
+                suppressHydrationWarning
               >
                 <option value="Professional">Professional</option>
-                <option value="Local Expert">Local Expert</option>
-                <option value="Certified Guide">Certified Guide</option>
+                <option value="Agency">Agency</option>
               </select>
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -122,6 +159,7 @@ export default function GuiderSignupForm() {
                 value={formData.mobile}
                 onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                suppressHydrationWarning
               />
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -137,6 +175,7 @@ export default function GuiderSignupForm() {
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                suppressHydrationWarning
               />
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -144,9 +183,11 @@ export default function GuiderSignupForm() {
 
           <button
             type="submit"
-            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold"
+            disabled={isLoading}
+            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            suppressHydrationWarning
           >
-            Sign up
+            {isLoading ? 'Creating Account...' : 'Sign up'}
           </button>
 
           <div className="relative">
@@ -161,6 +202,7 @@ export default function GuiderSignupForm() {
           <button
             type="button"
             className="w-full border border-primary-300 text-primary-600 py-3 px-6 rounded-lg hover:bg-primary-50 transition-colors font-semibold flex items-center justify-center"
+            suppressHydrationWarning
           >
             <span className="mr-2">G</span>
             SignUp with Google

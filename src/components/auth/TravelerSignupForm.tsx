@@ -2,24 +2,56 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
+import { apiService } from '@/lib/api';
+import OtpVerification from './OtpVerification';
 
 export default function TravelerSignupForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: 'Raunak',
-    lastName: 'Gupta',
-    email: 'raunak@abc.com',
-    password: 'password123',
-    mobile: '+91 9876543210',
-    city: 'Bangalore'
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    mobile: '',
+    city: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Traveler signup:', formData);
+    setIsLoading(true);
+
+    try {
+      const response = await apiService.registerTraveler(formData);
+      
+      if (response.success) {
+        setShowOtpVerification(true);
+      }
+    } catch (error) {
+      // Error handling is now done by the API service with toaster
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleBackToSignup = () => {
+    setShowOtpVerification(false);
+  };
+
+  if (showOtpVerification) {
+    return (
+      <OtpVerification
+        email={formData.email}
+        userType="traveler"
+        onVerificationSuccess={() => {}}
+        onBack={handleBackToSignup}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md">
@@ -31,6 +63,7 @@ export default function TravelerSignupForm() {
             Login
           </Link>
         </p>
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -45,6 +78,7 @@ export default function TravelerSignupForm() {
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                   required
+                  suppressHydrationWarning
                 />
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
@@ -61,6 +95,7 @@ export default function TravelerSignupForm() {
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                   required
+                  suppressHydrationWarning
                 />
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
@@ -72,13 +107,14 @@ export default function TravelerSignupForm() {
               Email address*
             </label>
             <div className="relative">
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                required
-              />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  required
+                  suppressHydrationWarning
+                />
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
           </div>
@@ -88,18 +124,20 @@ export default function TravelerSignupForm() {
               Password*
             </label>
             <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                required
-              />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  required
+                  suppressHydrationWarning
+                />
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                suppressHydrationWarning
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5 text-gray-400" />
@@ -115,12 +153,13 @@ export default function TravelerSignupForm() {
               Mobile Number
             </label>
             <div className="relative">
-              <input
-                type="tel"
-                value={formData.mobile}
-                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-              />
+                <input
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  suppressHydrationWarning
+                />
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
           </div>
@@ -130,21 +169,24 @@ export default function TravelerSignupForm() {
               City
             </label>
             <div className="relative">
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-              />
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  suppressHydrationWarning
+                />
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold"
+            disabled={isLoading}
+            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            suppressHydrationWarning
           >
-            Sign up
+            {isLoading ? 'Creating Account...' : 'Sign up'}
           </button>
 
           <div className="relative">

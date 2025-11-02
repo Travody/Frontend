@@ -1,20 +1,12 @@
-import Header from '@/components/Header';
-import GuiderVerification from '@/components/GuiderVerification';
+import GuiderVerificationDashboard from '@/components/dashboard/GuiderVerificationDashboard';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function GuiderVerificationPage() {
-  const user = {
-    name: 'Raunak',
-    type: 'guider' as const,
-    isVerified: false
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} />
-      <div className="pt-16">
-        <GuiderVerification />
-      </div>
-    </div>
-  );
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <div>Please log in to access verification</div>;
+  }
+  
+  return <GuiderVerificationDashboard />;
 }
-
