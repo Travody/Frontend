@@ -471,11 +471,26 @@ class ApiService {
       if (showToast) {
         toast.success(successMessage);
       }
-      return {
+      
+      // Return response with all top-level properties preserved (for auth responses with requiresVerification, requiresGuiderType, etc.)
+      const apiResponse: ApiResponse<T> = {
         success: true,
         message: successMessage,
         data: data.data,
       };
+      
+      // Preserve special auth response properties
+      if ('requiresVerification' in data) {
+        (apiResponse as any).requiresVerification = data.requiresVerification;
+      }
+      if ('requiresGuiderType' in data) {
+        (apiResponse as any).requiresGuiderType = data.requiresGuiderType;
+      }
+      if ('otpSent' in data) {
+        (apiResponse as any).otpSent = data.otpSent;
+      }
+      
+      return apiResponse;
     } catch (error) {
       const errorMessage = 'Network error occurred';
       if (showToast) {
@@ -544,6 +559,34 @@ class ApiService {
     return this.makeRequest('/auth/guider/login', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  // Google OAuth APIs
+  async googleAuthTraveler(token: string): Promise<ApiResponse> {
+    return this.makeRequest('/auth/traveler/google', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async googleAuthGuider(token: string): Promise<ApiResponse> {
+    return this.makeRequest('/auth/guider/google', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async completeGoogleGuiderAuth(
+    email: string,
+    firstName: string,
+    lastName: string,
+    picture: string,
+    guiderType: 'Professional' | 'Agency'
+  ): Promise<ApiResponse> {
+    return this.makeRequest('/auth/guider/google/complete', {
+      method: 'POST',
+      body: JSON.stringify({ email, firstName, lastName, picture, guiderType }),
     });
   }
 

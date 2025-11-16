@@ -1,12 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle, Star, TrendingUp, Users, Calendar, Plus, Eye, DollarSign } from 'lucide-react';
+import { CheckCircle, Star, TrendingUp, Users, Calendar, Plus, Eye, DollarSign, ArrowRight } from 'lucide-react';
 import { GuiderUser } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiService, GuiderStats, Plan } from '@/lib/api';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Container } from '@/components/ui/container';
+import { Section } from '@/components/ui/section';
+import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface GuiderVerifiedDashboardProps {
   user: GuiderUser;
@@ -36,7 +44,7 @@ export default function GuiderVerifiedDashboard({ user }: GuiderVerifiedDashboar
       }
 
       if (plansResponse.success && plansResponse.data) {
-        setRecentPlans(plansResponse.data.slice(0, 3)); // Show only 3 recent plans
+        setRecentPlans(plansResponse.data.slice(0, 3));
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -48,215 +56,239 @@ export default function GuiderVerifiedDashboard({ user }: GuiderVerifiedDashboar
 
   if (isLoading) {
     return (
-      <div className="bg-gray-50">
-        <div className="bg-teal-600 text-white py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Section variant="muted">
+        <Section variant="primary" className="py-12">
+          <Container>
             <div className="text-center">
-              <h1 className="text-4xl font-bold mb-2">
-                Welcome back, {user.showcaseName || user.email}! 👋
-              </h1>
-              <p className="text-teal-100 text-lg mb-8">
-                Your account is verified and ready to start earning
-              </p>
+              <Skeleton className="h-10 w-64 mx-auto mb-4" />
+              <Skeleton className="h-6 w-96 mx-auto" />
             </div>
+          </Container>
+        </Section>
+        <Container className="py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-16 w-full" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="animate-pulse">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-lg shadow p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+        </Container>
+      </Section>
     );
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-teal-600 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Section variant="primary" className="py-12">
+        <Container>
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-4xl font-bold text-white mb-2">
               Welcome back, {user.showcaseName || user.email}! 👋
             </h1>
-            <p className="text-teal-100 text-lg mb-8">
+            <p className="text-lg text-white/90 mb-6">
               Your account is verified and ready to start earning
             </p>
             
-            {/* Verification Status Banner */}
-            <div className="bg-white rounded-lg p-6 max-w-md mx-auto">
-              <div className="flex items-center justify-center space-x-3">
-                <CheckCircle className="w-6 h-6 text-green-500" />
-                <span className="text-gray-900 font-semibold">Account Verified</span>
-              </div>
-            </div>
+            <Card className="max-w-md mx-auto border-0 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <span className="text-gray-900 font-semibold">Account Verified</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      </div>
+        </Container>
+      </Section>
 
       {/* Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Tour Points</p>
-                <p className="text-2xl font-bold text-gray-900">{user.tourPoints || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.totalBookings || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Star className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Rating</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.averageRating?.toFixed(1) || '0.0'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">₹{stats?.totalRevenue || 0}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Create New Plan */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Create New Plan</h3>
-              <Plus className="w-6 h-6 text-teal-600" />
-            </div>
-            <p className="text-gray-600 mb-6">
-              Create a new tour plan and start attracting travelers to your amazing experiences.
-            </p>
-            <Link
-              href="/guider/create-plan"
-              className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-            >
-              Create Plan
-            </Link>
-          </div>
-
-          {/* My Plans */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">My Plans</h3>
-              <Calendar className="w-6 h-6 text-teal-600" />
-            </div>
-            <p className="text-gray-600 mb-6">
-              Manage your existing tour plans and track their performance.
-            </p>
-            <Link
-              href="/guider/my-plans"
-              className="inline-flex items-center px-4 py-2 border border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
-            >
-              View Plans
-            </Link>
-          </div>
-        </div>
-
-        {/* Recent Plans */}
-        <div className="mt-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Recent Plans</h3>
-              <Link
-                href="/guider/my-plans"
-                className="text-teal-600 hover:text-teal-700 text-sm font-medium"
-              >
-                View All
-              </Link>
-            </div>
-            
-            {recentPlans.length > 0 ? (
-              <div className="space-y-4">
-                {recentPlans.map((plan) => (
-                  <div key={plan._id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{plan.title}</h4>
-                        <p className="text-sm text-gray-600">{plan.city}, {plan.state}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <span className="text-sm text-gray-500">
-                            <Eye className="w-4 h-4 inline mr-1" />
-                            {plan.viewCount} views
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            <Users className="w-4 h-4 inline mr-1" />
-                            {plan.totalBookings} bookings
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            ₹{plan.pricing?.pricePerPerson || 0}/person
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          plan.status === 'published' 
-                            ? 'bg-green-100 text-green-800'
-                            : plan.status === 'draft'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {plan.status}
-                        </span>
-                        <Link
-                          href={`/guider/my-plans/${plan._id}`}
-                          className="text-teal-600 hover:text-teal-700 text-sm font-medium"
-                        >
-                          View
-                        </Link>
-                      </div>
-                    </div>
+      <Section>
+        <Container>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <TrendingUp className="w-6 h-6 text-green-600" />
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No plans created yet</p>
-                <p className="text-sm">Start by creating your first tour plan!</p>
-              </div>
-            )}
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Tour Points</p>
+                    <p className="text-2xl font-bold text-gray-900">{user.tourPoints || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Total Bookings</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats?.totalBookings || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Star className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Rating</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats?.averageRating?.toFixed(1) || '0.0'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-yellow-100 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900">₹{stats?.totalRevenue?.toLocaleString() || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      </div>
+
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Create New Plan</CardTitle>
+                  <Plus className="w-6 h-6 text-primary-600" />
+                </div>
+                <CardDescription>
+                  Create a new tour plan and start attracting travelers to your amazing experiences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/guider/create-plan">
+                  <Button className="w-full">
+                    Create Plan
+                    <Plus className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>My Plans</CardTitle>
+                  <Calendar className="w-6 h-6 text-primary-600" />
+                </div>
+                <CardDescription>
+                  Manage your existing tour plans and track their performance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/guider/my-plans">
+                  <Button variant="outline" className="w-full">
+                    View Plans
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Plans */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Plans</CardTitle>
+                <Link
+                  href="/guider/my-plans"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                >
+                  View All
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {recentPlans.length > 0 ? (
+                <div className="space-y-4">
+                  {recentPlans.map((plan) => (
+                    <Card key={plan._id} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-1">{plan.title}</h4>
+                            <p className="text-sm text-gray-600 mb-3">{plan.city}, {plan.state}</p>
+                            <div className="flex items-center space-x-4">
+                              <span className="text-sm text-gray-500 flex items-center">
+                                <Eye className="w-4 h-4 mr-1" />
+                                {plan.viewCount || 0} views
+                              </span>
+                              <span className="text-sm text-gray-500 flex items-center">
+                                <Users className="w-4 h-4 mr-1" />
+                                {plan.totalBookings || 0} bookings
+                              </span>
+                              <span className="text-sm font-medium text-primary-600">
+                                ₹{plan.pricing?.pricePerPerson?.toLocaleString() || 0}/person
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Badge 
+                              variant={
+                                plan.status === 'published' 
+                                  ? 'default'
+                                  : plan.status === 'draft'
+                                  ? 'secondary'
+                                  : 'outline'
+                              }
+                            >
+                              {plan.status}
+                            </Badge>
+                            <Link href={`/guider/my-plans/${plan._id}`}>
+                              <Button variant="ghost" size="sm">
+                                View
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Calendar}
+                  title="No plans created yet"
+                  description="Start by creating your first tour plan!"
+                  action={
+                    <Link href="/guider/create-plan">
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Your First Plan
+                      </Button>
+                    </Link>
+                  }
+                />
+              )}
+            </CardContent>
+          </Card>
+        </Container>
+      </Section>
     </div>
   );
 }

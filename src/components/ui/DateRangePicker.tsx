@@ -242,8 +242,8 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
                       className={`
                         h-8 w-8 rounded text-xs font-medium transition-colors
                         ${isPast ? 'text-gray-300 cursor-not-allowed' : 'text-gray-900 hover:bg-gray-100'}
-                        ${inRange ? 'bg-teal-100 text-teal-900' : ''}
-                        ${isStart || isEnd ? 'bg-teal-600 text-white font-semibold' : ''}
+                        ${inRange ? 'bg-primary-100 text-primary-900' : ''}
+                        ${isStart || isEnd ? 'bg-primary-600 text-white font-semibold' : ''}
                         ${isStart && isEnd ? 'rounded' : ''}
                         ${isStart && !isEnd ? 'rounded-l' : ''}
                         ${isEnd && !isStart ? 'rounded-r' : ''}
@@ -302,8 +302,8 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
                       className={`
                         h-8 w-8 rounded text-xs font-medium transition-colors
                         ${isPast ? 'text-gray-300 cursor-not-allowed' : 'text-gray-900 hover:bg-gray-100'}
-                        ${inRange ? 'bg-teal-100 text-teal-900' : ''}
-                        ${isStart || isEnd ? 'bg-teal-600 text-white font-semibold' : ''}
+                        ${inRange ? 'bg-primary-100 text-primary-900' : ''}
+                        ${isStart || isEnd ? 'bg-primary-600 text-white font-semibold' : ''}
                         ${isStart && isEnd ? 'rounded' : ''}
                         ${isStart && !isEnd ? 'rounded-l' : ''}
                         ${isEnd && !isStart ? 'rounded-r' : ''}
@@ -335,7 +335,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700"
+              className="px-4 py-2 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700"
               suppressHydrationWarning
             >
               Done

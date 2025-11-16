@@ -5,6 +5,10 @@ import { apiService, OtpVerificationData } from '@/lib/api';
 import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface OtpVerificationProps {
   email: string;
@@ -120,87 +124,94 @@ export default function OtpVerification({
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={onBack}
-            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Verify Email</h1>
-            <p className="text-gray-600">We've sent a verification code to</p>
-            <p className="text-primary-600 font-medium">{email}</p>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleVerifyOtp} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Enter 6-digit OTP*
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setOtp(value);
-                }}
-                className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500 text-center text-2xl tracking-widest"
-                placeholder="000000"
-                maxLength={6}
-                required
-              />
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center mb-4">
+            <Button
+              onClick={onBack}
+              variant="ghost"
+              size="icon"
+              className="mr-4"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <CardTitle className="text-3xl">Verify Email</CardTitle>
+              <CardDescription className="mt-1">
+                We've sent a verification code to
+              </CardDescription>
+              <p className="text-primary-600 font-medium mt-1">{email}</p>
             </div>
           </div>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {error}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={isLoading || otp.length !== 6}
-            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Verifying...' : 'Verify Email'}
-          </button>
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+              {success}
+            </div>
+          )}
 
-          <div className="text-center">
-            <p className="text-gray-600 mb-2">
-              Didn't receive the code?
-            </p>
-            <button
-              type="button"
-              onClick={handleResendOtp}
-              disabled={isResending || countdown > 0}
-              className="text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            <div>
+              <Label htmlFor="otp">Enter 6-digit OTP*</Label>
+              <div className="relative mt-2">
+                <Input
+                  id="otp"
+                  type="text"
+                  value={otp}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setOtp(value);
+                  }}
+                  className="pl-10 text-center text-2xl tracking-widest"
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading || otp.length !== 6}
+              className="w-full"
+              size="lg"
             >
-              {isResending ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : countdown > 0 ? (
-                `Resend in ${countdown}s`
-              ) : (
-                'Resend OTP'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+              {isLoading ? 'Verifying...' : 'Verify Email'}
+            </Button>
+
+            <div className="text-center">
+              <p className="text-gray-600 mb-2">
+                Didn't receive the code?
+              </p>
+              <Button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isResending || countdown > 0}
+                variant="link"
+              >
+                {isResending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : countdown > 0 ? (
+                  `Resend in ${countdown}s`
+                ) : (
+                  'Resend OTP'
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

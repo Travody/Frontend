@@ -1,4 +1,9 @@
 import { Star } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heading } from '@/components/ui/heading';
+import { Container } from '@/components/ui/container';
+import { Section } from '@/components/ui/section';
 
 const stats = [
   { value: "4.9", label: "Overall Rating", color: "text-orange-500" },
@@ -39,19 +44,19 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <Section variant="muted">
+      <Container>
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <Heading as="h2" variant="section" className="mb-4 text-3xl md:text-4xl">
             What Our Community Says
-          </h2>
+          </Heading>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Real experiences from travelers and guides who've found their perfect match on Travody.
           </p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
               <div className={`text-4xl md:text-5xl font-bold ${stat.color} mb-2`}>
@@ -60,52 +65,50 @@ export default function Testimonials() {
               {stat.value === "4.9" && (
                 <div className="flex justify-center mb-2">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                   ))}
                 </div>
               )}
-              <p className="text-gray-600 font-medium">{stat.label}</p>
+              <p className="text-gray-600 font-medium text-sm md:text-base">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="bg-white rounded-xl p-6 shadow-lg">
-              <div className="flex items-center mb-4">
-                <div className="flex">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
+            <Card key={testimonial.id} className="hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500">{testimonial.date}</span>
                 </div>
-                <span className="text-sm text-gray-500 ml-2">{testimonial.date}</span>
-              </div>
-              
-              <p className="text-gray-700 mb-4 italic">
-                "{testimonial.review}"
-              </p>
-              
-              <div className="border-t pt-4">
-                <p className="font-semibold text-gray-900">{testimonial.author}</p>
-                <p className="text-sm text-gray-600 mb-3">{testimonial.location}</p>
                 
-                <div className="flex flex-wrap gap-2">
-                  {testimonial.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-primary-100 text-primary-700 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                <p className="text-gray-700 mb-5 italic leading-relaxed text-sm">
+                  "{testimonial.review}"
+                </p>
+                
+                <div className="border-t pt-4">
+                  <p className="font-semibold text-gray-900 text-sm mb-1">{testimonial.author}</p>
+                  <p className="text-xs text-gray-600 mb-3">{testimonial.location}</p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {testimonial.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      </div>
-    </section>
+      </Container>
+    </Section>
   );
 }
-

@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, X, Globe, Search, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Heading } from '@/components/ui/heading';
 
 interface Step5AdditionalInfoProps {
   data: any;
@@ -129,8 +134,8 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
   return (
     <div className="bg-gray-50 p-6 rounded-lg">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Additional Information</h2>
-        <p className="text-gray-600">Add highlights, inclusions, exclusions, and more (All optional)</p>
+        <Heading as="h2" variant="section" className="mb-2">Additional Information</Heading>
+        <p className="text-muted-foreground">Add highlights, inclusions, exclusions, and more (All optional)</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,30 +148,33 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
             {formData.highlights.map((highlight: string, index: number) => (
               <div key={index} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-md shadow-sm hover:shadow-md transition-shadow">
                 <span className="text-sm text-gray-900">{highlight}</span>
-                <button
+                <Button
                   type="button"
                   onClick={() => removeFromList('highlights', index)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             ))}
             <div className="flex">
-              <input
+              <Input
                 type="text"
                 value={newHighlight}
                 onChange={(e) => setNewHighlight(e.target.value)}
                 placeholder="Add a highlight..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="flex-1 rounded-r-none"
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => addToList('highlights', newHighlight, setNewHighlight)}
-                className="px-3 py-2 bg-teal-600 text-white rounded-r-md hover:bg-teal-700"
+                className="rounded-l-none"
+                size="icon"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -182,19 +190,22 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
           {formData.languages.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
               {formData.languages.map((lang: string) => (
-                <div
+                <Badge
                   key={lang}
-                  className="flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
+                  variant="secondary"
+                  className="flex items-center gap-1"
                 >
                   <span>{lang}</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => removeLanguage(lang)}
-                    className="text-teal-700 hover:text-teal-900"
+                    variant="ghost"
+                    size="icon"
+                    className="h-auto w-auto p-0 text-primary-700 hover:text-primary-900"
                   >
                     <X className="w-3 h-3" />
-                  </button>
-                </div>
+                  </Button>
+                </Badge>
               ))}
             </div>
           )}
@@ -205,7 +216,7 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
               </div>
-              <input
+              <Input
                 ref={inputRef}
                 type="text"
                 value={languageSearch}
@@ -215,7 +226,7 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
                 }}
                 onFocus={() => setIsDropdownOpen(true)}
                 placeholder="Search and select languages..."
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="pl-10 pr-10"
               />
               <button
                 type="button"
@@ -232,26 +243,28 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
                 {filteredLanguages.length > 0 ? (
                   <div className="py-1">
                     {filteredLanguages.map((lang) => (
-                      <button
+                      <Button
                         key={lang}
                         type="button"
                         onClick={() => addLanguage(lang)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:outline-none"
+                        variant="ghost"
+                        className="w-full justify-start text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-900"
                       >
                         {lang}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 ) : searchTermExists ? (
                   <div className="py-1">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => addLanguage(languageSearch.trim())}
-                      className="w-full text-left px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 focus:bg-teal-50 focus:outline-none flex items-center gap-2"
+                      variant="ghost"
+                      className="w-full justify-start text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Add '{languageSearch.trim()}'
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <div className="px-4 py-3 text-sm text-gray-500 text-center">
@@ -282,20 +295,21 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
               </div>
             ))}
             <div className="flex">
-              <input
+              <Input
                 type="text"
                 value={newInclusion}
                 onChange={(e) => setNewInclusion(e.target.value)}
                 placeholder="Add an inclusion..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="flex-1 rounded-r-none"
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => addToList('inclusions', newInclusion, setNewInclusion)}
-                className="px-3 py-2 bg-teal-600 text-white rounded-r-md hover:bg-teal-700"
+                className="rounded-l-none"
+                size="icon"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -309,30 +323,33 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
             {formData.exclusions.map((exclusion: string, index: number) => (
               <div key={index} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-md shadow-sm hover:shadow-md transition-shadow">
                 <span className="text-sm text-gray-900">{exclusion}</span>
-                <button
+                <Button
                   type="button"
                   onClick={() => removeFromList('exclusions', index)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             ))}
             <div className="flex">
-              <input
+              <Input
                 type="text"
                 value={newExclusion}
                 onChange={(e) => setNewExclusion(e.target.value)}
                 placeholder="Add an exclusion..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="flex-1 rounded-r-none"
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => addToList('exclusions', newExclusion, setNewExclusion)}
-                className="px-3 py-2 bg-teal-600 text-white rounded-r-md hover:bg-teal-700"
+                className="rounded-l-none"
+                size="icon"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -346,30 +363,33 @@ export default function Step5AdditionalInfo({ data, onSubmit, isLoading, isValid
             {formData.requirements.map((requirement: string, index: number) => (
               <div key={index} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-md shadow-sm hover:shadow-md transition-shadow">
                 <span className="text-sm text-gray-900">{requirement}</span>
-                <button
+                <Button
                   type="button"
                   onClick={() => removeFromList('requirements', index)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             ))}
             <div className="flex">
-              <input
+              <Input
                 type="text"
                 value={newRequirement}
                 onChange={(e) => setNewRequirement(e.target.value)}
                 placeholder="Add a requirement..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="flex-1 rounded-r-none"
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => addToList('requirements', newRequirement, setNewRequirement)}
-                className="px-3 py-2 bg-teal-600 text-white rounded-r-md hover:bg-teal-700"
+                className="rounded-l-none"
+                size="icon"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -4,6 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 import { getIndianStateNames, getCityNamesByState } from '@/lib/india-states-cities';
 import { tourTypes } from '@/lib/tour-types';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Heading } from '@/components/ui/heading';
 
 interface Step1BasicDetailsProps {
   data: any;
@@ -70,7 +83,7 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
     setFormData(prev => ({
       ...prev,
       tourTypes: prev.tourTypes.includes(typeName)
-        ? prev.tourTypes.filter(t => t !== typeName)
+        ? prev.tourTypes.filter((t: string) => t !== typeName)
         : [...prev.tourTypes, typeName]
     }));
   };
@@ -83,36 +96,36 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Details</h2>
-        <p className="text-gray-600">Tell us about your amazing tour experience</p>
+        <Heading as="h2" variant="section" className="mb-2">Basic Details</Heading>
+        <p className="text-muted-foreground">Tell us about your amazing tour experience</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title and Description */}
         <div className="grid grid-cols-1 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tour Title *
-            </label>
-            <input
+          <Label htmlFor="title">
+            Tour Title *
+          </Label>
+            <Input
+              id="title"
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
               placeholder="e.g., Amazing Jaipur Heritage Walk"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label htmlFor="description">
               Description *
-            </label>
-            <textarea
+            </Label>
+            <Textarea
+              id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
               placeholder="Describe your tour in detail..."
               required
             />
@@ -122,44 +135,50 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
         {/* Location */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label>
               <MapPin className="w-4 h-4 inline mr-1" />
               State *
-            </label>
-            <select
+            </Label>
+            <Select
               value={formData.state}
-              onChange={(e) => handleInputChange('state', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+              onValueChange={(value) => handleInputChange('state', value)}
               required
             >
-              <option value="">Select State</option>
-              {allStates.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select State" />
+              </SelectTrigger>
+              <SelectContent>
+                {allStates.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label>
               <MapPin className="w-4 h-4 inline mr-1" />
               City *
-            </label>
-            <select
+            </Label>
+            <Select
               value={formData.city}
-              onChange={(e) => handleInputChange('city', e.target.value)}
+              onValueChange={(value) => handleInputChange('city', value)}
               disabled={!formData.state}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             >
-              <option value="">{formData.state ? 'Select City' : 'Select State First'}</option>
-              {availableCities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder={formData.state ? 'Select City' : 'Select State First'} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -173,14 +192,15 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
               const Icon = tourType.icon;
               const isSelected = formData.tourTypes.includes(tourType.name);
               return (
-                <button
+                <Button
                   key={tourType.name}
                   type="button"
                   onClick={() => toggleTourType(tourType.name)}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  variant={isSelected ? "default" : "outline"}
+                  className={`p-4 h-auto justify-start ${
                     isSelected
                       ? `${tourType.color} border-current`
-                      : 'bg-white border-gray-200 hover:border-gray-300'
+                      : ''
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -189,7 +209,7 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
                       {tourType.name}
                     </span>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>

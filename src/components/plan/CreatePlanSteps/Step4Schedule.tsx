@@ -3,6 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Calendar, Plus, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heading } from '@/components/ui/heading';
 
 interface Step4ScheduleProps {
   data: any;
@@ -180,8 +186,8 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Schedule & Availability</h2>
-        <p className="text-gray-600">Set when your tour is available for booking</p>
+        <Heading as="h2" variant="section" className="mb-2">Schedule & Availability</Heading>
+        <p className="text-muted-foreground">Set when your tour is available for booking</p>
       </div>
 
       <div className="space-y-6">
@@ -192,44 +198,47 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
             Availability Type *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <button
+            <Button
               type="button"
               onClick={() => handleAvailabilityTypeChange('all_days')}
-              className={`p-4 border-2 rounded-lg text-left transition-all ${
+              variant={formData.availability.type === 'all_days' ? 'default' : 'outline'}
+              className={`p-4 h-auto justify-start text-left ${
                 formData.availability.type === 'all_days'
-                  ? 'border-teal-600 bg-teal-50 text-teal-900'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-900'
+                  ? 'border-primary-600 bg-primary-50 text-primary-900'
+                  : ''
               }`}
             >
               <div className="font-medium">All Days</div>
               <div className="text-xs text-gray-600 mt-1">Available every day</div>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               onClick={() => handleAvailabilityTypeChange('recurring')}
-              className={`p-4 border-2 rounded-lg text-left transition-all ${
+              variant={formData.availability.type === 'recurring' ? 'default' : 'outline'}
+              className={`p-4 h-auto justify-start text-left ${
                 formData.availability.type === 'recurring'
-                  ? 'border-teal-600 bg-teal-50 text-teal-900'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-900'
+                  ? 'border-primary-600 bg-primary-50 text-primary-900'
+                  : ''
               }`}
             >
               <div className="font-medium">Recurring</div>
               <div className="text-xs text-gray-600 mt-1">Weekly schedule</div>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               onClick={() => handleAvailabilityTypeChange('specific')}
-              className={`p-4 border-2 rounded-lg text-left transition-all ${
+              variant={formData.availability.type === 'specific' ? 'default' : 'outline'}
+              className={`p-4 h-auto justify-start text-left ${
                 formData.availability.type === 'specific'
-                  ? 'border-teal-600 bg-teal-50 text-teal-900'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-900'
+                  ? 'border-primary-600 bg-primary-50 text-primary-900'
+                  : ''
               }`}
             >
               <div className="font-medium">Specific Dates</div>
               <div className="text-xs text-gray-600 mt-1">One-time dates</div>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -243,19 +252,20 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
               {DAYS_OF_WEEK.map(day => {
                 const isSelected = formData.availability.recurring?.daysOfWeek?.includes(day.value);
                 return (
-                  <button
+                  <Button
                     key={day.value}
                     type="button"
                     onClick={() => toggleDayOfWeek(day.value)}
-                    className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                    variant={isSelected ? "default" : "outline"}
+                    className={`p-3 h-auto ${
                       isSelected
-                        ? 'border-teal-600 bg-teal-100 text-teal-900'
-                        : 'border-gray-200 hover:border-gray-300 text-gray-900'
+                        ? 'border-primary-600 bg-primary-100 text-primary-900'
+                        : ''
                     }`}
                   >
                     {isSelected && <CheckCircle className="w-4 h-4 inline mr-1" />}
                     {day.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -268,20 +278,18 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Start Time</label>
-                  <input
+                  <Input
                     type="time"
                     value={formData.availability.recurring?.timeSlot?.startTime || ''}
                     onChange={(e) => updateRecurringTimeSlot('startTime', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">End Time</label>
-                  <input
+                  <Input
                     type="time"
                     value={formData.availability.recurring?.timeSlot?.endTime || ''}
                     onChange={(e) => updateRecurringTimeSlot('endTime', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
                   />
                 </div>
               </div>
@@ -322,28 +330,30 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
                     <div className="flex items-center gap-2">
                       {/* Edit Time Slot for this date */}
                       <div className="flex gap-1">
-                        <input
+                        <Input
                           type="time"
                           value={item.timeSlot?.startTime || ''}
                           onChange={(e) => updateSpecificDateTimeSlot(index, 'startTime', e.target.value)}
-                          className="w-24 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                          className="w-24 text-xs"
                           placeholder="Start"
                         />
-                        <input
+                        <Input
                           type="time"
                           value={item.timeSlot?.endTime || ''}
                           onChange={(e) => updateSpecificDateTimeSlot(index, 'endTime', e.target.value)}
-                          className="w-24 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                          className="w-24 text-xs"
                           placeholder="End"
                         />
                       </div>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => removeSpecificDate(index)}
+                        variant="ghost"
+                        size="icon"
                         className="text-red-500 hover:text-red-700"
                       >
                         <X className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -355,42 +365,39 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={newSpecificDate}
                     onChange={(e) => setNewSpecificDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">Start Time (Optional)</label>
-                  <input
+                  <Input
                     type="time"
                     value={newSpecificTimeSlot.startTime}
                     onChange={(e) => setNewSpecificTimeSlot(prev => ({ ...prev, startTime: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 mb-1">End Time (Optional)</label>
-                  <input
+                  <Input
                     type="time"
                     value={newSpecificTimeSlot.endTime}
                     onChange={(e) => setNewSpecificTimeSlot(prev => ({ ...prev, endTime: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
                   />
                 </div>
                 <div className="flex items-end">
-                  <button
+                  <Button
                     type="button"
                     onClick={addSpecificDate}
                     disabled={!newSpecificDate}
-                    className="w-full flex items-center justify-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Date
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -405,12 +412,14 @@ export default function Step4Schedule({ data, onSubmit, isLoading, isValid }: St
 
         {/* All Days - No additional configuration needed */}
         {formData.availability.type === 'all_days' && (
-          <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-            <p className="text-sm text-teal-800">
-              <strong>All Days:</strong> Your tour is available for booking on all days. 
-              Travelers can book for any date.
-            </p>
-          </div>
+          <Card className="bg-primary-50 border-primary-200">
+            <CardContent className="p-4">
+              <p className="text-sm text-primary-800">
+                <strong>All Days:</strong> Your tour is available for booking on all days. 
+                Travelers can book for any date.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

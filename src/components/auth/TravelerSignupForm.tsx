@@ -4,11 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { apiService } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import OtpVerification from './OtpVerification';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TravelerSignupForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -32,7 +40,7 @@ export default function TravelerSignupForm() {
         setShowOtpVerification(true);
       }
     } catch (error) {
-      // Error handling is now done by the API service with toaster
+      // Error handling is done by the API service with toaster
     } finally {
       setIsLoading(false);
     }
@@ -40,6 +48,38 @@ export default function TravelerSignupForm() {
 
   const handleBackToSignup = () => {
     setShowOtpVerification(false);
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await apiService.googleAuthTraveler(credentialResponse.credential);
+      
+      if (response.success && response.data?.token && response.data) {
+        const userData = {
+          id: response.data.id,
+          email: response.data.email,
+          firstName: response.data.firstName,
+          lastName: response.data.lastName,
+          userType: 'traveler' as const,
+          city: response.data.city,
+          mobile: response.data.mobile,
+        };
+        
+        login(userData, response.data.token);
+        router.push('/');
+      }
+    } catch (error) {
+      // Error handling is done by API service
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    // Error handling is done by API service
   };
 
   if (showOtpVerification) {
@@ -55,166 +95,170 @@ export default function TravelerSignupForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Traveler Account</h1>
-        <p className="text-gray-600 mb-8">
-          Already have an account?{' '}
-          <Link href="/auth/traveler/login" className="text-primary-600 hover:text-primary-700 font-medium">
-            Login
-          </Link>
-        </p>
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
+          <CardDescription>
+            Already have an account?{' '}
+            <Link href="/auth/traveler/login" className="text-primary-600 hover:text-primary-700 font-medium">
+              Log in
+            </Link>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    placeholder="John"
+                    className="pl-10"
+                    required
+                    suppressHydrationWarning
+                  />
+                </div>
+              </div>
 
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Firstname*
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                  required
-                  suppressHydrationWarning
-                />
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    placeholder="Doe"
+                    className="pl-10"
+                    required
+                    suppressHydrationWarning
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Lastname*
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
               <div className="relative">
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                  required
-                  suppressHydrationWarning
-                />
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email address*
-            </label>
-            <div className="relative">
-                <input
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  placeholder="you@example.com"
+                  className="pl-10"
                   required
                   suppressHydrationWarning
                 />
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password*
-            </label>
-            <div className="relative">
-                <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  placeholder="Create a password"
+                  className="pl-10 pr-10"
                   required
                   suppressHydrationWarning
                 />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                suppressHydrationWarning
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  suppressHydrationWarning
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mobile Number
-            </label>
-            <div className="relative">
-                <input
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number (Optional)</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="mobile"
                   type="tel"
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  placeholder="+91 1234567890"
+                  className="pl-10"
                   suppressHydrationWarning
                 />
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              City
-            </label>
-            <div className="relative">
-                <input
+            <div className="space-y-2">
+              <Label htmlFor="city">City (Optional)</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="city"
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  placeholder="Mumbai"
+                  className="pl-10"
                   suppressHydrationWarning
                 />
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            suppressHydrationWarning
-          >
-            {isLoading ? 'Creating Account...' : 'Sign up'}
-          </button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+              suppressHydrationWarning
+            >
+              {isLoading ? 'Creating Account...' : 'Sign up'}
+            </Button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or Continue with</span>
-            </div>
-          </div>
 
-          <button
-            type="button"
-            className="w-full border border-primary-300 text-primary-600 py-3 px-6 rounded-lg hover:bg-primary-50 transition-colors font-semibold flex items-center justify-center"
-          >
-            <span className="mr-2">G</span>
-            SignUp with Google
-          </button>
+            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+              <div className="w-full [&>div]:w-full [&>div>div]:w-full [&>div>div]:min-h-[40px] [&>div>div]:rounded-md [&>div>div]:border [&>div>div]:border-input [&>div>div]:bg-background [&>div>div]:shadow-sm [&>div>div]:transition-colors [&>div>div:hover]:bg-accent [&>div>div:hover]:text-accent-foreground">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  theme="outline"
+                  size="large"
+                  text="signup_with"
+                  shape="rectangular"
+                  logo_alignment="left"
+                />
+              </div>
+            )}
 
-          <p className="text-center text-gray-600">
-            Looking to guide travelers?{' '}
-            <Link href="/auth/guider/signup" className="text-primary-600 hover:text-primary-700 font-medium">
-              Become a guide
-            </Link>
-          </p>
-        </form>
-      </div>
+            <p className="text-center text-sm text-muted-foreground">
+              Looking to guide travelers?{' '}
+              <Link href="/auth/guider/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                Become a guide
+              </Link>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-

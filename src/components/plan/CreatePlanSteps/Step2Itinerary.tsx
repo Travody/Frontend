@@ -3,6 +3,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, X, Upload, Image } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heading } from '@/components/ui/heading';
 
 interface Step2ItineraryProps {
   data: any;
@@ -181,7 +194,7 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
         
         return (
           <div key={day} className="border border-gray-200 rounded-lg p-4 mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Day {day}</h3>
+            <Heading as="h3" variant="subsection" className="mb-3">Day {day}</Heading>
             
             {/* Existing items list */}
             {items.length > 0 && (
@@ -189,13 +202,15 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
                 {items.map((item: string, index: number) => (
                   <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                     <span className="text-sm text-gray-900">{item}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeItineraryItem(dayKey, index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <Button
+                    type="button"
+                    onClick={() => removeItineraryItem(dayKey, index)}
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                   </div>
                 ))}
               </div>
@@ -203,7 +218,7 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
 
             {/* Add new item */}
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 value={newItemInputs[dayKey] || ''}
                 onChange={(e) => setNewItemInputs(prev => ({ ...prev, [dayKey]: e.target.value }))}
@@ -214,15 +229,15 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
                   }
                 }}
                 placeholder="Add itinerary item (e.g., Visit Amber Fort, Explore City Palace)"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="flex-1"
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => addItineraryItem(dayKey)}
-                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+                size="icon"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -244,13 +259,15 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
               {items.map((item: string, index: number) => (
                 <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                   <span className="text-sm text-gray-900">{item}</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => removeItineraryItem(hourKey, index)}
+                    variant="ghost"
+                    size="icon"
                     className="text-red-500 hover:text-red-700"
                   >
                     <X className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -258,7 +275,7 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
 
           {/* Add new item */}
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={newItemInputs[hourKey] || ''}
               onChange={(e) => setNewItemInputs(prev => ({ ...prev, [hourKey]: e.target.value }))}
@@ -269,15 +286,15 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
                 }
               }}
               placeholder="Add itinerary item (e.g., Visit Amber Fort, Explore City Palace)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+              className="flex-1"
             />
-            <button
+            <Button
               type="button"
               onClick={() => addItineraryItem(hourKey)}
-              className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+              size="icon"
             >
               <Plus className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       );
@@ -287,8 +304,8 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Itinerary & Media</h2>
-        <p className="text-gray-600">
+        <Heading as="h2" variant="section" className="mb-2">Itinerary & Media</Heading>
+        <p className="text-muted-foreground">
           Set tour duration and create your itinerary list with places and activities
         </p>
       </div>
@@ -309,13 +326,12 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
               <Clock className="w-4 h-4 inline mr-1" />
               Duration Value *
             </label>
-            <input
+            <Input
               type="number"
               min="1"
               max={formData.duration.unit === 'hours' ? 168 : 365}
               value={formData.duration.value}
               onChange={(e) => handleDurationChange('value', parseInt(e.target.value) || 1)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
               required
             />
           </div>
@@ -324,15 +340,19 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Duration Unit *
             </label>
-            <select
+            <Select
               value={formData.duration.unit}
-              onChange={(e) => handleDurationChange('unit', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+              onValueChange={(value) => handleDurationChange('unit', value)}
               required
             >
-              <option value="hours">Hours</option>
-              <option value="days">Days</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="hours">Hours</SelectItem>
+                <SelectItem value="days">Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -377,12 +397,17 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
               className="hidden"
               id="media-upload"
             />
-            <label
-              htmlFor="media-upload"
-              className="inline-block px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 cursor-pointer text-sm"
+            <Button
+              asChild
+              type="button"
             >
-              {uploading ? 'Uploading...' : 'Select Files'}
-            </label>
+              <label
+                htmlFor="media-upload"
+                className="cursor-pointer"
+              >
+                {uploading ? 'Uploading...' : 'Select Files'}
+              </label>
+            </Button>
           </div>
 
           {formData.gallery.length > 0 && (
@@ -396,13 +421,15 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => removeMedia(index)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>

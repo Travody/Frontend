@@ -20,7 +20,7 @@ export default function AppLayout({
   const { user, isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       {showHeader && (
         <Header 
           user={isAuthenticated && user ? {
@@ -33,7 +33,7 @@ export default function AppLayout({
         />
       )}
       
-      <main className={`flex-1 ${showHeader ? 'pt-16' : ''}`}>
+      <main className="flex-1">
         {children}
       </main>
       

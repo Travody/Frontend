@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FileText, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Heading } from '@/components/ui/heading';
 
 interface Step7PoliciesProps {
   data: any;
@@ -189,137 +194,140 @@ Environmental Responsibility:
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Policies & Terms</h2>
-        <p className="text-gray-600">Set clear policies and terms for your tour</p>
+        <Heading as="h2" variant="section" className="mb-2">Policies & Terms</Heading>
+        <p className="text-muted-foreground">Set clear policies and terms for your tour</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Cancellation Policy */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label>
             <Shield className="w-4 h-4 inline mr-1" />
             Cancellation Policy
-          </label>
+          </Label>
           
           <div className="mb-3">
             <div className="flex space-x-2">
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, cancellation: 'standard' }));
                   applyTemplate('cancellation');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Standard Policy
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, cancellation: 'flexible' }));
                   applyTemplate('cancellation');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Flexible Policy
-              </button>
+              </Button>
             </div>
           </div>
           
-          <textarea
+          <Textarea
             value={formData.cancellationPolicy}
             onChange={(e) => handleInputChange('cancellationPolicy', e.target.value)}
             rows={8}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
             placeholder="Define your cancellation policy..."
           />
         </div>
 
         {/* Terms and Conditions */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label>
             <FileText className="w-4 h-4 inline mr-1" />
             Terms and Conditions
-          </label>
+          </Label>
           
           <div className="mb-3">
             <div className="flex space-x-2">
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, terms: 'standard' }));
                   applyTemplate('terms');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Standard Terms
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, terms: 'comprehensive' }));
                   applyTemplate('terms');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Comprehensive Terms
-              </button>
+              </Button>
             </div>
           </div>
           
-          <textarea
+          <Textarea
             value={formData.termsAndConditions}
             onChange={(e) => handleInputChange('termsAndConditions', e.target.value)}
             rows={12}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
             placeholder="Define your terms and conditions..."
           />
         </div>
 
         {/* Special Instructions */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label>
             <AlertTriangle className="w-4 h-4 inline mr-1" />
             Special Instructions
-          </label>
+          </Label>
           
           <div className="mb-3">
             <div className="flex space-x-2">
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, instructions: 'standard' }));
                   applyTemplate('instructions');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Standard Instructions
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => {
                   setPolicyTemplates(prev => ({ ...prev, instructions: 'detailed' }));
                   applyTemplate('instructions');
                 }}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                variant="outline"
+                size="sm"
               >
                 Detailed Instructions
-              </button>
+              </Button>
             </div>
           </div>
           
-          <textarea
+          <Textarea
             value={formData.specialInstructions}
             onChange={(e) => handleInputChange('specialInstructions', e.target.value)}
             rows={8}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
             placeholder="Provide special instructions for participants..."
           />
         </div>
 
         {/* Policy Tips */}
         <div className="bg-yellow-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Policy Guidelines</h3>
+          <Heading as="h3" variant="subsection" className="mb-4">Policy Guidelines</Heading>
           
           <div className="space-y-3">
             <div className="flex items-start">

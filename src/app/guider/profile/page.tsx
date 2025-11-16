@@ -8,6 +8,18 @@ import AppLayout from '@/components/layout/AppLayout';
 import { apiService } from '@/lib/api';
 import { tourTypes } from '@/lib/tour-types';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Container } from '@/components/ui/container';
+import { Section } from '@/components/ui/section';
+import { LoadingState } from '@/components/ui/loading-state';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
 
 interface GuiderProfileData {
   _id: string;
@@ -166,9 +178,9 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
         <div className="flex flex-wrap gap-2">
           {selectedLanguages.length > 0 ? (
             selectedLanguages.map((lang, idx) => (
-              <span key={idx} className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm">
+              <Badge key={idx} variant="secondary">
                 {lang}
-              </span>
+              </Badge>
             ))
           ) : (
             <p className="text-gray-500">Not set</p>
@@ -191,13 +203,13 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
           {selectedLanguages.map((lang: string) => (
             <div
               key={lang}
-              className="flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
+                  className="flex items-center gap-1"
             >
               <span>{lang}</span>
               <button
                 type="button"
                 onClick={() => removeLanguage(lang)}
-                className="text-teal-700 hover:text-teal-900"
+                className="text-primary-700 hover:text-primary-900"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -222,7 +234,7 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
             }}
             onFocus={() => setIsDropdownOpen(true)}
             placeholder="Search and select languages..."
-            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 bg-white"
+            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
           />
           <button
             type="button"
@@ -243,7 +255,7 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
                     key={lang}
                     type="button"
                     onClick={() => addLanguage(lang)}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:outline-none"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-900 focus:bg-primary-50 focus:outline-none"
                   >
                     {lang}
                   </button>
@@ -254,7 +266,7 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
                 <button
                   type="button"
                   onClick={() => addLanguage(languageSearch.trim())}
-                  className="w-full text-left px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 focus:bg-teal-50 focus:outline-none flex items-center gap-2"
+                  className="w-full text-left px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 focus:bg-primary-50 focus:outline-none flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Add '{languageSearch.trim()}'
@@ -572,16 +584,16 @@ function GuiderProfileContent() {
     return (
       <div className="flex justify-end mb-4">
         {!isEditing ? (
-          <button
+          <Button
             onClick={() => toggleEditMode(tab)}
-            className="flex items-center gap-2 px-4 py-2 text-teal-600 border border-teal-600 rounded-lg hover:bg-teal-50 transition-colors font-medium"
+            variant="outline"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4 mr-2" />
             Edit
-          </button>
+          </Button>
         ) : (
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => {
                 toggleEditMode(tab);
                 // Reset form data to original values
@@ -642,11 +654,11 @@ function GuiderProfileContent() {
                   setOtpSent(false);
                 }
               }}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              variant="outline"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 if (tab === 'account') {
                   handleSubmitAccount();
@@ -655,20 +667,19 @@ function GuiderProfileContent() {
                 }
               }}
               disabled={saving || otpLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving || otpLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4 mr-2" />
                   Save
                 </>
               )}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -678,12 +689,7 @@ function GuiderProfileContent() {
   if (isLoading || loading) {
     return (
       <AppLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
-          </div>
-        </div>
+        <LoadingState message="Loading profile..." />
       </AppLayout>
     );
   }
@@ -710,11 +716,10 @@ function GuiderProfileContent() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Showcase Name</label>
             {isEditing ? (
-              <input
+              <Input
                 type="text"
                 value={formData.showcaseName || ''}
                 onChange={(e) => handleInputChange('showcaseName', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
                 required
               />
             ) : (
@@ -730,7 +735,7 @@ function GuiderProfileContent() {
                 type="text"
                 value={formData.fullName || ''}
                 onChange={(e) => handleInputChange('fullName', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -745,7 +750,7 @@ function GuiderProfileContent() {
                 type="text"
                 value={formData.city || ''}
                 onChange={(e) => handleInputChange('city', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -760,7 +765,7 @@ function GuiderProfileContent() {
                 type="text"
                 value={formData.education || ''}
                 onChange={(e) => handleInputChange('education', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -778,7 +783,7 @@ function GuiderProfileContent() {
                 onChange={(e) => handleInputChange('overview', e.target.value)}
                 maxLength={200}
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
               <p className="text-sm text-gray-500 mt-1">{formData.overview?.length || 0}/200</p>
             </>
@@ -814,12 +819,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="Add an award or achievement"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('awards', 'newAward')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -876,7 +881,7 @@ function GuiderProfileContent() {
                 type="text"
                 value={formData.companyName || ''}
                 onChange={(e) => handleInputChange('companyName', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -894,7 +899,7 @@ function GuiderProfileContent() {
                 type="date"
                 value={formData.foundingDate || ''}
                 onChange={(e) => handleInputChange('foundingDate', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -915,7 +920,7 @@ function GuiderProfileContent() {
                 value={formData.websiteUrl || ''}
                 onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
                 placeholder="https://example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               profileData?.businessInfo?.websiteUrl ? (
@@ -923,7 +928,7 @@ function GuiderProfileContent() {
                   href={profileData.businessInfo.websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-teal-600 hover:text-teal-700 bg-gray-50 p-3 rounded-lg block break-all"
+                  className="text-primary-600 hover:text-primary-700 bg-gray-50 p-3 rounded-lg block break-all"
                 >
                   {profileData.businessInfo.websiteUrl}
                 </a>
@@ -943,7 +948,7 @@ function GuiderProfileContent() {
                 value={formData.socialMediaProfile || ''}
                 onChange={(e) => handleInputChange('socialMediaProfile', e.target.value)}
                 placeholder="https://instagram.com/yourprofile"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               profileData?.businessInfo?.socialMediaProfile ? (
@@ -951,7 +956,7 @@ function GuiderProfileContent() {
                   href={profileData.businessInfo.socialMediaProfile}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-teal-600 hover:text-teal-700 bg-gray-50 p-3 rounded-lg block break-all"
+                  className="text-primary-600 hover:text-primary-700 bg-gray-50 p-3 rounded-lg block break-all"
                 >
                   {profileData.businessInfo.socialMediaProfile}
                 </a>
@@ -968,7 +973,7 @@ function GuiderProfileContent() {
                     type="checkbox"
                     checked={formData.hasGSTNumber || false}
                     onChange={(e) => handleInputChange('hasGSTNumber', e.target.checked)}
-                    className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   <span className="text-sm font-medium text-gray-700">Has GST Number</span>
                 </>
@@ -988,7 +993,7 @@ function GuiderProfileContent() {
                   value={formData.gstNumber || ''}
                   onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                   placeholder="22ABCDE1234F1Z5"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -1012,12 +1017,12 @@ function GuiderProfileContent() {
         {(profileData?.tourGuideInfo?.rating || profileData?.tourGuideInfo?.totalReviews || profileData?.tourGuideInfo?.totalTours) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {profileData.tourGuideInfo.rating && (
-              <div className="bg-teal-50 p-4 rounded-lg">
+              <div className="bg-primary-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-5 h-5 text-teal-600" />
+                  <Star className="w-5 h-5 text-primary-600" />
                   <label className="text-sm font-medium text-gray-700">Rating</label>
                 </div>
-                <p className="text-2xl font-bold text-teal-600">{profileData.tourGuideInfo.rating}</p>
+                <p className="text-2xl font-bold text-primary-600">{profileData.tourGuideInfo.rating}</p>
               </div>
             )}
             {profileData.tourGuideInfo.totalReviews && (
@@ -1105,12 +1110,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="Add a specialization"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('specializations', 'newSpecialization')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1170,12 +1175,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="Add a certification"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('certifications', 'newCertification')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1228,7 +1233,7 @@ function GuiderProfileContent() {
                 value={formData.responseTime || ''}
                 onChange={(e) => handleInputChange('responseTime', e.target.value)}
                 placeholder="e.g., 30"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -1244,7 +1249,7 @@ function GuiderProfileContent() {
                 value={formData.cancellationPolicy || ''}
                 onChange={(e) => handleInputChange('cancellationPolicy', e.target.value)}
                 placeholder="e.g., Free cancellation up to 24 hours"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -1271,12 +1276,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="e.g., Wheelchair accessible"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('accessibility', 'newAccessibility')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1325,7 +1330,7 @@ function GuiderProfileContent() {
               onChange={(e) => handleInputChange('aboutMe', e.target.value)}
               rows={4}
               placeholder="Tell us about yourself and your guiding experience..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
             />
           ) : (
             <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
@@ -1343,7 +1348,7 @@ function GuiderProfileContent() {
               onChange={(e) => handleInputChange('whyChooseMe', e.target.value)}
               rows={4}
               placeholder="What makes you unique as a guide..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
             />
           ) : (
             <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
@@ -1371,7 +1376,7 @@ function GuiderProfileContent() {
                     type="checkbox"
                     checked={formData.hasVehicle || false}
                     onChange={(e) => handleInputChange('hasVehicle', e.target.checked)}
-                    className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                     <Car className="w-4 h-4" />
@@ -1395,7 +1400,7 @@ function GuiderProfileContent() {
                   value={formData.vehicleDescription || ''}
                   onChange={(e) => handleInputChange('vehicleDescription', e.target.value)}
                   placeholder="e.g., Toyota Innova, up to 5 seats"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -1415,7 +1420,7 @@ function GuiderProfileContent() {
                   type="checkbox"
                   checked={formData.isExperienced || false}
                   onChange={(e) => handleInputChange('isExperienced', e.target.checked)}
-                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                 />
                 <span className="text-sm font-medium text-gray-700">Is Experienced Guide</span>
               </>
@@ -1444,12 +1449,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="https://example.com/image.jpg"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('gallery', 'newGalleryUrl')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1458,7 +1463,7 @@ function GuiderProfileContent() {
                 <div className="space-y-2 mt-3">
                   {formData.gallery.map((url: string, idx: number) => (
                     <div key={idx} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center justify-between">
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 truncate flex-1 mr-2">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 truncate flex-1 mr-2">
                         {url}
                       </a>
                       <button
@@ -1480,7 +1485,7 @@ function GuiderProfileContent() {
             <div className="space-y-2">
               {profileData?.tourGuideInfo?.gallery && profileData.tourGuideInfo.gallery.length > 0 ? (
                 profileData.tourGuideInfo.gallery.map((url, idx) => (
-                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 bg-gray-50 p-3 rounded-lg block break-all">
+                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 bg-gray-50 p-3 rounded-lg block break-all">
                     {url}
                   </a>
                 ))
@@ -1508,12 +1513,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="Add a highlight"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('highlights', 'newHighlight')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1570,7 +1575,7 @@ function GuiderProfileContent() {
                     onClick={() => handleInputChange('availabilitySchedule', { type: 'all_days' })}
                     className={`p-4 border-2 rounded-lg text-left transition-all ${
                       formData.availabilitySchedule?.type === 'all_days'
-                        ? 'border-teal-600 bg-teal-50 text-teal-900'
+                        ? 'border-primary-600 bg-primary-50 text-primary-900'
                         : 'border-gray-200 hover:border-gray-300 text-gray-900'
                     }`}
                   >
@@ -1586,7 +1591,7 @@ function GuiderProfileContent() {
                     })}
                     className={`p-4 border-2 rounded-lg text-left transition-all ${
                       formData.availabilitySchedule?.type === 'recurring'
-                        ? 'border-teal-600 bg-teal-50 text-teal-900'
+                        ? 'border-primary-600 bg-primary-50 text-primary-900'
                         : 'border-gray-200 hover:border-gray-300 text-gray-900'
                     }`}
                   >
@@ -1623,7 +1628,7 @@ function GuiderProfileContent() {
                           }}
                           className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
                             isSelected
-                              ? 'border-teal-600 bg-teal-100 text-teal-900'
+                              ? 'border-primary-600 bg-primary-100 text-primary-900'
                               : 'border-gray-200 hover:border-gray-300 text-gray-900'
                           }`}
                         >
@@ -1654,7 +1659,7 @@ function GuiderProfileContent() {
                               }
                             }
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900"
                         />
                       </div>
                       <div>
@@ -1673,7 +1678,7 @@ function GuiderProfileContent() {
                               }
                             }
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900"
                         />
                       </div>
                     </div>
@@ -1683,8 +1688,8 @@ function GuiderProfileContent() {
 
               {/* All Days - No additional configuration needed */}
               {formData.availabilitySchedule?.type === 'all_days' && (
-                <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-                  <p className="text-sm text-teal-800">
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                  <p className="text-sm text-primary-800">
                     <strong>All Days:</strong> You are available for booking on all days. 
                     Travelers can book tours for any date.
                   </p>
@@ -1706,7 +1711,7 @@ function GuiderProfileContent() {
                           <p className="text-sm text-gray-700 mb-1">Days:</p>
                           <div className="flex flex-wrap gap-2">
                             {profileData.tourGuideInfo.availabilitySchedule.recurring.daysOfWeek.map((day: string) => (
-                              <span key={day} className="px-2 py-1 bg-teal-100 text-teal-800 rounded text-sm">
+                              <span key={day} className="px-2 py-1 bg-primary-100 text-primary-800 rounded text-sm">
                                 {DAYS_OF_WEEK.find(d => d.value === day)?.label || day}
                               </span>
                             ))}
@@ -1755,12 +1760,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="e.g., Rajasthan"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('indianStates', 'newIndianState')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1817,12 +1822,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="e.g., Jaipur"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('indianCities', 'newIndianCity')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1888,12 +1893,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="e.g., Rajasthani Thali"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('indianCuisines', 'newIndianCuisine')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -1950,12 +1955,12 @@ function GuiderProfileContent() {
                     }
                   }}
                   placeholder="e.g., Diwali"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => addArrayItem('indianFestivals', 'newIndianFestival')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Add
                 </button>
@@ -2138,7 +2143,7 @@ function GuiderProfileContent() {
         {showOtpVerification && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold mb-4">Verify OTP</h3>
+              <Heading as="h3" variant="subsection" className="mb-4">Verify OTP</Heading>
               <p className="text-sm text-gray-600 mb-4">
                 We've sent a 6-digit OTP to <strong>{newEmail}</strong>. Please enter it below.
               </p>
@@ -2150,7 +2155,7 @@ function GuiderProfileContent() {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-center text-2xl tracking-widest text-gray-900 bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-2xl tracking-widest text-gray-900 bg-white"
                 />
               </div>
               <div className="flex gap-2">
@@ -2167,7 +2172,7 @@ function GuiderProfileContent() {
                 <button
                   onClick={handleVerifyOtpAndUpdateEmail}
                   disabled={otp.length !== 6 || otpLoading}
-                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {otpLoading ? 'Verifying...' : 'Verify & Update'}
                 </button>
@@ -2176,7 +2181,7 @@ function GuiderProfileContent() {
                 <button
                   onClick={handleSendOtpForEmail}
                   disabled={otpLoading}
-                  className="mt-2 w-full text-sm text-teal-600 hover:text-teal-700 disabled:opacity-50"
+                  className="mt-2 w-full text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
                 >
                   Resend OTP
                 </button>
@@ -2201,13 +2206,13 @@ function GuiderProfileContent() {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="Enter new email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
                 {newEmail && newEmail !== (profileData?.email || user?.email) && (
                   <button
                     onClick={handleSendOtpForEmail}
                     disabled={!newEmail || otpLoading || !newEmail.includes('@')}
-                    className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {otpLoading ? 'Sending OTP...' : 'Send OTP to Verify'}
                   </button>
@@ -2240,7 +2245,7 @@ function GuiderProfileContent() {
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, ''))}
                 placeholder="Enter phone number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
@@ -2298,69 +2303,60 @@ function GuiderProfileContent() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gray-50 pt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Section variant="muted" className="py-8">
+        <Container>
           {/* Profile Header */}
-          <div className="bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg p-8 mb-8">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-white" />
+          <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+            <CardContent className="p-8">
+              <div className="flex items-center space-x-6">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                  <User className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <Heading as="h1" variant="page" className="mb-2">
+                    {profileData?.personalInfo?.showcaseName || (user && 'userType' in user && user.userType === 'guider' ? user.showcaseName : '') || 'Guider Profile'}
+                  </Heading>
+                  <p className="text-white/90">
+                    {profileData?.email || user?.email || ''}
+                  </p>
+                  {profileData?.accountVerified && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span className="text-sm">Verified Account</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold mb-2">
-                  {profileData?.personalInfo?.showcaseName || (user && 'userType' in user && user.userType === 'guider' ? user.showcaseName : '') || 'Guider Profile'}
-                </h1>
-                <p className="text-teal-100">
-                  {profileData?.email || user?.email || ''}
-                </p>
-                {profileData?.accountVerified && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-sm">Verified Account</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-sm border mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`
-                        flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                        ${
-                          activeTab === tab.id
-                            ? 'border-teal-500 text-teal-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+            <TabsList className="grid w-full grid-cols-5">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
 
           {/* Tab Content */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            {activeTab === 'personal' && renderPersonalInfo()}
-            {activeTab === 'business' && renderBusinessInfo()}
-            {activeTab === 'tour' && renderTourGuideInfo()}
-            {activeTab === 'india' && renderIndiaSpecificInfo()}
-            {activeTab === 'account' && renderAccountInfo()}
-          </div>
-        </div>
-      </div>
+          <Card>
+            <CardContent className="p-6">
+              {activeTab === 'personal' && renderPersonalInfo()}
+              {activeTab === 'business' && renderBusinessInfo()}
+              {activeTab === 'tour' && renderTourGuideInfo()}
+              {activeTab === 'india' && renderIndiaSpecificInfo()}
+              {activeTab === 'account' && renderAccountInfo()}
+            </CardContent>
+          </Card>
+        </Container>
+      </Section>
     </AppLayout>
   );
 }
@@ -2369,9 +2365,7 @@ export default function GuiderProfilePage() {
   return (
     <Suspense fallback={
       <AppLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-500"></div>
-        </div>
+        <LoadingState message="Loading profile..." />
       </AppLayout>
     }>
       <GuiderProfileContent />

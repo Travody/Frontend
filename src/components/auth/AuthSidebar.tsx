@@ -14,19 +14,19 @@ export default function AuthSidebar({ title, features, image }: AuthSidebarProps
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${image})` }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/80 via-primary-800/70 to-primary-700/60"></div>
       </div>
       
       <div className="relative z-10 flex flex-col justify-end p-12 text-white">
-        <h2 className="text-4xl font-bold mb-8 leading-tight">
+        <h2 className="text-4xl md:text-5xl font-bold mb-8 leading-tight">
           {title}
         </h2>
         
-        <div className="space-y-4">
+        <div className="space-y-5">
           {features.map((feature, index) => (
-            <div key={index} className="flex items-center">
-              <span className="text-2xl mr-4">{feature.icon}</span>
-              <span className="text-lg">{feature.text}</span>
+            <div key={index} className="flex items-start">
+              <span className="text-3xl mr-4 flex-shrink-0">{feature.icon}</span>
+              <span className="text-lg leading-relaxed">{feature.text}</span>
             </div>
           ))}
         </div>
@@ -34,4 +34,3 @@ export default function AuthSidebar({ title, features, image }: AuthSidebarProps
     </div>
   );
 }
-

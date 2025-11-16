@@ -2,9 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Play, Compass } from 'lucide-react';
+import { Search, Play, Compass, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import DateRangePicker from '@/components/ui/DateRangePicker';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Container } from '@/components/ui/container';
+import { Heading } from '@/components/ui/heading';
 
 export default function HeroSection() {
   const router = useRouter();
@@ -37,86 +42,95 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-[70vh] bg-gradient-to-r from-primary-600 to-primary-800">
-      {/* Background Image */}
+    <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
+      {/* Background Image with Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')"
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/70 via-primary-800/60 to-primary-700/50"></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-        <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-          Discover India with Local Experts
-        </h1>
-        <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl">
-          Connect, Explore, Experience - uncover places through those who truly know them.
-        </p>
-        
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <Link 
-            href="/explore"
-            className="inline-flex items-center px-8 py-4 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-semibold"
-          >
-            <Compass className="w-5 h-5 mr-2" />
-            Explore Tours
-          </Link>
-          <button 
-            className="inline-flex items-center px-8 py-4 bg-white text-primary-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-            suppressHydrationWarning
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Watch Demo
-          </button>
-        </div>
+      <Container className="relative z-10 py-20">
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+          <Heading as="h1" variant="page" className="text-white mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl">
+            Discover India with Local Experts
+          </Heading>
+          <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl leading-relaxed">
+            Connect, Explore, Experience - uncover places through those who truly know them.
+          </p>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-16">
+            <Link href="/explore">
+              <Button size="lg" className="h-12 px-8 text-base">
+                <Compass className="w-5 h-5 mr-2" />
+                Explore Tours
+              </Button>
+            </Link>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="h-12 px-8 text-base bg-white/10 border-white/20 text-white hover:bg-white/20"
+              suppressHydrationWarning
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Watch Demo
+            </Button>
+          </div>
 
-        {/* Search Form */}
-        <div className="w-full max-w-5xl">
-          <form onSubmit={(e) => handleSearch(e, 'tours')} className="bg-white rounded-lg shadow-lg p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Where to?</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Goa, Delhi, Bengaluru..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-gray-500 text-gray-900 bg-white"
-                    suppressHydrationWarning
+          {/* Search Form */}
+          <div className="w-full max-w-4xl">
+            <form onSubmit={(e) => handleSearch(e, 'tours')} className="bg-white rounded-xl shadow-2xl p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                    Where to?
+                  </Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      id="location"
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Goa, Delhi, Bengaluru..."
+                      className="pl-10 h-11"
+                      suppressHydrationWarning
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
+                    Date Range (Optional)
+                  </Label>
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={setDateRange}
+                    placeholder="Select date range"
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                </div>
+                
+                <div className="flex items-end">
+                  <Button 
+                    type="submit"
+                    size="lg"
+                    className="w-full h-11 text-base"
+                    suppressHydrationWarning
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Find Tours
+                  </Button>
                 </div>
               </div>
-              
-              <div className="relative">
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Date Range (Optional)</label>
-                 <DateRangePicker
-                   value={dateRange}
-                   onChange={setDateRange}
-                   placeholder="Select date range"
-                 />
-              </div>
-              
-              <div className="flex items-end">
-                <button 
-                  type="submit"
-                  className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold"
-                  suppressHydrationWarning
-                >
-                  Find Tours
-                </button>
-              </div>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
-

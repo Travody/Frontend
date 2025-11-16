@@ -5,9 +5,20 @@ import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone,
 import { useAuth } from '@/contexts/AuthContext';
 import { apiService, Booking, BookingStats } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { PromptDialog } from '@/components/ui/Dialog';
+import { PromptDialog } from '@/components/ui/prompt-dialog';
 import AppLayout from '@/components/layout/AppLayout';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Container } from '@/components/ui/container';
+import { Section } from '@/components/ui/section';
+import { LoadingState } from '@/components/ui/loading-state';
+import { Heading } from '@/components/ui/heading';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
+import { Separator } from '@/components/ui/separator';
 
 export default function GuiderBookingsDashboard() {
   const { token } = useAuth();
@@ -66,7 +77,7 @@ export default function GuiderBookingsDashboard() {
 
       if (response.success) {
         toast.success(`Booking ${currentDecision} successfully!`);
-        fetchDashboardData(); // Refresh data
+        fetchDashboardData();
       } else {
         toast.error(response.message || `Failed to ${currentDecision} booking`);
       }
@@ -92,32 +103,43 @@ export default function GuiderBookingsDashboard() {
 
   const formatPrice = (price: number, currency: string) => {
     const symbol = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency;
-    return `${symbol}${price}`;
+    return `${symbol}${price?.toLocaleString() || 0}`;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800';
+        return 'default';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'secondary';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
+        return 'destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'outline';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'pending':
+        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case 'cancelled':
+        return <XCircle className="w-5 h-5 text-red-600" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-600" />;
     }
   };
 
   const filteredBookings = bookings.filter(booking => {
     switch (activeTab) {
       case 'pending':
-        return booking.status.status === 'pending';
+        return booking.status?.status === 'pending';
       case 'confirmed':
-        return booking.status.status === 'confirmed';
+        return booking.status?.status === 'confirmed';
       case 'cancelled':
-        return booking.status.status === 'cancelled';
+        return booking.status?.status === 'cancelled';
       default:
         return true;
     }
@@ -126,291 +148,300 @@ export default function GuiderBookingsDashboard() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-500"></div>
-        </div>
+        <LoadingState message="Loading bookings..." />
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Section variant="muted" className="py-8">
+        <Container>
           {/* Back Navigation */}
           <div className="mb-6">
-            <Link
-              href="/guider/dashboard"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back to Dashboard
+            <Link href="/guider/dashboard">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
             </Link>
           </div>
 
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
-            <p className="mt-2 text-gray-600">Manage your tour bookings and confirmations</p>
-          </div>
+          <PageHeader
+            title="Booking Management"
+            description="Manage your tour bookings and confirmations"
+          />
 
           {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Total Bookings</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Bookings</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Confirmed</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats.confirmedBookings}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Confirmed</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.confirmedBookings}</p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-yellow-600" />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-3 bg-yellow-100 rounded-lg">
+                      <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Pending</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats.pendingBookings}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Pending</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.pendingBookings}</p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="w-6 h-6 text-purple-600" />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Users className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+                      <p className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue?.toLocaleString() || 0}</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                    <p className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue}</p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
           {/* Pending Confirmations Alert */}
           {pendingBookings.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
-              <div className="flex items-center">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
-                <div>
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    {pendingBookings.length} booking{pendingBookings.length > 1 ? 's' : ''} awaiting your confirmation
-                  </h3>
-                  <p className="text-sm text-yellow-700">
-                    Please review and confirm these bookings within 48 hours
-                  </p>
+            <Card className="mb-8 bg-yellow-50 border-yellow-200">
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
+                  <div>
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      {pendingBookings.length} booking{pendingBookings.length > 1 ? 's' : ''} awaiting your confirmation
+                    </h3>
+                    <p className="text-sm text-yellow-700">
+                      Please review and confirm these bookings within 48 hours
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-sm border mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8 px-6">
-              {[
-                { key: 'all', label: 'All Bookings', count: bookings.length },
-                { key: 'pending', label: 'Pending', count: bookings.filter(b => b.status.status === 'pending').length },
-                { key: 'confirmed', label: 'Confirmed', count: bookings.filter(b => b.status.status === 'confirmed').length },
-                { key: 'cancelled', label: 'Cancelled', count: bookings.filter(b => b.status.status === 'cancelled').length }
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.key
-                      ? 'border-teal-500 text-teal-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.label}
-                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === tab.key
-                      ? 'bg-teal-100 text-teal-600'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-              </nav>
-            </div>
-          </div>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4">
+              <TabsTrigger value="all">
+                All ({bookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending">
+                Pending ({bookings.filter(b => b.status?.status === 'pending').length})
+              </TabsTrigger>
+              <TabsTrigger value="confirmed">
+                Confirmed ({bookings.filter(b => b.status?.status === 'confirmed').length})
+              </TabsTrigger>
+              <TabsTrigger value="cancelled">
+                Cancelled ({bookings.filter(b => b.status?.status === 'cancelled').length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           {/* Bookings List */}
           <div className="space-y-4">
             {filteredBookings.length > 0 ? (
-            filteredBookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {typeof booking.planId === 'object' ? booking.planId.title : 'Plan Title'}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {typeof booking.planId === 'object' ? `${booking.planId.city}, ${booking.planId.state}` : 'Location'}
-                        </p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status.status)}`}>
-                        {booking.status.status}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        <span>{formatDate(booking.bookingDetails.date)}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="w-4 h-4 mr-2" />
-                        <span>{booking.bookingDetails.numberOfParticipants} people</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span>{formatPrice(booking.financial.totalAmount, booking.financial.currency)}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Mail className="w-4 h-4 mr-2" />
-                        <span>{booking.traveler.email}</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Traveler Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600">Name:</span>
-                          <span className="ml-2 font-medium text-gray-900">{booking.traveler.name}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Email:</span>
-                          <span className="ml-2 font-medium text-gray-900">{booking.traveler.email}</span>
-                        </div>
-                        {booking.preferences?.specialRequests && (
-                          <div className="md:col-span-2">
-                            <span className="text-gray-600">Special Requests:</span>
-                            <span className="ml-2 text-gray-900">{booking.preferences.specialRequests}</span>
-                          </div>
-                        )}
-                        {booking.traveler.emergencyContact && (
+              filteredBookings.map((booking) => (
+                <Card key={booking._id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      <div className="flex-1 space-y-4">
+                        <div className="flex items-start justify-between">
                           <div>
-                            <span className="text-gray-600">Emergency Contact:</span>
-                            <span className="ml-2 text-gray-900">{booking.traveler.emergencyContact}</span>
-                          </div>
-                        )}
-                        {booking.preferences?.dietaryRestrictions && (
-                          <div>
-                            <span className="text-gray-600">Dietary Restrictions:</span>
-                            <span className="ml-2 text-gray-900">{booking.preferences.dietaryRestrictions}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Phone Number - Only for Confirmed Bookings */}
-                    {booking.status.status === 'confirmed' && (
-                      <div className="mt-4 bg-teal-50 border-2 border-teal-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-teal-900 mb-3 flex items-center">
-                          <Phone className="w-5 h-5 mr-2" />
-                          Contact Details
-                        </h4>
-                        <div className="flex items-center">
-                          <Phone className="w-4 h-4 text-teal-600 mr-2" />
-                          <div>
-                            <span className="text-xs text-teal-700 font-medium block">Phone</span>
-                            <a 
-                              href={`tel:${booking.traveler.phone}`}
-                              className="text-teal-900 font-semibold hover:text-teal-700 hover:underline"
-                            >
-                              {booking.traveler.phone}
-                            </a>
+                            <Heading as="h3" variant="subsection" className="mb-1">
+                              {typeof booking.planId === 'object' && booking.planId ? booking.planId.title : 'Plan Title'}
+                            </Heading>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {typeof booking.planId === 'object' && booking.planId ? `${booking.planId.city}, ${booking.planId.state}` : 'Location'}
+                            </p>
+                            <Badge variant={getStatusVariant(booking.status?.status || 'unknown')}>
+                              {booking.status?.status || 'unknown'}
+                            </Badge>
                           </div>
                         </div>
-                      </div>
-                    )}
 
-                    {booking.status.guiderConfirmationMessage && (
-                      <div className="mt-4 bg-blue-50 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-1">Your Message</h4>
-                        <p className="text-blue-800 text-sm">{booking.status.guiderConfirmationMessage}</p>
-                      </div>
-                    )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            <span>{booking.bookingDetails?.date ? formatDate(booking.bookingDetails.date) : 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Users className="w-4 h-4 mr-2" />
+                            <span>{booking.bookingDetails?.numberOfParticipants || 0} people</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="w-4 h-4 mr-2" />
+                            <span>{booking.financial?.totalAmount && booking.financial?.currency ? formatPrice(booking.financial.totalAmount, booking.financial.currency) : 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Mail className="w-4 h-4 mr-2" />
+                            <span className="truncate">{booking.traveler?.email || 'N/A'}</span>
+                          </div>
+                        </div>
 
-                    {booking.cancellation?.reason && (
-                      <div className="mt-4 bg-red-50 rounded-lg p-4">
-                        <h4 className="font-medium text-red-900 mb-1">Cancellation Reason</h4>
-                        <p className="text-red-800 text-sm">{booking.cancellation.reason}</p>
-                      </div>
-                    )}
-                  </div>
+                        <Card className="bg-gray-50 border-gray-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-base">Traveler Details</CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="text-gray-600">Name: </span>
+                                <span className="font-medium text-gray-900">{booking.traveler?.name || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Email: </span>
+                                <span className="font-medium text-gray-900">{booking.traveler?.email || 'N/A'}</span>
+                              </div>
+                              {booking.preferences?.specialRequests && (
+                                <div className="md:col-span-2">
+                                  <span className="text-gray-600">Special Requests: </span>
+                                  <span className="text-gray-900">{booking.preferences.specialRequests}</span>
+                                </div>
+                              )}
+                              {booking.traveler?.emergencyContact && (
+                                <div>
+                                  <span className="text-gray-600">Emergency Contact: </span>
+                                  <span className="text-gray-900">{booking.traveler.emergencyContact}</span>
+                                </div>
+                              )}
+                              {booking.preferences?.dietaryRestrictions && (
+                                <div>
+                                  <span className="text-gray-600">Dietary Restrictions: </span>
+                                  <span className="text-gray-900">{booking.preferences.dietaryRestrictions}</span>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
 
-                  {/* Action Buttons */}
-                  {booking.status.status === 'pending' && (
-                    <div className="ml-6 flex flex-col space-y-2">
-                      <button
-                        onClick={() => {
-                          setCurrentBookingId(booking._id);
-                          setCurrentDecision('confirmed');
-                          setShowConfirmDialog(true);
-                        }}
-                        className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => {
-                          setCurrentBookingId(booking._id);
-                          setCurrentDecision('cancelled');
-                          setShowCancelDialog(true);
-                        }}
-                        className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Cancel
-                      </button>
+                        {/* Phone Number - Only for Confirmed Bookings */}
+                        {booking.status?.status === 'confirmed' && booking.traveler?.phone && (
+                          <Card className="bg-primary-50 border-primary-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base text-primary-900 flex items-center">
+                                <Phone className="w-5 h-5 mr-2" />
+                                Contact Details
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="flex items-center">
+                                <Phone className="w-4 h-4 text-primary-600 mr-2" />
+                                <div>
+                                  <span className="text-xs text-primary-700 font-medium block">Phone</span>
+                                  <a 
+                                    href={`tel:${booking.traveler.phone}`}
+                                    className="text-primary-900 font-semibold hover:text-primary-700 hover:underline"
+                                  >
+                                    {booking.traveler.phone}
+                                  </a>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {booking.status?.guiderConfirmationMessage && (
+                          <Card className="bg-blue-50 border-blue-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base text-blue-900">Your Message</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <p className="text-blue-800 text-sm">{booking.status?.guiderConfirmationMessage}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {booking.cancellation?.reason && (
+                          <Card className="bg-red-50 border-red-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base text-red-900">Cancellation Reason</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <p className="text-red-800 text-sm">{booking.cancellation?.reason}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      {booking.status?.status === 'pending' && (
+                        <div className="flex flex-col gap-2 lg:min-w-[180px]">
+                          <Button
+                            onClick={() => {
+                              setCurrentBookingId(booking._id);
+                              setCurrentDecision('confirmed');
+                              setShowConfirmDialog(true);
+                            }}
+                            className="w-full"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Confirm
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setCurrentBookingId(booking._id);
+                              setCurrentDecision('cancelled');
+                              setShowCancelDialog(true);
+                            }}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
-              <p className="text-gray-500">
-                {activeTab === 'all' 
-                  ? "You don't have any bookings yet. Create some amazing tours to start receiving bookings!"
-                  : `No ${activeTab} bookings found.`
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <EmptyState
+                icon={Calendar}
+                title="No bookings found"
+                description={
+                  activeTab === 'all' 
+                    ? "You don't have any bookings yet. Create some amazing tours to start receiving bookings!"
+                    : `No ${activeTab} bookings found.`
                 }
-              </p>
-            </div>
-          )}
+              />
+            )}
           </div>
-        </div>
-      </div>
+        </Container>
+      </Section>
 
       {/* Confirm Booking Dialog */}
       <PromptDialog
@@ -427,6 +458,7 @@ export default function GuiderBookingsDashboard() {
         confirmText="Confirm Booking"
         cancelText="Cancel"
         required={false}
+        multiline={true}
       />
 
       {/* Cancel Booking Dialog */}
@@ -444,6 +476,7 @@ export default function GuiderBookingsDashboard() {
         confirmText="Cancel Booking"
         cancelText="Keep Booking"
         required={true}
+        multiline={true}
       />
     </AppLayout>
   );

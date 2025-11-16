@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { DollarSign, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Heading } from '@/components/ui/heading';
 
 interface Step3PricingProps {
   data: any;
@@ -78,34 +89,34 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Pricing</h2>
-        <p className="text-gray-600">Set pricing and maximum group size</p>
+        <Heading as="h2" variant="section" className="mb-2">Pricing</Heading>
+        <p className="text-muted-foreground">Set pricing and maximum group size</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Price and Currency */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label>
               <DollarSign className="w-4 h-4 inline mr-1" />
               Price Per Person *
-            </label>
+            </Label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-500 text-sm">
                   {getCurrencySymbol(formData.pricing.currency)}
                 </span>
               </div>
-              <input
+              <Input
                 type="number"
                 min="0"
                 step="0.01"
                 value={formData.pricing.pricePerPerson || 0}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = parseFloat(e.target.value) || 0;
                   handleInputChange('pricePerPerson', value);
                 }}
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+                className="pl-8"
                 placeholder="0.00"
                 required
               />
@@ -113,37 +124,40 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label>
               Currency *
-            </label>
-            <select
+            </Label>
+            <Select
               value={formData.pricing.currency}
-              onChange={(e) => handleInputChange('currency', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+              onValueChange={(value: string) => handleInputChange('currency', value)}
               required
             >
-              {currencies.map((currency) => (
-                <option key={currency.code} value={currency.code}>
-                  {currency.symbol} {currency.name} ({currency.code})
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} {currency.name} ({currency.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Max Participants */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label>
             <Users className="w-4 h-4 inline mr-1" />
             Maximum Participants *
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             min="1"
             max="50"
             value={formData.pricing.maxParticipants}
-            onChange={(e) => handleInputChange('maxParticipants', parseInt(e.target.value) || 1)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('maxParticipants', parseInt(e.target.value) || 1)}
             required
           />
           <p className="mt-1 text-xs text-gray-500">
@@ -152,13 +166,15 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
         </div>
 
         {/* Price Preview */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600">
-            <strong>Pricing:</strong> {formatPrice(formData.pricing.pricePerPerson, formData.pricing.currency)} 
-            {' '}per person 
-            {' '}(Max {formData.pricing.maxParticipants} participants)
-          </p>
-        </div>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">
+              <strong>Pricing:</strong> {formatPrice(formData.pricing.pricePerPerson, formData.pricing.currency)} 
+              {' '}per person 
+              {' '}(Max {formData.pricing.maxParticipants} participants)
+            </p>
+          </CardContent>
+        </Card>
 
       </form>
     </div>

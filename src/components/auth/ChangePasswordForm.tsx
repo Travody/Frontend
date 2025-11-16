@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { apiService } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ChangePasswordFormProps {
   onSuccess?: () => void;
@@ -80,129 +84,138 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Change Password</h1>
-        <p className="text-gray-600 mb-8">
-          Enter your current password and choose a new one
-        </p>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Password*
-            </label>
-            <div className="relative">
-              <input
-                type={showCurrentPassword ? 'text' : 'password'}
-                value={formData.currentPassword}
-                onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                required
-              />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                {showCurrentPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-3xl">Change Password</CardTitle>
+          <CardDescription>
+            Enter your current password and choose a new one
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {error}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password*
-            </label>
-            <div className="relative">
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                value={formData.newPassword}
-                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                required
-                minLength={6}
-              />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                {showNewPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+              {success}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm New Password*
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                required
-                minLength={6}
-              />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="currentPassword">Current Password*</Label>
+              <div className="relative mt-2">
+                <Input
+                  id="currentPassword"
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={formData.currentPassword}
+                  onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                  className="pl-10 pr-12"
+                  required
+                />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400" />
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="flex space-x-4">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 bg-primary-500 text-white py-3 px-6 rounded-lg hover:bg-primary-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Changing...' : 'Change Password'}
-            </button>
-            
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+            <div>
+              <Label htmlFor="newPassword">New Password*</Label>
+              <div className="relative mt-2">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                  className="pl-10 pr-12"
+                  required
+                  minLength={6}
+                />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirm New Password*</Label>
+              <div className="relative mt-2">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="pl-10 pr-12"
+                  required
+                  minLength={6}
+                />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex space-x-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1"
+                size="lg"
               >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+                {isLoading ? 'Changing...' : 'Change Password'}
+              </Button>
+              
+              {onCancel && (
+                <Button
+                  type="button"
+                  onClick={onCancel}
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

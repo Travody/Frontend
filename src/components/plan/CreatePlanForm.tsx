@@ -6,6 +6,21 @@ import { usePlanCreation } from '@/hooks/usePlanCreation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, Save, Globe, Lock, MapPin, Clock, Users, Star, X, Maximize2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Container } from '@/components/ui/container';
+import { Section } from '@/components/ui/section';
+import { LoadingState } from '@/components/ui/loading-state';
+import { Heading } from '@/components/ui/heading';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Step Components
 import Step1BasicDetails from './CreatePlanSteps/Step1BasicDetails';
@@ -377,11 +392,11 @@ export default function CreatePlanForm() {
   return (
       <div className="bg-gray-50 rounded-lg border p-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-semibold text-gray-900">Plan Preview</h3>
+          <Heading as="h3" variant="card" className="text-xs">Plan Preview</Heading>
           {createdPlan && (
             <button
               onClick={() => setShowFullPreview(true)}
-              className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1"
+              className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
             >
               <Maximize2 className="w-3 h-3" />
               Full
@@ -434,7 +449,7 @@ export default function CreatePlanForm() {
           
           {((previewData as any).pricing?.pricePerPerson || (previewData as any).pricePerPerson) && (
             <div className="text-right">
-              <div className="text-xs font-bold text-teal-600">
+              <div className="text-xs font-bold text-primary-600">
                 {formatPrice(
                   (previewData as any).pricing?.pricePerPerson || (previewData as any).pricePerPerson || 0, 
                   (previewData as any).pricing?.currency || (previewData as any).currency || 'INR'
@@ -454,23 +469,17 @@ export default function CreatePlanForm() {
     const plan = { ...createdPlan, ...planData };
 
     return (
-      <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowFullPreview(false)} />
-        <div className="absolute inset-y-0 right-0 w-full max-w-4xl bg-white shadow-xl overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-            <h2 className="text-xl font-bold text-gray-900">Plan Preview</h2>
-            <button
-              onClick={() => setShowFullPreview(false)}
-              className="p-2 hover:bg-gray-100 rounded-full text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Plan Preview</DialogTitle>
+            <DialogDescription>Review your plan before publishing</DialogDescription>
+          </DialogHeader>
           
           <div className="p-6 space-y-6">
             {/* Plan Header */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{plan.title}</h1>
+              <Heading as="h1" variant="page" className="mb-2">{plan.title}</Heading>
               <div className="flex items-center text-gray-600 mb-2">
                 <MapPin className="w-5 h-5 mr-2" />
                 <span>{plan.city}, {plan.state}</span>
@@ -492,7 +501,7 @@ export default function CreatePlanForm() {
             </div>
 
             <div className="text-right">
-              <div className="text-3xl font-bold text-teal-600">
+              <div className="text-3xl font-bold text-primary-600">
                 {formatPrice(
                   (plan as any).pricing?.pricePerPerson || (plan as any).pricePerPerson || 0,
                   (plan as any).pricing?.currency || (plan as any).currency || 'INR'
@@ -505,9 +514,9 @@ export default function CreatePlanForm() {
             {plan.tourTypes && plan.tourTypes.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {plan.tourTypes.map((type) => (
-                  <span key={type} className="px-3 py-1 bg-teal-100 text-teal-800 text-sm rounded-full">
+                  <Badge key={type} variant="secondary">
                     {type}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             )}
@@ -515,7 +524,7 @@ export default function CreatePlanForm() {
             {/* Gallery */}
             {plan.gallery && plan.gallery.length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Photos</h2>
+                <Heading as="h2" variant="subsection" className="mb-4">Photos</Heading>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {plan.gallery.map((image, index) => (
                     <img
@@ -531,20 +540,20 @@ export default function CreatePlanForm() {
 
             {/* Description */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">About this tour</h2>
+              <Heading as="h2" variant="subsection" className="mb-4">About this tour</Heading>
               <p className="text-gray-700 leading-relaxed">{plan.description}</p>
             </div>
 
             {/* Itinerary */}
             {plan.itinerary && Object.keys(plan.itinerary).length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Itinerary</h2>
+                <Heading as="h2" variant="subsection" className="mb-4">Itinerary</Heading>
                 <div className="space-y-4">
                   {Object.entries(plan.itinerary).map(([key, items]: [string, any]) => {
                     const dayLabel = key === '0' ? 'Hourly Schedule' : `Day ${key}`;
                     return (
-                      <div key={key} className="border-l-4 border-teal-500 pl-4">
-                        <h3 className="font-semibold text-gray-900 mb-2">{dayLabel}</h3>
+                      <div key={key} className="border-l-4 border-primary-500 pl-4">
+                        <Heading as="h3" variant="subsection" className="mb-2">{dayLabel}</Heading>
                         <ul className="space-y-2">
                           {Array.isArray(items) && items.map((item: string, idx: number) => (
                             <li key={idx} className="flex items-start">
@@ -563,18 +572,18 @@ export default function CreatePlanForm() {
             {/* Availability/Schedule */}
             {plan.availability && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Availability</h2>
+                <Heading as="h2" variant="subsection" className="mb-4">Availability</Heading>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   {plan.availability.type === 'all_days' && (
                     <div className="flex items-center">
-                      <Clock className="w-5 h-5 text-teal-600 mr-2" />
+                      <Clock className="w-5 h-5 text-primary-600 mr-2" />
                       <span className="text-gray-700 font-medium">Available all days</span>
                     </div>
                   )}
                   {plan.availability.type === 'recurring' && plan.availability.recurring && (
                     <div>
                       <div className="flex items-center mb-2">
-                        <Clock className="w-5 h-5 text-teal-600 mr-2" />
+                        <Clock className="w-5 h-5 text-primary-600 mr-2" />
                         <span className="text-gray-700 font-medium">Recurring Schedule</span>
                       </div>
                       <div className="ml-7">
@@ -596,7 +605,7 @@ export default function CreatePlanForm() {
                   {plan.availability.type === 'specific' && plan.availability.specific && plan.availability.specific.length > 0 && (
                     <div>
                       <div className="flex items-center mb-2">
-                        <Clock className="w-5 h-5 text-teal-600 mr-2" />
+                        <Clock className="w-5 h-5 text-primary-600 mr-2" />
                         <span className="text-gray-700 font-medium">Specific Dates</span>
                       </div>
                       <div className="ml-7 space-y-1">
@@ -622,7 +631,7 @@ export default function CreatePlanForm() {
             {/* Highlights */}
             {plan.highlights && plan.highlights.length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Highlights</h2>
+                <Heading as="h2" variant="subsection" className="mb-4">Highlights</Heading>
                 <ul className="space-y-2">
                   {plan.highlights.map((highlight, index) => (
                     <li key={index} className="flex items-start">
@@ -639,7 +648,7 @@ export default function CreatePlanForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {plan.requirements && plan.requirements.length > 0 && (
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
+                    <Heading as="h2" variant="subsection" className="mb-4">Requirements</Heading>
                     <ul className="space-y-2">
                       {plan.requirements.map((requirement, index) => (
                         <li key={index} className="flex items-start">
@@ -656,9 +665,9 @@ export default function CreatePlanForm() {
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Languages Offered</h2>
                     <div className="flex flex-wrap gap-2">
                       {plan.languages.map((lang, index) => (
-                        <span key={index} className="px-3 py-1 bg-teal-100 text-teal-800 text-sm rounded-full">
+                        <Badge key={index} variant="secondary">
                           {lang}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -704,7 +713,7 @@ export default function CreatePlanForm() {
                 {plan.meetingPoint && (
                   <div className="mb-4">
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-teal-600" />
+                      <MapPin className="w-4 h-4 mr-2 text-primary-600" />
                       Meeting Point
                     </h3>
                     <p className="text-gray-700 ml-6">{plan.meetingPoint}</p>
@@ -719,7 +728,7 @@ export default function CreatePlanForm() {
                 {plan.vehicleDetails && (
                   <div className="mb-4">
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-teal-600" />
+                      <Users className="w-4 h-4 mr-2 text-primary-600" />
                       Vehicle Details
                     </h3>
                     <p className="text-gray-700 ml-6">{plan.vehicleDetails}</p>
@@ -779,20 +788,19 @@ export default function CreatePlanForm() {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     );
   };
 
   // Show loading state while loading plan in edit mode
   if (isEditMode && isLoadingPlan && !createdPlan) {
     return (
-      <div className="h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading plan data...</p>
-        </div>
-      </div>
+      <Section variant="muted" className="h-[calc(100vh-4rem)]">
+        <Container>
+          <LoadingState message="Loading plan data..." />
+        </Container>
+      </Section>
     );
   }
 
@@ -830,15 +838,15 @@ export default function CreatePlanForm() {
                         Published
                       </div>
                     ) : (
-                      <button
+                      <Button
                         onClick={handlePublish}
                         disabled={isSaving || !areAllStepsCompleted()}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         title={!areAllStepsCompleted() ? 'Complete all steps to publish' : 'Publish plan to make it visible to travelers'}
+                        size="sm"
                       >
                         <Globe className="w-4 h-4 mr-2" />
                         Publish Plan
-                      </button>
+                      </Button>
                     )}
                   </>
                 )}
@@ -870,7 +878,7 @@ export default function CreatePlanForm() {
                           onClick={() => goToStep(step.step)}
                           className={`w-full text-left p-2 rounded border transition-all ${
                             currentStep === step.step
-                              ? 'border-teal-500 bg-teal-50'
+                              ? 'border-primary-500 bg-primary-50'
                               : step.completed
                               ? 'border-green-300 bg-green-50 hover:border-green-400'
                               : 'border-gray-200 bg-white hover:border-gray-300'
@@ -879,7 +887,7 @@ export default function CreatePlanForm() {
                           <div className="flex items-center gap-2">
                             <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 text-xs ${
                               currentStep === step.step
-                                ? 'border-teal-500 bg-teal-500 text-white'
+                                ? 'border-primary-500 bg-primary-500 text-white'
                                 : step.completed
                                 ? 'border-green-500 bg-green-500 text-white'
                                 : 'border-gray-300 bg-white text-gray-500'
@@ -892,7 +900,7 @@ export default function CreatePlanForm() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`font-medium text-xs ${
-                                currentStep === step.step ? 'text-teal-700' : step.completed ? 'text-green-700' : 'text-gray-700'
+                                currentStep === step.step ? 'text-primary-700' : step.completed ? 'text-green-700' : 'text-gray-700'
                               }`}>
                                 {step.title}
                               </p>
@@ -920,7 +928,7 @@ export default function CreatePlanForm() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div 
-                        className="bg-teal-500 h-1.5 rounded-full transition-all"
+                        className="bg-primary-500 h-1.5 rounded-full transition-all"
                         style={{ width: `${(steps.filter(s => s.completed).length / steps.length) * 100}%` }}
                       />
                     </div>
@@ -955,46 +963,48 @@ export default function CreatePlanForm() {
             <div className="border-t border-gray-200 px-6 lg:px-8 py-3 bg-white flex-shrink-0">
               <div className="flex items-center justify-between gap-4">
                 {/* Left side - Save Draft */}
-                <button
+                <Button
                   onClick={handleSaveDraft}
                   disabled={isSaving || !isStepValid(1)}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="outline"
+                  size="sm"
                   title={!isStepValid(1) ? 'Complete Step 1 first to save as draft' : 'Save draft'}
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Save Draft
-                </button>
+                </Button>
 
                 {/* Center - Navigation buttons */}
                 <div className="flex items-center gap-3 ml-auto">
-                  <button
+                  <Button
                     onClick={handlePrevious}
                     disabled={currentStep === 1 || isSaving}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="outline"
+                    size="sm"
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Previous
-                  </button>
+                  </Button>
                   
                   {currentStep === steps.length ? (
-                    <button
+                    <Button
                       onClick={handleFinish}
                       disabled={!createdPlan || !isStepValid(currentStep) || isSaving}
-                      className="flex items-center px-6 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      size="sm"
                       title={!createdPlan ? 'Please complete Step 1 first to create the plan' : 'Finish and save plan'}
                     >
                       Finish
                       <CheckCircle className="w-4 h-4 ml-2" />
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button
                       onClick={handleNext}
                       disabled={!isStepValid(currentStep) || isSaving}
-                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      size="sm"
                     >
                       Next
                       <ChevronRight className="w-4 h-4 ml-2" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -1004,7 +1014,7 @@ export default function CreatePlanForm() {
       </div>
 
       {/* Full Preview Modal */}
-      {showFullPreview && renderFullPreview()}
+      {renderFullPreview()}
     </>
   );
 }
