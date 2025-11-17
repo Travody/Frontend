@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import OtpVerification from './OtpVerification';
 import GuiderTypeDialog from './GuiderTypeDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ export default function GuiderLoginForm() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [showGuiderTypeDialog, setShowGuiderTypeDialog] = useState(false);
   const [pendingGoogleAuth, setPendingGoogleAuth] = useState<{
     email: string;
@@ -39,6 +41,12 @@ export default function GuiderLoginForm() {
       const response = await apiService.loginGuider(formData);
       
       if (response.success) {
+        // Check if verification is required
+        if ((response as any).requiresVerification && response.data) {
+          setShowOtpVerification(true);
+          return;
+        }
+
         if (response.data?.token && response.data) {
           const userData = {
             id: response.data.id,
@@ -58,14 +66,18 @@ export default function GuiderLoginForm() {
           };
           
           login(userData, response.data.token);
+          router.push('/guider/dashboard');
         }
-        router.push('/guider/dashboard');
       }
     } catch (error) {
       // Error handling is done by the API service with toaster
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackToLogin = () => {
+    setShowOtpVerification(false);
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -170,6 +182,17 @@ export default function GuiderLoginForm() {
   const handleGoogleError = () => {
     // Error handling is done by API service
   };
+
+  if (showOtpVerification) {
+    return (
+      <OtpVerification
+        email={formData.email}
+        userType="guider"
+        onVerificationSuccess={() => {}}
+        onBack={handleBackToLogin}
+      />
+    );
+  }
 
   return (
     <>

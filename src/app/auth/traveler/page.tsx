@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiService } from '@/lib/api';
+import OtpVerification from '@/components/auth/OtpVerification';
 
 export default function TravelerAuthPage() {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ export default function TravelerAuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   
   const [loginData, setLoginData] = useState({
     email: '',
@@ -34,19 +36,29 @@ export default function TravelerAuthPage() {
     
     try {
       const response = await apiService.loginTraveler(loginData);
-      if (response.success && response.data) {
-        // Login user with AuthContext
-        login({
-          id: response.data.user.id,
-          email: response.data.user.email,
-          firstName: response.data.user.firstName,
-          lastName: response.data.user.lastName,
-          userType: 'traveler',
-          city: response.data.user.city,
-        }, response.data.token);
-        
-        toast.success('Login successful!');
-        router.push('/');
+      if (response.success) {
+        // Check if verification is required
+        if ((response as any).requiresVerification && response.data) {
+          setShowOtpVerification(true);
+          return;
+        }
+
+        if (response.data && response.data.user && response.data.token) {
+          // Login user with AuthContext
+          login({
+            id: response.data.user.id,
+            email: response.data.user.email,
+            firstName: response.data.user.firstName,
+            lastName: response.data.user.lastName,
+            userType: 'traveler',
+            city: response.data.user.city,
+          }, response.data.token);
+          
+          toast.success('Login successful!');
+          router.push('/');
+        } else {
+          toast.error(response.message || 'Login failed');
+        }
       } else {
         toast.error(response.message || 'Login failed');
       }
@@ -56,6 +68,10 @@ export default function TravelerAuthPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackToLogin = () => {
+    setShowOtpVerification(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -98,6 +114,19 @@ export default function TravelerAuthPage() {
       setIsLoading(false);
     }
   };
+
+  if (showOtpVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <OtpVerification
+          email={loginData.email}
+          userType="traveler"
+          onVerificationSuccess={() => {}}
+          onBack={handleBackToLogin}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

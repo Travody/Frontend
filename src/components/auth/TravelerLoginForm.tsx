@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import OtpVerification from './OtpVerification';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ export default function TravelerLoginForm() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -31,6 +33,12 @@ export default function TravelerLoginForm() {
       const response = await apiService.loginTraveler(formData);
       
       if (response.success) {
+        // Check if verification is required
+        if ((response as any).requiresVerification && response.data) {
+          setShowOtpVerification(true);
+          return;
+        }
+
         if (response.data?.token && response.data) {
           const userData = {
             id: response.data.id,
@@ -43,14 +51,18 @@ export default function TravelerLoginForm() {
           };
           
           login(userData, response.data.token);
+          router.push('/');
         }
-        router.push('/');
       }
     } catch (error) {
       // Error handling is done by the API service with toaster
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackToLogin = () => {
+    setShowOtpVerification(false);
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -84,6 +96,17 @@ export default function TravelerLoginForm() {
   const handleGoogleError = () => {
     // Error handling is done by API service
   };
+
+  if (showOtpVerification) {
+    return (
+      <OtpVerification
+        email={formData.email}
+        userType="traveler"
+        onVerificationSuccess={() => {}}
+        onBack={handleBackToLogin}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md">
