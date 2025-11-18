@@ -1,7 +1,10 @@
 import toast from 'react-hot-toast';
 import { User } from '@/contexts/AuthContext';
 
-const API_BASE_URL = 'http://localhost:4000/api';
+// Get API base URL at runtime to ensure env variable is available
+const getApiBaseUrl = () => {
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+};
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -406,7 +409,7 @@ class ApiService {
       // Extract headers from options to merge them properly
       const { headers: optionsHeaders, ...restOptions } = options;
       
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
         ...restOptions,
         headers: {
           'Content-Type': 'application/json',
