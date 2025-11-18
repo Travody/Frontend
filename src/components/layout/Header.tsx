@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, User, Menu, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +33,24 @@ interface HeaderProps {
 
 export default function Header({ user }: HeaderProps) {
   const { logout } = useAuth();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
+
+  const handleSearch = (e: FormEvent, isMobile = false) => {
+    e.preventDefault();
+    const query = isMobile ? mobileSearchQuery : searchQuery;
+    if (query.trim()) {
+      router.push(`/explore?location=${encodeURIComponent(query.trim())}`);
+      if (isMobile) {
+        setMobileSearchQuery('');
+      } else {
+        setSearchQuery('');
+      }
+    } else {
+      router.push('/explore');
+    }
+  };
 
   if (user) {
     // Authenticated user header
@@ -51,21 +70,23 @@ export default function Header({ user }: HeaderProps) {
             </Link>
           </div>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden flex-1 max-w-lg mx-8 md:block">
-            <div className="relative">
+          {/* Search Bar - Tablet & Desktop */}
+          <form onSubmit={(e) => handleSearch(e, false)} className="hidden flex-1 max-w-lg mx-4 md:flex lg:mx-8">
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Search for destination, guides or tour..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 h-9 bg-gray-50 border-gray-200 focus-visible:ring-primary-500"
                 suppressHydrationWarning
               />
             </div>
-          </div>
+          </form>
 
-          {/* Navigation - Desktop */}
-          <div className="hidden items-center gap-6 md:flex">
+          {/* Navigation - Desktop Only (lg+) */}
+          <div className="hidden items-center gap-6 lg:flex">
             {user.type === 'guider' ? (
               <>
                 <Link 
@@ -149,49 +170,37 @@ export default function Header({ user }: HeaderProps) {
             </DropdownMenu>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile & Tablet menu button */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="lg:hidden">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <SheetHeader>
+            <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+              <SheetHeader className="mb-6">
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
-              <div className="mt-8 space-y-4">
-                {/* Mobile Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Search..."
-                    className="pl-10"
-                    suppressHydrationWarning
-                  />
-                </div>
-                
-                {/* Mobile Navigation */}
-                <div className="space-y-2">
+              {/* Mobile & Tablet Navigation */}
+              <div className="space-y-2">
                   {user.type === 'guider' ? (
                     <>
                       <Link 
                         href="/guider/my-plans" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         My Plans
                       </Link>
                       <Link 
                         href="/guider/bookings" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         My Bookings
                       </Link>
                       <Link 
                         href="/guider/profile" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         My Profile
                       </Link>
@@ -200,19 +209,19 @@ export default function Header({ user }: HeaderProps) {
                     <>
                       <Link 
                         href="/explore" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         Explore
                       </Link>
                       <Link 
                         href="/traveler/trips" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         My Trips
                       </Link>
                       <Link 
                         href="/traveler/profile" 
-                        className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                       >
                         My Profile
                       </Link>
@@ -220,7 +229,7 @@ export default function Header({ user }: HeaderProps) {
                   )}
                 </div>
                 
-                <div className="pt-4 border-t">
+                <div className="pt-6 mt-6 border-t">
                   <Button
                     variant="outline"
                     className="w-full"
@@ -230,7 +239,6 @@ export default function Header({ user }: HeaderProps) {
                     Logout
                   </Button>
                 </div>
-              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -255,21 +263,23 @@ export default function Header({ user }: HeaderProps) {
           </Link>
         </div>
 
-        {/* Search Bar - Desktop */}
-        <div className="hidden flex-1 max-w-lg mx-8 md:block">
-          <div className="relative">
+        {/* Search Bar - Tablet & Desktop */}
+        <form onSubmit={(e) => handleSearch(e, false)} className="hidden flex-1 max-w-lg mx-4 md:flex lg:mx-8">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               type="text"
               placeholder="Search for destination, guides or tour..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 h-9 bg-gray-50 border-gray-200 focus-visible:ring-primary-500"
               suppressHydrationWarning
             />
           </div>
-        </div>
+        </form>
 
-        {/* Navigation - Desktop */}
-        <div className="hidden items-center gap-4 md:flex">
+        {/* Navigation - Desktop Only (lg+) */}
+        <div className="hidden items-center gap-4 lg:flex">
           <Link 
             href="/explore" 
             className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
@@ -294,58 +304,45 @@ export default function Header({ user }: HeaderProps) {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile & Tablet menu button */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button variant="ghost" size="icon" className="lg:hidden">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-            <SheetHeader>
+          <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+            <SheetHeader className="mb-6">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
-            <div className="mt-8 space-y-4">
-              {/* Mobile Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10"
-                  suppressHydrationWarning
-                />
-              </div>
-              
-              {/* Mobile Navigation */}
-              <div className="space-y-2">
-                <Link 
-                  href="/explore" 
-                  className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-                >
-                  Explore
-                </Link>
-                <Link 
-                  href="/become-guide" 
-                  className="block px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-                >
-                  Become a Guide
-                </Link>
-              </div>
-              
-              <div className="pt-4 border-t space-y-2">
-                <Link href="/auth/traveler/login" className="block">
-                  <Button variant="outline" className="w-full">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/auth/traveler/signup" className="block">
-                  <Button className="w-full">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
+            {/* Mobile & Tablet Navigation */}
+            <div className="space-y-2">
+              <Link 
+                href="/explore" 
+                className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                Explore
+              </Link>
+              <Link 
+                href="/become-guide" 
+                className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                Become a Guide
+              </Link>
+            </div>
+            
+            <div className="pt-6 mt-6 border-t space-y-2">
+              <Link href="/auth/traveler/login" className="block">
+                <Button variant="outline" className="w-full">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth/traveler/signup" className="block">
+                <Button className="w-full">
+                  Sign Up
+                </Button>
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
