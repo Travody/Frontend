@@ -5,7 +5,7 @@ import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircl
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { apiService } from '@/lib/api';
+import { apiService, Review } from '@/lib/api';
 import { tourTypes } from '@/lib/tour-types';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -287,7 +287,7 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
 function GuiderProfileContent() {
   const { user, token, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour' | 'india' | 'account'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour' | 'reviews' | 'india' | 'account'>('personal');
   const [profileData, setProfileData] = useState<GuiderProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -311,6 +311,8 @@ function GuiderProfileContent() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -334,6 +336,13 @@ function GuiderProfileContent() {
         if (response.success && response.data) {
           const data = response.data as any;
           setProfileData(data);
+          // Fetch reviews if included in response
+          if (data.reviews) {
+            setReviews(data.reviews);
+          } else {
+            // Fetch reviews separately
+            fetchGuiderReviews(data._id);
+          }
           // Initialize form data with current profile data
           setFormData({
             // Personal Info
@@ -397,6 +406,22 @@ function GuiderProfileContent() {
       fetchProfile();
     }
   }, [token, isAuthenticated]);
+
+  const fetchGuiderReviews = async (guiderId: string) => {
+    if (!guiderId) return;
+
+    setIsLoadingReviews(true);
+    try {
+      const response = await apiService.getReviewsByGuider(guiderId, 'guider');
+      if (response.success && response.data) {
+        setReviews(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
@@ -702,6 +727,7 @@ function GuiderProfileContent() {
     { id: 'personal' as const, label: 'Personal', icon: User },
     ...(profileData?.guiderType === 'Agency' ? [{ id: 'business' as const, label: 'Business', icon: Building2 }] : []),
     { id: 'tour' as const, label: 'Tour Guide', icon: MapPin },
+    { id: 'reviews' as const, label: 'Reviews', icon: Star },
     { id: 'india' as const, label: 'India Specific', icon: Coins },
     { id: 'account' as const, label: 'Account', icon: Info },
   ];
@@ -1016,16 +1042,16 @@ function GuiderProfileContent() {
         {/* Ratings and Stats - Read Only */}
         {(profileData?.tourGuideInfo?.rating || profileData?.tourGuideInfo?.totalReviews || profileData?.tourGuideInfo?.totalTours) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {profileData.tourGuideInfo.rating && (
+            {profileData?.tourGuideInfo?.rating && (
               <div className="bg-primary-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="w-5 h-5 text-primary-600" />
                   <label className="text-sm font-medium text-gray-700">Rating</label>
                 </div>
-                <p className="text-2xl font-bold text-primary-600">{profileData.tourGuideInfo.rating}</p>
+                <p className="text-2xl font-bold text-primary-600">{profileData.tourGuideInfo.rating.toFixed(1)}</p>
               </div>
             )}
-            {profileData.tourGuideInfo.totalReviews && (
+            {profileData?.tourGuideInfo?.totalReviews && (
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Award className="w-5 h-5 text-blue-600" />
@@ -2301,6 +2327,133 @@ function GuiderProfileContent() {
     );
   };
 
+  const renderReviews = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between mb-4">
+          <Heading as="h2" variant="subsection">Your Reviews</Heading>
+          {profileData?.tourGuideInfo?.rating !== undefined && (
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500 fill-current" />
+              <span className="text-2xl font-bold text-gray-900">
+                {profileData.tourGuideInfo.rating.toFixed(1)}
+              </span>
+              <span className="text-sm text-gray-600">
+                ({profileData.tourGuideInfo.totalReviews || 0} {profileData.tourGuideInfo.totalReviews === 1 ? 'review' : 'reviews'})
+              </span>
+            </div>
+          )}
+        </div>
+
+        {isLoadingReviews ? (
+          <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+        ) : reviews && reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((review) => {
+              const traveler = typeof review.travelerId === 'object' 
+                ? review.travelerId 
+                : null;
+              const travelerName = traveler 
+                ? `${traveler.firstName || ''} ${traveler.lastName || ''}`.trim() || 'Anonymous'
+                : 'Anonymous';
+              const travelerImage = traveler?.profileImageUrl;
+              
+              const plan = typeof review.planId === 'object' ? review.planId : null;
+              const booking = typeof review.bookingId === 'object' ? review.bookingId : null;
+              const bookingDate = booking?.bookingDetails?.date 
+                ? new Date(booking.bookingDetails.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : null;
+
+              return (
+                <Card key={review._id} className="border-l-4 border-l-primary-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      {travelerImage ? (
+                        <img
+                          src={travelerImage}
+                          alt={travelerName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                          <span className="text-primary-600 font-semibold">
+                            {travelerName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-medium text-gray-900">{travelerName}</p>
+                            {plan && (
+                              <p className="text-sm text-gray-600">
+                                Review for: {plan.title || 'Tour'}
+                              </p>
+                            )}
+                            {bookingDate && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Tour Date: {bookingDate}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < review.rating
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                            <span className="ml-1 text-sm font-medium text-gray-700">
+                              {review.rating}
+                            </span>
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-gray-700 text-sm mt-2 leading-relaxed">{review.comment}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-3">
+                          <p className="text-xs text-gray-500">
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </p>
+                          {review.isVerified && (
+                            <Badge variant="secondary" className="text-xs">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Verified Booking
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium mb-2">No reviews yet</p>
+            <p className="text-sm text-gray-500">
+              Reviews from travelers will appear here once they complete their tours.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <AppLayout>
       <Section variant="muted" className="py-8">
@@ -2332,7 +2485,7 @@ function GuiderProfileContent() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className={`grid w-full ${profileData?.guiderType === 'Agency' ? 'grid-cols-6' : 'grid-cols-5'}`}>
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -2351,6 +2504,7 @@ function GuiderProfileContent() {
               {activeTab === 'personal' && renderPersonalInfo()}
               {activeTab === 'business' && renderBusinessInfo()}
               {activeTab === 'tour' && renderTourGuideInfo()}
+              {activeTab === 'reviews' && renderReviews()}
               {activeTab === 'india' && renderIndiaSpecificInfo()}
               {activeTab === 'account' && renderAccountInfo()}
             </CardContent>

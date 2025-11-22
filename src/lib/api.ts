@@ -92,7 +92,19 @@ export interface UpdateVerificationStepDto {
 
 export interface Plan {
   _id: string;
-  guiderId: string;
+  guiderId: string | {
+    _id: string;
+    personalInfo?: {
+      showcaseName?: string;
+      profileImageUrl?: string;
+    };
+    tourGuideInfo?: {
+      rating?: number;
+      totalReviews?: number;
+      aboutMe?: string;
+      languagesSpoken?: string[];
+    };
+  };
   title: string;
   description: string;
   city: string;
@@ -151,8 +163,64 @@ export interface Plan {
   specialInstructions?: string;
   viewCount: number;
   bookingCount: number;
+  reviews?: Review[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Review {
+  _id: string;
+  reviewType: 'booking' | 'guider';
+  bookingId: string | {
+    _id: string;
+    bookingDetails?: {
+      date?: string;
+      startTime?: string;
+      numberOfParticipants?: number;
+    };
+  };
+  planId: string | Plan | {
+    _id: string;
+    title?: string;
+    city?: string;
+    state?: string;
+    gallery?: string[];
+  };
+  travelerId: string | {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    profileImageUrl?: string;
+  };
+  guiderId: string | {
+    _id: string;
+    personalInfo?: {
+      showcaseName?: string;
+      profileImageUrl?: string;
+    };
+  };
+  rating: number;
+  comment?: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReviewData {
+  reviewType: 'booking' | 'guider';
+  bookingId: string;
+  rating: number;
+  comment?: string;
+}
+
+export interface ReviewEligibility {
+  canReview: boolean;
+  canReviewBooking: boolean;
+  canReviewGuider: boolean;
+  bookingReview: Review | null;
+  guiderReview: Review | null;
+  reason?: string;
 }
 
 export interface CreatePlanData {
@@ -951,14 +1019,89 @@ class ApiService {
     });
   }
 
-  async addReview(bookingId: string, rating: number, review: string, token: string): Promise<ApiResponse<Booking>> {
-    return this.makeRequest(`/bookings/${bookingId}/review`, {
+  // Review methods
+  async createReview(data: CreateReviewData, token: string): Promise<ApiResponse<Review>> {
+    return this.makeRequest('/reviews', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ rating, review }),
+      body: JSON.stringify(data),
     });
+  }
+
+  async updateReview(reviewId: string, rating: number, comment: string, token: string): Promise<ApiResponse<Review>> {
+    return this.makeRequest(`/reviews/${reviewId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ rating, comment }),
+    });
+  }
+
+  async deleteReview(reviewId: string, token: string): Promise<ApiResponse<void>> {
+    return this.makeRequest(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getReviewsByPlan(planId: string, reviewType?: 'booking' | 'guider'): Promise<ApiResponse<Review[]>> {
+    const query = reviewType ? `?reviewType=${reviewType}` : '';
+    return this.makeRequest(`/reviews/plan/${planId}${query}`, {
+      method: 'GET',
+    });
+  }
+
+  async getReviewsByGuider(guiderId: string, reviewType?: 'booking' | 'guider'): Promise<ApiResponse<Review[]>> {
+    const query = reviewType ? `?reviewType=${reviewType}` : '';
+    return this.makeRequest(`/reviews/guider/${guiderId}${query}`, {
+      method: 'GET',
+    });
+  }
+
+  async getMyReviews(reviewType?: 'booking' | 'guider', token?: string): Promise<ApiResponse<Review[]>> {
+    const query = reviewType ? `?reviewType=${reviewType}` : '';
+    return this.makeRequest(`/reviews/traveler/my-reviews${query}`, {
+      method: 'GET',
+      headers: token ? {
+        Authorization: `Bearer ${token}`,
+      } : {},
+    });
+  }
+
+  async getReviewsByBooking(bookingId: string, reviewType?: 'booking' | 'guider', token?: string): Promise<ApiResponse<Review[]>> {
+    const query = reviewType ? `?reviewType=${reviewType}` : '';
+    return this.makeRequest(`/reviews/booking/${bookingId}${query}`, {
+      method: 'GET',
+      headers: token ? {
+        Authorization: `Bearer ${token}`,
+      } : {},
+    });
+  }
+
+  async canUserReview(bookingId: string, token: string): Promise<ApiResponse<ReviewEligibility>> {
+    return this.makeRequest(`/reviews/can-review/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Legacy method for backward compatibility
+  async addReview(bookingId: string, rating: number, review: string, token: string): Promise<ApiResponse<Review>> {
+    return this.createReview({
+      reviewType: 'booking',
+      bookingId,
+      rating,
+      comment: review,
+    }, token);
   }
 }
 

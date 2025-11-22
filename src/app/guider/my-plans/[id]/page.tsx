@@ -73,7 +73,14 @@ export default function GuiderPlanDetailPage() {
       const response = await apiService.getPlanById(planId);
       if (response.success && response.data) {
         const userId = user?.id || (user as any)?._id;
-        if (response.data.guiderId !== userId) {
+        // Handle both string ID and populated object
+        const planGuiderId = typeof response.data.guiderId === 'object' && response.data.guiderId !== null
+          ? (response.data.guiderId._id || '').toString()
+          : (response.data.guiderId || '').toString();
+        
+        const userIdStr = (userId || '').toString();
+        
+        if (planGuiderId && userIdStr && planGuiderId !== userIdStr) {
           toast.error('You do not have permission to view this plan');
           router.push('/guider/my-plans');
           return;
