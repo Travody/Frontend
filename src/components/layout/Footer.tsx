@@ -53,11 +53,6 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
-                    Blog
-                  </Link>
-                </li>
-                <li>
                   <Link href="/faq" className="text-sm text-gray-600 hover:text-primary-600 transition-colors">
                     FAQ
                   </Link>
@@ -97,21 +92,27 @@ export default function Footer() {
               
               <div className="flex items-center gap-4">
                 <a 
-                  href="#" 
+                  href="https://www.facebook.com/travody" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Facebook"
                 >
                   <Facebook className="h-5 w-5" />
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.instagram.com/travody" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Instagram"
                 >
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.linkedin.com/company/travody" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="LinkedIn"
                 >

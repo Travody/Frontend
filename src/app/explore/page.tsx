@@ -126,8 +126,9 @@ function ExploreContent() {
   };
 
   const formatPrice = (price: number, currency: string) => {
-    const symbol = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency;
-    return `${symbol}${price}`;
+    if (!currency || !price) return '';
+    const symbol = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
+    return `${symbol}${price.toLocaleString()}`;
   };
 
   return (
@@ -356,10 +357,10 @@ function ExploreContent() {
                           )}
                         </div>
 
-                        {plan.pricing && (
+                        {plan.pricing && plan.pricing.pricePerPerson && (
                           <div className="mb-4">
                             <span className="text-2xl font-bold text-primary-600">
-                              {formatPrice(plan.pricing.pricePerPerson, plan.pricing.currency)}
+                              {formatPrice(plan.pricing.pricePerPerson, plan.pricing.currency || 'INR')}
                             </span>
                             <span className="text-sm text-gray-600 ml-1">per person</span>
                           </div>
