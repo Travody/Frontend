@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { apiService, Guide, Plan } from '@/lib/api';
@@ -375,13 +375,13 @@ function ExploreContent() {
                           </div>
                         )}
 
-                        {plan.rating && (
+                        {plan.totalReviews !== undefined && plan.totalReviews !== null && plan.totalReviews > 0 && plan.rating !== undefined && plan.rating !== null && (
                           <div className="flex items-center mb-4">
                             <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                            <span className="text-sm font-medium text-gray-700">{plan.rating.toFixed(1)}</span>
-                            {plan.totalReviews && (
-                              <span className="text-sm text-gray-600 ml-1">({plan.totalReviews} reviews)</span>
-                            )}
+                            <span className="text-sm font-medium text-gray-700">
+                              {plan.rating.toFixed(1)}
+                            </span>
+                            <span className="text-sm text-gray-600 ml-1">({plan.totalReviews} {plan.totalReviews === 1 ? 'review' : 'reviews'})</span>
                           </div>
                         )}
 

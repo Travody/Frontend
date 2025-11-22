@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Star, MapPin, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, Booking } from '@/lib/api';
+import { apiService, Booking, ReviewEligibility, Review } from '@/lib/api';
 import toast from 'react-hot-toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { PromptDialog } from '@/components/ui/prompt-dialog';
@@ -17,6 +17,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import ReviewDialog from '@/components/reviews/ReviewDialog';
 
 export default function TravelerTripsPage() {
   const { token } = useAuth();
@@ -25,10 +26,10 @@ export default function TravelerTripsPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed'>('all');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
-  const [reviewText, setReviewText] = useState('');
-  const [ratingValue, setRatingValue] = useState('');
+  const [currentReviewType, setCurrentReviewType] = useState<'booking' | 'guider'>('booking');
+  const [reviewEligibility, setReviewEligibility] = useState<Record<string, ReviewEligibility>>({});
+  const [existingReviews, setExistingReviews] = useState<Record<string, { booking?: Review; guider?: Review }>>({});
 
   useEffect(() => {
     if (token) {
@@ -41,6 +42,13 @@ export default function TravelerTripsPage() {
       const response = await apiService.getTravelerBookings(token!);
       if (response.success && response.data) {
         setBookings(response.data.bookings);
+        // Fetch review eligibility for completed bookings
+        const completedBookings = response.data.bookings.filter(
+          (b: Booking) => b.status.status === 'completed'
+        );
+        for (const booking of completedBookings) {
+          await fetchReviewEligibility(booking._id);
+        }
       } else {
         toast.error('Failed to load trips');
       }
@@ -49,6 +57,30 @@ export default function TravelerTripsPage() {
       toast.error('Failed to load trips');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchReviewEligibility = async (bookingId: string) => {
+    try {
+      const response = await apiService.canUserReview(bookingId, token!);
+      if (response.success && response.data) {
+        setReviewEligibility((prev) => ({
+          ...prev,
+          [bookingId]: response.data!,
+        }));
+        // Store existing reviews
+        if (response.data.bookingReview || response.data.guiderReview) {
+          setExistingReviews((prev) => ({
+            ...prev,
+            [bookingId]: {
+              booking: response.data!.bookingReview || undefined,
+              guider: response.data!.guiderReview || undefined,
+            },
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch review eligibility:', error);
     }
   };
 
@@ -77,49 +109,55 @@ export default function TravelerTripsPage() {
     }
   };
 
-  const handleAddReview = (bookingId: string) => {
+  const handleAddReview = (bookingId: string, reviewType: 'booking' | 'guider') => {
     setCurrentBookingId(bookingId);
-    setRatingValue('');
-    setReviewText('');
-    setShowRatingDialog(true);
-  };
-
-  const confirmRating = (rating: string) => {
-    const ratingNum = parseInt(rating);
-    if (ratingNum < 1 || ratingNum > 5) {
-      toast.error('Rating must be between 1 and 5');
-      return;
-    }
-    setRatingValue(rating);
-    setShowRatingDialog(false);
+    setCurrentReviewType(reviewType);
     setShowReviewDialog(true);
   };
 
-  const confirmReview = async (review: string) => {
-    if (!currentBookingId || !ratingValue || !review.trim()) {
-      setShowReviewDialog(false);
-      setRatingValue('');
-      return;
-    }
+  const handleSubmitReview = async (rating: number, comment: string) => {
+    if (!currentBookingId) return;
 
-    const ratingNum = parseInt(ratingValue);
+    const existingReview = existingReviews[currentBookingId]?.[currentReviewType];
+    
     try {
-      const response = await apiService.addReview(currentBookingId, ratingNum, review, token!);
+      let response;
+      if (existingReview) {
+        // Update existing review
+        response = await apiService.updateReview(existingReview._id, rating, comment, token!);
+      } else {
+        // Create new review
+        response = await apiService.createReview(
+          {
+            reviewType: currentReviewType,
+            bookingId: currentBookingId,
+            rating,
+            comment,
+          },
+          token!
+        );
+      }
+
       if (response.success) {
-        toast.success('Review added successfully');
+        toast.success(
+          existingReview
+            ? `${currentReviewType === 'booking' ? 'Tour' : 'Guider'} review updated successfully`
+            : `${currentReviewType === 'booking' ? 'Tour' : 'Guider'} review added successfully`
+        );
+        // Refresh eligibility and reviews
+        await fetchReviewEligibility(currentBookingId);
         fetchBookings();
       } else {
-        toast.error(response.message || 'Failed to add review');
+        toast.error(response.message || 'Failed to submit review');
+        throw new Error(response.message || 'Failed to submit review');
       }
-    } catch (error) {
-      console.error('Error adding review:', error);
-      toast.error('Failed to add review');
-    } finally {
-      setShowReviewDialog(false);
-      setRatingValue('');
-      setCurrentBookingId(null);
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      toast.error(error?.message || 'Failed to submit review');
+      throw error;
     }
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -221,7 +259,11 @@ export default function TravelerTripsPage() {
           {/* Trips List */}
           <div className="space-y-4">
             {filteredBookings.length > 0 ? (
-              filteredBookings.map((booking) => (
+              filteredBookings.map((booking) => {
+                const plan = typeof booking.planId === 'object' ? booking.planId : null;
+                const guider = typeof booking.guiderId === 'object' ? booking.guiderId : null;
+                
+                return (
                 <Card key={booking._id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row gap-6">
@@ -231,10 +273,10 @@ export default function TravelerTripsPage() {
                             {getStatusIcon(booking.status.status)}
                             <div>
                               <Heading as="h3" variant="subsection" className="mb-1">
-                                {typeof booking.planId === 'object' ? booking.planId.title : 'Plan Title'}
+                                {plan?.title || 'Plan Title'}
                               </Heading>
                               <p className="text-sm text-gray-600 mb-2">
-                                {typeof booking.planId === 'object' ? `${booking.planId.city}, ${booking.planId.state}` : 'Location'}
+                                {plan ? `${plan.city}, ${plan.state}` : 'Location'}
                               </p>
                               <Badge variant={getStatusVariant(booking.status.status)}>
                                 {booking.status.status}
@@ -258,12 +300,12 @@ export default function TravelerTripsPage() {
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <MapPin className="w-4 h-4 mr-2" />
-                            <span className="truncate">{typeof booking.planId === 'object' ? booking.planId.meetingPoint : 'Meeting Point'}</span>
+                            <span className="truncate">{plan?.meetingPoint || 'Meeting Point'}</span>
                           </div>
                         </div>
 
                         {/* Guide Information */}
-                        {typeof booking.guiderId === 'object' && (
+                        {guider && (
                           <Card className="bg-gray-50 border-gray-200">
                             <CardHeader className="pb-3">
                               <CardTitle className="text-base">Guide Information</CardTitle>
@@ -272,16 +314,16 @@ export default function TravelerTripsPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                 <div>
                                   <span className="text-gray-600">Name: </span>
-                                  <span className="font-medium text-gray-900">{booking.guiderId.personalInfo?.showcaseName || booking.guiderId.showcaseName}</span>
+                                  <span className="font-medium text-gray-900">{guider.personalInfo?.showcaseName || guider.showcaseName}</span>
                                 </div>
                                 <div>
                                   <span className="text-gray-600">Email: </span>
-                                  <span className="font-medium text-gray-900">{booking.guiderId.email}</span>
+                                  <span className="font-medium text-gray-900">{guider.email}</span>
                                 </div>
-                                {booking.status.status === 'confirmed' && booking.guiderId.mobile && (
+                                {booking.status.status === 'confirmed' && guider.mobile && (
                                   <div>
                                     <span className="text-gray-600">Phone: </span>
-                                    <span className="font-medium text-gray-900">{booking.guiderId.mobile}</span>
+                                    <span className="font-medium text-gray-900">{guider.mobile}</span>
                                   </div>
                                 )}
                               </div>
@@ -290,7 +332,7 @@ export default function TravelerTripsPage() {
                         )}
 
                         {/* Tour Details */}
-                        {typeof booking.planId === 'object' && (
+                        {plan && (
                           <Card className="bg-primary-50 border-primary-200">
                             <CardHeader className="pb-3">
                               <CardTitle className="text-base text-primary-900">Tour Details</CardTitle>
@@ -301,16 +343,16 @@ export default function TravelerTripsPage() {
                                   <span className="text-primary-700">Start Time: </span>
                                   <span className="font-medium text-primary-900">
                                     {booking.bookingDetails.startTime || 
-                                     booking.planId.availability?.recurring?.timeSlot?.startTime ||
+                                     plan.availability?.recurring?.timeSlot?.startTime ||
                                      'TBD'}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="text-primary-700">Duration: </span>
                                   <span className="font-medium text-primary-900">
-                                    {typeof booking.planId.duration === 'object' && booking.planId.duration
-                                      ? `${booking.planId.duration.value} ${booking.planId.duration.unit}`
-                                      : booking.planId.duration || 'N/A'}
+                                    {typeof plan.duration === 'object' && plan.duration
+                                      ? `${plan.duration.value} ${plan.duration.unit}`
+                                      : plan.duration || 'N/A'}
                                   </span>
                                 </div>
                               </div>
@@ -346,39 +388,135 @@ export default function TravelerTripsPage() {
                         {booking.status.status === 'completed' && (
                           <Card className="bg-purple-50 border-purple-200">
                             <CardHeader className="pb-3">
-                              <CardTitle className="text-base text-purple-900">
-                                {booking.review?.isReviewed ? 'Your Review' : 'How was your trip?'}
-                              </CardTitle>
+                              <CardTitle className="text-base text-purple-900">Share Your Experience</CardTitle>
                             </CardHeader>
-                            <CardContent className="pt-0">
-                              {booking.review?.isReviewed ? (
-                                <div>
-                                  <div className="flex items-center mb-2">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className={`w-4 h-4 ${
-                                          i < (booking.review?.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="ml-2 text-sm font-medium">{booking.review?.rating}/5</span>
-                                  </div>
-                                  <p className="text-purple-800 text-sm">{booking.review?.review}</p>
-                                </div>
-                              ) : (
-                                <div>
-                                  <p className="text-purple-800 text-sm mb-3">Share your experience to help other travelers!</p>
-                                  <Button
-                                    onClick={() => handleAddReview(booking._id)}
-                                    variant="outline"
-                                    size="sm"
-                                  >
-                                    <Star className="w-4 h-4 mr-2" />
-                                    Write Review
-                                  </Button>
-                                </div>
-                              )}
+                            <CardContent className="pt-0 space-y-4">
+                              {(() => {
+                                const eligibility = reviewEligibility[booking._id];
+                                const existing = existingReviews[booking._id];
+                                
+                                if (!eligibility) {
+                                  return <p className="text-purple-800 text-sm">Loading review options...</p>;
+                                }
+
+                                if (!eligibility.canReview) {
+                                  return (
+                                    <p className="text-purple-800 text-sm">
+                                      {eligibility.reason || 'You cannot review this booking.'}
+                                    </p>
+                                  );
+                                }
+
+                                return (
+                                  <>
+                                    {/* Tour/Plan Review */}
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="text-sm font-medium text-purple-900">Tour/Plan Review</p>
+                                          <p className="text-xs text-purple-700">Rate your overall tour experience</p>
+                                        </div>
+                                        {existing?.booking && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            Reviewed
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {existing?.booking ? (
+                                        <div className="bg-white p-3 rounded border border-purple-200">
+                                          <div className="flex items-center mb-2">
+                                            {[...Array(5)].map((_, i) => (
+                                              <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${
+                                                  i < existing.booking!.rating
+                                                    ? 'text-yellow-400 fill-current'
+                                                    : 'text-gray-300'
+                                                }`}
+                                              />
+                                            ))}
+                                            <span className="ml-2 text-sm font-medium">{existing.booking.rating}/5</span>
+                                          </div>
+                                          {existing.booking.comment && (
+                                            <p className="text-purple-800 text-sm mb-2">{existing.booking.comment}</p>
+                                          )}
+                                          <Button
+                                            onClick={() => handleAddReview(booking._id, 'booking')}
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-2"
+                                          >
+                                            Update Review
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <Button
+                                          onClick={() => handleAddReview(booking._id, 'booking')}
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={!eligibility.canReviewBooking}
+                                        >
+                                          <Star className="w-4 h-4 mr-2" />
+                                          Review Tour
+                                        </Button>
+                                      )}
+                                    </div>
+
+                                    {/* Guider Review */}
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="text-sm font-medium text-purple-900">Guider Review</p>
+                                          <p className="text-xs text-purple-700">Rate your guide's service</p>
+                                        </div>
+                                        {existing?.guider && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            Reviewed
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {existing?.guider ? (
+                                        <div className="bg-white p-3 rounded border border-purple-200">
+                                          <div className="flex items-center mb-2">
+                                            {[...Array(5)].map((_, i) => (
+                                              <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${
+                                                  i < existing.guider!.rating
+                                                    ? 'text-yellow-400 fill-current'
+                                                    : 'text-gray-300'
+                                                }`}
+                                              />
+                                            ))}
+                                            <span className="ml-2 text-sm font-medium">{existing.guider.rating}/5</span>
+                                          </div>
+                                          {existing.guider.comment && (
+                                            <p className="text-purple-800 text-sm mb-2">{existing.guider.comment}</p>
+                                          )}
+                                          <Button
+                                            onClick={() => handleAddReview(booking._id, 'guider')}
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-2"
+                                          >
+                                            Update Review
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <Button
+                                          onClick={() => handleAddReview(booking._id, 'guider')}
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={!eligibility.canReviewGuider}
+                                        >
+                                          <Star className="w-4 h-4 mr-2" />
+                                          Review Guider
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </CardContent>
                           </Card>
                         )}
@@ -408,20 +546,12 @@ export default function TravelerTripsPage() {
                           </Button>
                         )}
 
-                        {booking.status.status === 'completed' && !booking.review?.isReviewed && (
-                          <Button
-                            onClick={() => handleAddReview(booking._id)}
-                            className="w-full"
-                          >
-                            <Star className="w-4 h-4 mr-2" />
-                            Write Review
-                          </Button>
-                        )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
             ) : (
               <EmptyState
                 icon={Calendar}
@@ -463,38 +593,17 @@ export default function TravelerTripsPage() {
         multiline={true}
       />
 
-      {/* Rating Dialog */}
-      <PromptDialog
-        isOpen={showRatingDialog}
-        onClose={() => {
-          setShowRatingDialog(false);
-          setCurrentBookingId(null);
-        }}
-        onConfirm={confirmRating}
-        title="Rate Your Experience"
-        message="Please rate your experience (1-5):"
-        placeholder="Enter rating (1-5)..."
-        confirmText="Next"
-        cancelText="Cancel"
-        required={true}
-      />
-
       {/* Review Dialog */}
-      <PromptDialog
-        isOpen={showReviewDialog}
-        onClose={() => {
-          setShowReviewDialog(false);
-          setRatingValue('');
-          setCurrentBookingId(null);
-        }}
-        onConfirm={confirmReview}
-        title="Write Your Review"
-        message="Please write your review:"
-        placeholder="Enter your review..."
-        confirmText="Submit Review"
-        cancelText="Cancel"
-        required={true}
-        multiline={true}
+      <ReviewDialog
+        open={showReviewDialog}
+        onOpenChange={setShowReviewDialog}
+        reviewType={currentReviewType}
+        onSubmit={handleSubmitReview}
+        existingReview={
+          currentBookingId && existingReviews[currentBookingId]
+            ? existingReviews[currentBookingId][currentReviewType]
+            : null
+        }
       />
     </AppLayout>
   );

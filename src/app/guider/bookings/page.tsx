@@ -273,7 +273,10 @@ export default function GuiderBookingsDashboard() {
           {/* Bookings List */}
           <div className="space-y-4">
             {filteredBookings.length > 0 ? (
-              filteredBookings.map((booking) => (
+              filteredBookings.map((booking) => {
+                const plan = typeof booking.planId === 'object' ? booking.planId : null;
+                
+                return (
                 <Card key={booking._id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row gap-6">
@@ -281,10 +284,10 @@ export default function GuiderBookingsDashboard() {
                         <div className="flex items-start justify-between">
                           <div>
                             <Heading as="h3" variant="subsection" className="mb-1">
-                              {typeof booking.planId === 'object' && booking.planId ? booking.planId.title : 'Plan Title'}
+                              {plan?.title || 'Plan Title'}
                             </Heading>
                             <p className="text-sm text-gray-600 mb-2">
-                              {typeof booking.planId === 'object' && booking.planId ? `${booking.planId.city}, ${booking.planId.state}` : 'Location'}
+                              {plan ? `${plan.city}, ${plan.state}` : 'Location'}
                             </p>
                             <Badge variant={getStatusVariant(booking.status?.status || 'unknown')}>
                               {booking.status?.status || 'unknown'}
@@ -427,7 +430,8 @@ export default function GuiderBookingsDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
             ) : (
               <EmptyState
                 icon={Calendar}

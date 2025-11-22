@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, User, Menu, LogOut, Settings } from 'lucide-react';
+import { Search, User, Menu, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -126,15 +126,6 @@ export default function Header({ user }: HeaderProps) {
                   >
                     <User className="mr-2 h-4 w-4" />
                     <span>My Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href={user.type === 'guider' ? '/guider/profile/edit' : '/traveler/profile'}
-                    className="cursor-pointer"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { MapPin, Clock, Users, Star, Calendar, Phone, Mail, CheckCircle, AlertCircle, ArrowLeft, Info, Minus, Plus, X } from 'lucide-react';
 import DatePicker from '@/components/ui/DatePicker';
-import { apiService, Plan, CreateBookingData, Booking } from '@/lib/api';
+import { apiService, Plan, CreateBookingData, Booking, Review } from '@/lib/api';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,8 @@ export default function PlanDetailsPage() {
   const [existingBooking, setExistingBooking] = useState<Booking | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [bookingData, setBookingData] = useState<CreateBookingData>({
     planId: planId || '',
     travelerName: (user && user.userType === 'traveler' ? user.firstName : '') || '',
@@ -87,10 +89,22 @@ export default function PlanDetailsPage() {
 
   const fetchPlanDetails = async () => {
     if (!planId) return;
+
+    setIsLoading(true);
     try {
       const response = await apiService.getPlanById(planId);
       if (response.success && response.data) {
         setPlan(response.data);
+        // If reviews are included in the response, use them
+        if (response.data.reviews && Array.isArray(response.data.reviews) && response.data.reviews.length > 0) {
+          setReviews(response.data.reviews);
+        } else if (response.data.reviews && Array.isArray(response.data.reviews)) {
+          // Empty array - no reviews yet
+          setReviews([]);
+        } else {
+          // Reviews not included, fetch separately
+          fetchReviews();
+        }
       } else {
         toast.error('Plan not found');
         router.push('/explore');
@@ -101,6 +115,22 @@ export default function PlanDetailsPage() {
       router.push('/explore');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    if (!planId) return;
+
+    setIsLoadingReviews(true);
+    try {
+      const response = await apiService.getReviewsByPlan(planId, 'booking');
+      if (response.success && response.data) {
+        setReviews(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setIsLoadingReviews(false);
     }
   };
 
@@ -280,7 +310,7 @@ export default function PlanDetailsPage() {
                         </div>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current" />
-                          <span>{plan.rating?.toFixed(1) || 'New'} ({plan.totalReviews || 0} reviews)</span>
+                          <span>{plan.rating?.toFixed(1) || 'New'} ({plan.totalReviews || 0} {plan.totalReviews === 1 ? 'review' : 'reviews'})</span>
                         </div>
                       </div>
                     </div>
@@ -304,6 +334,71 @@ export default function PlanDetailsPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Guider Information */}
+              {plan.guiderId && (() => {
+                const guider = typeof plan.guiderId === 'object' ? plan.guiderId : null;
+                if (!guider) return null;
+                
+                return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>About Your Guide</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4">
+                          {guider.personalInfo?.profileImageUrl ? (
+                            <img
+                              src={guider.personalInfo.profileImageUrl}
+                              alt={guider.personalInfo.showcaseName || 'Guide'}
+                              className="w-16 h-16 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
+                              <Users className="w-8 h-8 text-primary-600" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Heading as="h3" variant="subsection" className="mb-1">
+                              {guider.personalInfo?.showcaseName || 'Professional Guide'}
+                            </Heading>
+                            {((guider.tourGuideInfo?.rating !== undefined && guider.tourGuideInfo.rating > 0) || 
+                              (guider.tourGuideInfo?.totalReviews !== undefined && guider.tourGuideInfo.totalReviews > 0)) && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                <span className="font-semibold text-gray-900">
+                                  {guider.tourGuideInfo?.rating ? guider.tourGuideInfo.rating.toFixed(1) : '0.0'}
+                                </span>
+                                <span className="text-sm text-gray-600">
+                                  ({guider.tourGuideInfo?.totalReviews || 0} {guider.tourGuideInfo?.totalReviews === 1 ? 'review' : 'reviews'})
+                                </span>
+                              </div>
+                            )}
+                            {guider.tourGuideInfo?.aboutMe && (
+                              <p className="text-sm text-gray-700 line-clamp-3">
+                                {guider.tourGuideInfo.aboutMe}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {guider.tourGuideInfo?.languagesSpoken && guider.tourGuideInfo.languagesSpoken.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-600 mb-2">Languages Spoken:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {guider.tourGuideInfo.languagesSpoken.map((lang, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {lang}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
 
               {/* Gallery */}
               {plan.gallery && plan.gallery.length > 0 && (
@@ -437,6 +532,123 @@ export default function PlanDetailsPage() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Reviews Section */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Reviews</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                      <span className="text-lg font-semibold">
+                        {plan.rating?.toFixed(1) || '0.0'}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        ({plan.totalReviews || 0} {plan.totalReviews === 1 ? 'review' : 'reviews'})
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingReviews ? (
+                    <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+                  ) : (reviews && Array.isArray(reviews) && reviews.length > 0) ? (
+                    <div className="space-y-4">
+                      {reviews.map((review) => {
+                        const traveler = typeof review.travelerId === 'object' 
+                          ? review.travelerId 
+                          : null;
+                        const travelerName = traveler 
+                          ? `${traveler.firstName || ''} ${traveler.lastName || ''}`.trim() || 'Anonymous'
+                          : 'Anonymous';
+                        const travelerEmail = traveler?.email || '';
+                        const travelerImage = traveler?.profileImageUrl;
+                        
+                        const booking = typeof review.bookingId === 'object' ? review.bookingId : null;
+                        const bookingDate = booking?.bookingDetails?.date 
+                          ? new Date(booking.bookingDetails.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : null;
+
+                        return (
+                          <div key={review._id} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+                            <div className="flex items-start gap-3 mb-2">
+                              {travelerImage ? (
+                                <img
+                                  src={travelerImage}
+                                  alt={travelerName}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                  <span className="text-primary-600 font-semibold text-sm">
+                                    {travelerName.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-1">
+                                  <div>
+                                    <p className="font-medium text-gray-900">{travelerName}</p>
+                                    {travelerEmail && (
+                                      <p className="text-xs text-gray-500">{travelerEmail}</p>
+                                    )}
+                                    {bookingDate && (
+                                      <p className="text-xs text-gray-400 mt-1">
+                                        Tour Date: {bookingDate}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`w-4 h-4 ${
+                                          i < review.rating
+                                            ? 'text-yellow-400 fill-current'
+                                            : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                    <span className="ml-1 text-sm font-medium text-gray-700">
+                                      {review.rating}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-2">
+                                  {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                  })}
+                                </p>
+                                {review.comment && (
+                                  <p className="text-gray-700 text-sm mt-2 leading-relaxed">{review.comment}</p>
+                                )}
+                                <div className="flex items-center gap-2 mt-2">
+                                  {review.isVerified && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      <CheckCircle className="w-3 h-3 mr-1" />
+                                      Verified Booking
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No reviews yet. Be the first to review this tour!
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Policies */}
               {(plan.cancellationPolicy || plan.termsAndConditions || plan.specialInstructions) && (
