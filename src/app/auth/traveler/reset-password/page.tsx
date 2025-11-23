@@ -1,16 +1,20 @@
+import { Suspense } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import AuthSidebar from '@/components/auth/AuthSidebar';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export default function TravelerResetPasswordPage() {
   return (
     <AppLayout>
       <div className="flex min-h-[calc(100vh-64px)]">
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <ResetPasswordForm 
-            userType="traveler" 
-            loginPath="/auth/traveler/login"
-          />
+          <Suspense fallback={<LoadingState message="Loading..." />}>
+            <ResetPasswordForm 
+              userType="traveler" 
+              loginPath="/auth/traveler/login"
+            />
+          </Suspense>
         </div>
         <AuthSidebar 
           title="Set a new secure password."
