@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { apiService } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ interface ChangePasswordFormProps {
 }
 
 export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormProps) {
+  const { token } = useAuth();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -46,7 +48,6 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
     }
 
     try {
-      const token = localStorage.getItem('authToken');
       if (!token) {
         setError('You must be logged in to change password');
         setIsLoading(false);
@@ -55,7 +56,7 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
 
       const response = await apiService.changePassword(
         {
-          currentPassword: formData.currentPassword,
+          oldPassword: formData.currentPassword,
           newPassword: formData.newPassword
         },
         token
@@ -83,28 +84,20 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
   };
 
   return (
-    <div className="w-full max-w-md">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl">Change Password</CardTitle>
-          <CardDescription>
-            Enter your current password and choose a new one
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
-            </div>
-          )}
+    <div className="w-full">
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
 
-          {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
-              {success}
-            </div>
-          )}
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {success}
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="currentPassword">Current Password*</Label>
               <div className="relative mt-2">
@@ -214,8 +207,6 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
               )}
             </div>
           </form>
-        </CardContent>
-      </Card>
     </div>
   );
 }
