@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useRef } from 'react';
-import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircle, Calendar, Languages, Trophy, Globe, Instagram, FileText, Clock, Car, Info, Coins, Edit, Save, X, Search, ChevronDown, Plus } from 'lucide-react';
+import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircle, Calendar, Languages, Trophy, Globe, Instagram, FileText, Clock, Car, Info, Coins, Edit, Save, X, Search, ChevronDown, Plus, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
@@ -20,6 +20,7 @@ import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 
 interface GuiderProfileData {
   _id: string;
@@ -308,6 +309,7 @@ function GuiderProfileContent() {
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
@@ -2322,6 +2324,40 @@ function GuiderProfileContent() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Change Password Section */}
+        <div className="pt-6 border-t mt-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Password
+                </label>
+                <p className="text-sm text-gray-500">
+                  Change your account password
+                </p>
+              </div>
+              <button
+                onClick={() => setShowChangePassword(!showChangePassword)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                {showChangePassword ? 'Cancel' : 'Change Password'}
+              </button>
+            </div>
+            
+            {showChangePassword && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <ChangePasswordForm
+                  onSuccess={() => {
+                    setShowChangePassword(false);
+                  }}
+                  onCancel={() => setShowChangePassword(false)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

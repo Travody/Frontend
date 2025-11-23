@@ -42,8 +42,20 @@ export interface OtpVerificationData {
 }
 
 export interface ChangePasswordData {
-  currentPassword: string;
+  oldPassword: string;
   newPassword: string;
+}
+
+export interface ForgotPasswordData {
+  email: string;
+  userType: 'traveler' | 'guider';
+}
+
+export interface ResetPasswordData {
+  email: string;
+  otp: string;
+  newPassword: string;
+  userType: 'traveler' | 'guider';
 }
 
 // Verification Steps Config Interface (from backend)
@@ -668,6 +680,22 @@ class ApiService {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Forgot Password (Public)
+  async forgotPassword(data: ForgotPasswordData): Promise<ApiResponse> {
+    return this.makeRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Reset Password (Public)
+  async resetPassword(data: ResetPasswordData): Promise<ApiResponse> {
+    return this.makeRequest('/auth/reset-password', {
+      method: 'POST',
       body: JSON.stringify(data),
     });
   }

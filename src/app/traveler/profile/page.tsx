@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useRef } from 'react';
-import { User, Phone, Mail, Edit, Save, X, MapPin, Globe, Award, Image as ImageIcon, Camera, CheckCircle2, XCircle } from 'lucide-react';
+import { User, Phone, Mail, Edit, Save, X, MapPin, Globe, Award, Image as ImageIcon, Camera, CheckCircle2, XCircle, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
@@ -27,6 +27,7 @@ import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
+import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 import {
   Select,
   SelectContent,
@@ -87,6 +88,7 @@ function TravelerProfileContent() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -844,6 +846,42 @@ function TravelerProfileContent() {
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Change Password Section */}
+                  <div className="md:col-span-2 pt-6 border-t">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="flex items-center gap-2 text-base">
+                            <Lock className="w-4 h-4" />
+                            Password
+                          </Label>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Change your account password
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setShowChangePassword(!showChangePassword)}
+                          variant="outline"
+                        >
+                          {showChangePassword ? 'Cancel' : 'Change Password'}
+                        </Button>
+                      </div>
+                      
+                      {showChangePassword && (
+                        <Card className="mt-4">
+                          <CardContent className="pt-6">
+                            <ChangePasswordForm
+                              onSuccess={() => {
+                                setShowChangePassword(false);
+                              }}
+                              onCancel={() => setShowChangePassword(false)}
+                            />
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
