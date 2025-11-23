@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, ArrowLeft } from 'lucide-react';
+import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, ArrowLeft, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiService, Booking, BookingStats } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -26,7 +26,7 @@ export default function GuiderBookingsDashboard() {
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed'>('all');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
@@ -114,6 +114,8 @@ export default function GuiderBookingsDashboard() {
         return 'secondary';
       case 'cancelled':
         return 'destructive';
+      case 'completed':
+        return 'default';
       default:
         return 'outline';
     }
@@ -127,6 +129,8 @@ export default function GuiderBookingsDashboard() {
         return <AlertCircle className="w-5 h-5 text-yellow-600" />;
       case 'cancelled':
         return <XCircle className="w-5 h-5 text-red-600" />;
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
       default:
         return <Clock className="w-5 h-5 text-gray-600" />;
     }
@@ -140,6 +144,8 @@ export default function GuiderBookingsDashboard() {
         return booking.status?.status === 'confirmed';
       case 'cancelled':
         return booking.status?.status === 'cancelled';
+      case 'completed':
+        return booking.status?.status === 'completed';
       default:
         return true;
     }
@@ -254,7 +260,7 @@ export default function GuiderBookingsDashboard() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-            <TabsList className="grid w-full max-w-2xl grid-cols-4">
+            <TabsList className="grid w-full max-w-3xl grid-cols-5">
               <TabsTrigger value="all">
                 All ({bookings.length})
               </TabsTrigger>
@@ -263,6 +269,9 @@ export default function GuiderBookingsDashboard() {
               </TabsTrigger>
               <TabsTrigger value="confirmed">
                 Confirmed ({bookings.filter(b => b.status?.status === 'confirmed').length})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed ({bookings.filter(b => b.status?.status === 'completed').length})
               </TabsTrigger>
               <TabsTrigger value="cancelled">
                 Cancelled ({bookings.filter(b => b.status?.status === 'cancelled').length})
@@ -394,6 +403,49 @@ export default function GuiderBookingsDashboard() {
                             </CardHeader>
                             <CardContent className="pt-0">
                               <p className="text-red-800 text-sm">{booking.cancellation?.reason}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Review Section - Show if booking has a review */}
+                        {booking.review?.isReviewed && booking.review?.rating && (
+                          <Card className="bg-purple-50 border-purple-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base text-purple-900 flex items-center">
+                                <Star className="w-5 h-5 mr-2 fill-current text-purple-600" />
+                                Traveler Review
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="flex items-center gap-2 mb-3">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < (booking.review?.rating || 0)
+                                        ? 'text-yellow-400 fill-current'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                                <span className="ml-1 text-sm font-medium text-purple-900">
+                                  {booking.review.rating}/5
+                                </span>
+                                {booking.review.reviewedAt && (
+                                  <span className="text-xs text-purple-700 ml-auto">
+                                    {new Date(booking.review.reviewedAt).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })}
+                                  </span>
+                                )}
+                              </div>
+                              {booking.review.review && (
+                                <p className="text-purple-800 text-sm leading-relaxed">
+                                  "{booking.review.review}"
+                                </p>
+                              )}
                             </CardContent>
                           </Card>
                         )}
