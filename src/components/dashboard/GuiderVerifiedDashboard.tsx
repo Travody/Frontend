@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { CheckCircle, Star, TrendingUp, Users, Calendar, Plus, Eye, DollarSign, ArrowRight } from 'lucide-react';
 import { GuiderUser } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, GuiderStats, Plan } from '@/lib/api';
+import { plansService } from '@/lib/api';
+import type { GuiderStats, Plan } from '@/types';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,8 +36,8 @@ export default function GuiderVerifiedDashboard({ user }: GuiderVerifiedDashboar
   const fetchDashboardData = async () => {
     try {
       const [statsResponse, plansResponse] = await Promise.all([
-        apiService.getGuiderStats(token!),
-        apiService.getGuiderPlans(token!, 'published')
+        plansService.getGuiderStats(),
+        plansService.getGuiderPlans('published')
       ]);
 
       if (statsResponse.success && statsResponse.data) {

@@ -5,8 +5,8 @@ import { User, Phone, Mail, Edit, Save, X, MapPin, Globe, Award, Image as ImageI
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { apiService } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { usersService } from '@/lib/api';
+import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -104,7 +104,7 @@ function TravelerProfileContent() {
 
       try {
         setLoading(true);
-        const response = await apiService.getCurrentUser(token, 'traveler');
+        const response = await usersService.getCurrentUser('traveler');
         if (response.success && response.data) {
           const data = response.data as any;
           setProfileData(data);
@@ -216,16 +216,13 @@ function TravelerProfileContent() {
 
     setOtpLoading(true);
     try {
-      const response = await apiService.sendOtpForEmailUpdate(newEmail, 'traveler', token || '');
+      const response = await usersService.sendOtpForEmailUpdate(newEmail, 'traveler');
       if (response.success) {
         setOtpSent(true);
         setShowOtpDialog(true);
-      } else {
-        toast.error(response.message || 'Failed to send OTP');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      toast.error('Failed to send OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
@@ -239,9 +236,9 @@ function TravelerProfileContent() {
 
     setOtpLoading(true);
     try {
-      const response = await apiService.verifyOtpAndUpdateEmail(newEmail, otp, 'traveler', token || '');
+      const response = await usersService.verifyOtpAndUpdateEmail(newEmail, otp, 'traveler');
       if (response.success) {
-        const refreshResponse = await apiService.getCurrentUser(token || '', 'traveler');
+        const refreshResponse = await usersService.getCurrentUser('traveler');
         if (refreshResponse.success && refreshResponse.data) {
           setProfileData(refreshResponse.data as any);
         }
@@ -256,13 +253,9 @@ function TravelerProfileContent() {
         }
         
         setEditingTabs((prev) => ({ ...prev, account: false }));
-        toast.success('Account updated successfully!');
-      } else {
-        toast.error(response.message || 'Invalid OTP');
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
-      toast.error('Failed to verify OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
@@ -276,18 +269,15 @@ function TravelerProfileContent() {
 
     setSaving(true);
     try {
-      const response = await apiService.updateTravelerProfile({ mobile: newPhone }, token || '');
+      const response = await usersService.updateTravelerProfile({ mobile: newPhone });
       if (response.success) {
-        const refreshResponse = await apiService.getCurrentUser(token || '', 'traveler');
+        const refreshResponse = await usersService.getCurrentUser('traveler');
         if (refreshResponse.success && refreshResponse.data) {
           setProfileData(refreshResponse.data as any);
         }
-      } else {
-        toast.error(response.message || 'Failed to update phone number');
       }
     } catch (error) {
       console.error('Error updating phone:', error);
-      toast.error('Failed to update phone number. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -326,7 +316,6 @@ function TravelerProfileContent() {
       await handleUpdatePhone();
       setEditingTabs((prev) => ({ ...prev, account: false }));
       setNewPhone('');
-      toast.success('Phone number updated successfully!');
     }
   };
 
@@ -343,7 +332,7 @@ function TravelerProfileContent() {
         if (formData.city !== undefined) updateData.city = formData.city;
         if (formData.mobile !== undefined) updateData.mobile = formData.mobile;
         if (formData.profileImageUrl) {
-          await apiService.updateTravelerProfileImage(formData.profileImageUrl, token);
+          await usersService.updateTravelerProfileImage(formData.profileImageUrl);
         }
       } else if (tab === 'travel') {
         if (formData.travelStyle) updateData.travelStyle = formData.travelStyle;
@@ -352,9 +341,9 @@ function TravelerProfileContent() {
       }
 
       if (Object.keys(updateData).length > 0) {
-        const response = await apiService.updateTravelerProfile(updateData, token);
+        const response = await usersService.updateTravelerProfile(updateData);
         if (response.success) {
-          const refreshResponse = await apiService.getCurrentUser(token, 'traveler');
+          const refreshResponse = await usersService.getCurrentUser('traveler');
           if (refreshResponse.success && refreshResponse.data) {
             const refreshedData = refreshResponse.data as any;
             setProfileData(refreshedData);
@@ -371,14 +360,10 @@ function TravelerProfileContent() {
             refreshUser(refreshedData);
           }
           setEditingTabs((prev) => ({ ...prev, [tab]: false }));
-          toast.success('Profile updated successfully!');
-        } else {
-          toast.error(response.message || 'Failed to update profile');
         }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }

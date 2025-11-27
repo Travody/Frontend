@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Star, MapPin, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, Booking, ReviewEligibility, Review } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { bookingsService, reviewsService } from '@/lib/api';
+import type { Booking, ReviewEligibility, Review } from '@/types';
+import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { PromptDialog } from '@/components/ui/prompt-dialog';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,7 @@ export default function TravelerTripsPage() {
 
   const fetchBookings = async () => {
     try {
-      const response = await apiService.getTravelerBookings(token!);
+      const response = await bookingsService.getTravelerBookings();
       if (response.success && response.data) {
         setBookings(response.data.bookings);
         // Fetch review eligibility for completed bookings
@@ -49,12 +50,9 @@ export default function TravelerTripsPage() {
         for (const booking of completedBookings) {
           await fetchReviewEligibility(booking._id);
         }
-      } else {
-        toast.error('Failed to load trips');
       }
     } catch (error) {
       console.error('Failed to fetch trips:', error);
-      toast.error('Failed to load trips');
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +60,7 @@ export default function TravelerTripsPage() {
 
   const fetchReviewEligibility = async (bookingId: string) => {
     try {
-      const response = await apiService.canUserReview(bookingId, token!);
+      const response = await reviewsService.canUserReview(bookingId);
       if (response.success && response.data) {
         setReviewEligibility((prev) => ({
           ...prev,
@@ -93,16 +91,12 @@ export default function TravelerTripsPage() {
     if (!currentBookingId || !reason.trim()) return;
     
     try {
-      const response = await apiService.cancelBooking(currentBookingId, reason, token!);
+      const response = await bookingsService.cancelBooking(currentBookingId, reason);
       if (response.success) {
-        toast.success('Trip cancelled successfully');
         fetchBookings();
-      } else {
-        toast.error(response.message || 'Failed to cancel trip');
       }
     } catch (error) {
       console.error('Error cancelling trip:', error);
-      toast.error('Failed to cancel trip');
     } finally {
       setShowCancelDialog(false);
       setCurrentBookingId(null);
@@ -124,36 +118,26 @@ export default function TravelerTripsPage() {
       let response;
       if (existingReview) {
         // Update existing review
-        response = await apiService.updateReview(existingReview._id, rating, comment, token!);
+        response = await reviewsService.updateReview(existingReview._id, rating, comment);
       } else {
         // Create new review
-        response = await apiService.createReview(
-          {
+        response = await reviewsService.createReview({
             reviewType: currentReviewType,
             bookingId: currentBookingId,
             rating,
             comment,
-          },
-          token!
-        );
+        });
       }
 
       if (response.success) {
-        toast.success(
-          existingReview
-            ? `${currentReviewType === 'booking' ? 'Tour' : 'Guider'} review updated successfully`
-            : `${currentReviewType === 'booking' ? 'Tour' : 'Guider'} review added successfully`
-        );
         // Refresh eligibility and reviews
         await fetchReviewEligibility(currentBookingId);
         fetchBookings();
       } else {
-        toast.error(response.message || 'Failed to submit review');
         throw new Error(response.message || 'Failed to submit review');
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error(error?.message || 'Failed to submit review');
       throw error;
     }
   };

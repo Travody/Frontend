@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { apiService, CreatePlanData, Plan } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { plansService } from '@/lib/api';
+import type { CreatePlanData, Plan } from '@/types';
+import toast from '@/lib/toast';
 
 export interface PlanCreationStep {
   step: number;
@@ -168,18 +169,14 @@ export const usePlanCreation = (planId?: string) => {
 
     setIsLoading(true);
     try {
-      const response = await apiService.createPlan(actualData as CreatePlanData, actualToken);
+      const response = await plansService.createPlan(actualData as CreatePlanData);
       if (response.success && response.data) {
         setCreatedPlan(response.data);
-        // Don't show toast here - let the caller handle it
         return response.data;
-      } else {
-        toast.error(response.message || 'Failed to create plan');
-        return null;
       }
+      return null;
     } catch (error) {
       console.error('Error creating plan:', error);
-      toast.error('Failed to create plan');
       return null;
     } finally {
       setIsLoading(false);
@@ -194,20 +191,16 @@ export const usePlanCreation = (planId?: string) => {
 
     setIsLoading(true);
     try {
-      const response = await apiService.updatePlanStep(planId, step, data, token);
+      const response = await plansService.updatePlanStep(planId, step, data);
       if (response.success && response.data) {
         // Update createdPlan with the latest data from server
         setCreatedPlan(response.data);
         markStepCompleted(step);
-        toast.success(`Step ${step} saved successfully!`);
         return response.data;
-      } else {
-        toast.error(response.message || `Failed to update step ${step}`);
-        return null;
       }
+      return null;
     } catch (error) {
       console.error(`Error updating step ${step}:`, error);
-      toast.error(`Failed to update step ${step}`);
       return null;
     } finally {
       setIsLoading(false);
@@ -222,17 +215,13 @@ export const usePlanCreation = (planId?: string) => {
 
     setIsLoading(true);
     try {
-      const response = await apiService.publishPlan(planId, token);
+      const response = await plansService.publishPlan(planId);
       if (response.success && response.data) {
-        toast.success('Plan published successfully!');
         return response.data;
-      } else {
-        toast.error(response.message || 'Failed to publish plan');
-        return null;
       }
+      return null;
     } catch (error) {
       console.error('Error publishing plan:', error);
-      toast.error('Failed to publish plan');
       return null;
     } finally {
       setIsLoading(false);
@@ -247,7 +236,7 @@ export const usePlanCreation = (planId?: string) => {
 
     setIsLoadingPlan(true);
     try {
-      const response = await apiService.getPlanById(planIdToLoad);
+      const response = await plansService.getPlanById(planIdToLoad);
       if (response.success && response.data) {
         const plan = response.data;
         setCreatedPlan(plan);
@@ -302,13 +291,10 @@ export const usePlanCreation = (planId?: string) => {
         setStepCompleted(completed);
 
         return plan;
-      } else {
-        toast.error(response.message || 'Failed to load plan');
-        return null;
       }
+      return null;
     } catch (error) {
       console.error('Error loading plan:', error);
-      toast.error('Failed to load plan');
       return null;
     } finally {
       setIsLoadingPlan(false);

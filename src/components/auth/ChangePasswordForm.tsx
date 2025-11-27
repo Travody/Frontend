@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
-import { apiService } from '@/lib/api';
+import { authService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,13 +54,10 @@ export default function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswo
         return;
       }
 
-      const response = await apiService.changePassword(
-        {
+      const response = await authService.changePassword({
           oldPassword: formData.currentPassword,
           newPassword: formData.newPassword
-        },
-        token
-      );
+      });
 
       if (response.success) {
         setSuccess('Password changed successfully!');

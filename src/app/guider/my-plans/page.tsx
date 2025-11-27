@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { apiService, Plan } from '@/lib/api';
+import { plansService } from '@/lib/api';
+import type { Plan } from '@/types';
 import { MapPin, Clock, Users, Star, Calendar, Eye, Edit, Globe, Lock, Plus } from 'lucide-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +55,7 @@ export default function MyPlansPage() {
     setIsLoading(true);
     try {
       const status = statusFilter === 'all' ? undefined : statusFilter;
-      const response = await apiService.getGuiderPlans(token, status);
+      const response = await plansService.getGuiderPlans(status);
       if (response.success && response.data) {
         setPlans(response.data);
       } else {

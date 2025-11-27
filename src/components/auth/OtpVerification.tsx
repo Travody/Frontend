@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiService, OtpVerificationData } from '@/lib/api';
+import { authService } from '@/lib/api';
+import type { OtpVerificationData } from '@/lib/api';
 import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -51,8 +52,8 @@ export default function OtpVerification({
 
     try {
       const response = userType === 'traveler'
-        ? await apiService.verifyTravelerOtp({ email, otp })
-        : await apiService.verifyGuiderOtp({ email, otp });
+        ? await authService.verifyTravelerOtp({ email, otp })
+        : await authService.verifyGuiderOtp({ email, otp });
 
       if (response.success && response.data) {
         // Store authentication data
@@ -106,8 +107,8 @@ export default function OtpVerification({
 
     try {
       const response = userType === 'traveler'
-        ? await apiService.resendTravelerOtp(email)
-        : await apiService.resendGuiderOtp(email);
+        ? await authService.resendTravelerOtp(email)
+        : await authService.resendGuiderOtp(email);
 
       if (response.success) {
         setSuccess('OTP sent successfully!');

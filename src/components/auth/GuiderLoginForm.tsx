@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
-import { apiService } from '@/lib/api';
+import { authService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import OtpVerification from './OtpVerification';
 import GuiderTypeDialog from './GuiderTypeDialog';
@@ -38,7 +38,7 @@ export default function GuiderLoginForm() {
     setIsLoading(true);
 
     try {
-      const response = await apiService.loginGuider(formData);
+      const response = await authService.loginGuider(formData);
       
       if (response.success) {
         // Check if verification is required
@@ -85,7 +85,7 @@ export default function GuiderLoginForm() {
     
     setIsLoading(true);
     try {
-      const response = await apiService.googleAuthGuider(credentialResponse.credential);
+      const response = await authService.googleAuthGuider(credentialResponse.credential);
       
       if (response.success) {
         if ((response as any).requiresGuiderType && response.data) {
@@ -136,7 +136,7 @@ export default function GuiderLoginForm() {
     setShowGuiderTypeDialog(false);
 
     try {
-      const response = await apiService.completeGoogleGuiderAuth(
+      const response = await authService.completeGoogleGuiderAuth(
         pendingGoogleAuth.email,
         pendingGoogleAuth.firstName,
         pendingGoogleAuth.lastName,

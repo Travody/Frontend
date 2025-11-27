@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { apiService } from '@/lib/api';
+import toast from '@/lib/toast';
+import { authService } from '@/lib/api';
 import OtpVerification from '@/components/auth/OtpVerification';
 
 export default function TravelerAuthPage() {
@@ -35,7 +35,7 @@ export default function TravelerAuthPage() {
     setIsLoading(true);
     
     try {
-      const response = await apiService.loginTraveler(loginData);
+      const response = await authService.loginTraveler(loginData);
       if (response.success) {
         // Check if verification is required
         if ((response as any).requiresVerification && response.data) {
@@ -54,17 +54,11 @@ export default function TravelerAuthPage() {
             city: response.data.user.city,
           }, response.data.token);
           
-          toast.success('Login successful!');
           router.push('/');
-        } else {
-          toast.error(response.message || 'Login failed');
         }
-      } else {
-        toast.error(response.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +79,7 @@ export default function TravelerAuthPage() {
     setIsLoading(true);
     
     try {
-      const response = await apiService.registerTraveler({
+      const response = await authService.registerTraveler({
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
@@ -94,7 +88,6 @@ export default function TravelerAuthPage() {
       });
       
       if (response.success) {
-        toast.success('Registration successful! Please check your email for verification.');
         setIsLogin(true);
         setRegisterData({
           firstName: '',
@@ -104,12 +97,9 @@ export default function TravelerAuthPage() {
           password: '',
           confirmPassword: ''
         });
-      } else {
-        toast.error(response.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Registration failed');
     } finally {
       setIsLoading(false);
     }

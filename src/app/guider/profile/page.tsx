@@ -5,9 +5,10 @@ import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircl
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { apiService, Review } from '@/lib/api';
+import { usersService, reviewsService } from '@/lib/api';
+import type { Review } from '@/types';
 import { tourTypes } from '@/lib/tour-types';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -334,7 +335,7 @@ function GuiderProfileContent() {
       if (!token || !isAuthenticated) return;
 
       try {
-        const response = await apiService.getCurrentUser(token, 'guider');
+        const response = await usersService.getCurrentUser('guider');
         if (response.success && response.data) {
           const data = response.data as any;
           setProfileData(data);
@@ -414,7 +415,7 @@ function GuiderProfileContent() {
 
     setIsLoadingReviews(true);
     try {
-      const response = await apiService.getReviewsByGuider(guiderId, 'guider');
+      const response = await reviewsService.getReviewsByGuider(guiderId, 'guider');
       if (response.success && response.data) {
         setReviews(response.data);
       }
@@ -504,11 +505,11 @@ function GuiderProfileContent() {
         if (formData.indianFestivals) updateData.indianFestivals = formData.indianFestivals;
       }
 
-      const response = await apiService.updateGuiderProfile(profileData._id, updateData, token);
+      const response = await usersService.updateGuiderProfile(profileData._id, updateData);
       
       if (response.success) {
         // Refresh profile data to show updated information in view mode
-        const refreshResponse = await apiService.getCurrentUser(token, 'guider');
+        const refreshResponse = await usersService.getCurrentUser('guider');
         if (refreshResponse.success && refreshResponse.data) {
           const refreshedData = refreshResponse.data as any;
           setProfileData(refreshedData);
@@ -530,9 +531,6 @@ function GuiderProfileContent() {
         }
         // Exit edit mode for this tab
         setEditingTabs((prev) => ({ ...prev, [tab]: false }));
-        toast.success('Profile updated successfully!');
-      } else {
-        toast.error(response.message || 'Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -2039,16 +2037,13 @@ function GuiderProfileContent() {
 
     setOtpLoading(true);
     try {
-      const response = await apiService.sendOtpForEmailUpdate(newEmail, 'guider', token || '');
+      const response = await usersService.sendOtpForEmailUpdate(newEmail, 'guider');
       if (response.success) {
         setOtpSent(true);
         setShowOtpVerification(true);
-      } else {
-        toast.error(response.message || 'Failed to send OTP');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      toast.error('Failed to send OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
@@ -2062,10 +2057,10 @@ function GuiderProfileContent() {
 
     setOtpLoading(true);
     try {
-      const response = await apiService.verifyOtpAndUpdateEmail(newEmail, otp, 'guider', token || '');
+      const response = await usersService.verifyOtpAndUpdateEmail(newEmail, otp, 'guider');
       if (response.success) {
         // Refresh profile data
-        const refreshResponse = await apiService.getCurrentUser(token || '', 'guider');
+        const refreshResponse = await usersService.getCurrentUser('guider');
         if (refreshResponse.success && refreshResponse.data) {
           setProfileData(refreshResponse.data as any);
         }
@@ -2081,13 +2076,9 @@ function GuiderProfileContent() {
         }
         
         setEditingTabs((prev) => ({ ...prev, account: false }));
-        toast.success('Account updated successfully!');
-      } else {
-        toast.error(response.message || 'Invalid OTP');
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
-      toast.error('Failed to verify OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
@@ -2101,19 +2092,16 @@ function GuiderProfileContent() {
 
     setSaving(true);
     try {
-      const response = await apiService.updateGuiderProfile(profileData?._id || '', { mobile: newPhone }, token || '');
+      const response = await usersService.updateGuiderProfile(profileData?._id || '', { mobile: newPhone });
       if (response.success) {
         // Refresh profile data
-        const refreshResponse = await apiService.getCurrentUser(token || '', 'guider');
+        const refreshResponse = await usersService.getCurrentUser('guider');
         if (refreshResponse.success && refreshResponse.data) {
           setProfileData(refreshResponse.data as any);
         }
-      } else {
-        toast.error(response.message || 'Failed to update phone number');
       }
     } catch (error) {
       console.error('Error updating phone:', error);
-      toast.error('Failed to update phone number. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -2158,7 +2146,6 @@ function GuiderProfileContent() {
       await handleUpdatePhone();
       setEditingTabs((prev) => ({ ...prev, account: false }));
       setNewPhone('');
-      toast.success('Phone number updated successfully!');
     }
   };
 

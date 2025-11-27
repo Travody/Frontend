@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
-import { apiService } from '@/lib/api';
+import { authService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import OtpVerification from './OtpVerification';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ export default function TravelerSignupForm() {
     setIsLoading(true);
 
     try {
-      const response = await apiService.registerTraveler(formData);
+      const response = await authService.registerTraveler(formData);
       
       if (response.success) {
         setShowOtpVerification(true);
@@ -55,7 +55,7 @@ export default function TravelerSignupForm() {
     
     setIsLoading(true);
     try {
-      const response = await apiService.googleAuthTraveler(credentialResponse.credential);
+      const response = await authService.googleAuthTraveler(credentialResponse.credential);
       
       if (response.success && response.data?.token && response.data) {
         const userData = {
