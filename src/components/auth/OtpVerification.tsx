@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { authService } from '@/lib/api';
-import type { OtpVerificationData } from '@/lib/api';
+import type { OtpVerificationData } from '@/types';
 import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
