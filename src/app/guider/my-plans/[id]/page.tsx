@@ -23,17 +23,30 @@ import {
   CheckCircle,
   X,
   AlertCircle,
+  Archive,
+  ArchiveRestore,
+  Info,
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Heading } from '@/components/ui/heading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 export default function GuiderPlanDetailPage() {
   const params = useParams();
@@ -42,6 +55,9 @@ export default function GuiderPlanDetailPage() {
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [pausedToDate, setPausedToDate] = useState('');
+  const [pausedToTime, setPausedToTime] = useState('');
 
   useEffect(() => {
     if (!authLoading) {
@@ -88,19 +104,17 @@ export default function GuiderPlanDetailPage() {
         }
         setPlan(response.data);
       } else {
-        toast.error('Plan not found');
         router.push('/guider/my-plans');
       }
     } catch (error) {
       console.error('Error fetching plan:', error);
-      toast.error('Failed to load plan details');
       router.push('/guider/my-plans');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStatusChange = async (action: 'publish' | 'pause' | 'archive') => {
+  const handleStatusChange = async (action: 'publish' | 'pause' | 'archive' | 'unarchive') => {
     if (!token || !plan) return;
 
     try {
@@ -110,10 +124,14 @@ export default function GuiderPlanDetailPage() {
           response = await plansService.publishPlan(plan._id);
           break;
         case 'pause':
-          response = await plansService.pausePlan(plan._id);
-          break;
+          // Show dialog to get pause duration
+          setShowPauseDialog(true);
+          return;
         case 'archive':
           response = await plansService.archivePlan(plan._id);
+          break;
+        case 'unarchive':
+          response = await plansService.unarchivePlan(plan._id);
           break;
       }
 
@@ -122,6 +140,77 @@ export default function GuiderPlanDetailPage() {
       }
     } catch (error) {
       console.error(`Error ${action}ing plan:`, error);
+    }
+  };
+
+  // Helper function to combine date and time into ISO string
+  const combineDateTime = (date: string, time: string): string => {
+    if (!date || !time) return '';
+    const dateTimeString = `${date}T${time}:00`;
+    return new Date(dateTimeString).toISOString();
+  };
+
+  // Helper function to get current date in YYYY-MM-DD format
+  const getCurrentDate = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to get current time in HH:mm format
+  const getCurrentTime = (): string => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Helper function to check if date/time is in the past
+  const isDateTimeInPast = (date: string, time: string): boolean => {
+    if (!date || !time) return false;
+    const dateTime = new Date(`${date}T${time}:00`);
+    return dateTime < new Date();
+  };
+
+  const handlePauseConfirm = async () => {
+    if (!token || !plan) return;
+
+    // Validate inputs
+    if (!pausedToDate || !pausedToTime) {
+      toast.error('Please select pause until date and time');
+      return;
+    }
+
+    // Check if end date/time is in the past
+    if (isDateTimeInPast(pausedToDate, pausedToTime)) {
+      toast.error('Pause until date/time must be in the future');
+      return;
+    }
+
+    // Combine date and time into ISO string
+    const pausedTo = combineDateTime(pausedToDate, pausedToTime);
+    
+    const toDate = new Date(pausedTo);
+    const now = new Date();
+    
+    if (toDate <= now) {
+      toast.error('Pause until date/time must be in the future');
+      return;
+    }
+
+    try {
+      const response = await plansService.pausePlan(plan._id, pausedTo);
+      if (response.success && response.data) {
+        setPlan(response.data);
+        setShowPauseDialog(false);
+        // Reset form
+        setPausedToDate('');
+        setPausedToTime('');
+      }
+    } catch (error) {
+      console.error('Error pausing plan:', error);
     }
   };
 
@@ -182,6 +271,24 @@ export default function GuiderPlanDetailPage() {
     }
   };
 
+  // Helper function to calculate duration between two dates
+  const calculateDuration = (from: string, to: string): string => {
+    if (!from || !to) return '';
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    const diffMs = toDate.getTime() - fromDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    const parts: string[] = [];
+    if (diffDays > 0) parts.push(`${diffDays} day${diffDays > 1 ? 's' : ''}`);
+    if (diffHours > 0) parts.push(`${diffHours} hour${diffHours > 1 ? 's' : ''}`);
+    if (diffMinutes > 0 && diffDays === 0) parts.push(`${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`);
+    
+    return parts.length > 0 ? parts.join(', ') : 'Less than a minute';
+  };
+
   return (
     <AppLayout>
       <Section variant="muted" className="py-8">
@@ -235,6 +342,75 @@ export default function GuiderPlanDetailPage() {
             </CardHeader>
             <CardContent>
               <Separator className="mb-4" />
+              
+              {/* Pause Information */}
+              {plan.status === 'paused' && plan.pausedFrom && plan.pausedTo && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-500 rounded-lg shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Heading as="h3" variant="subsection" className="text-orange-900 m-0">
+                          Plan is Currently Paused
+                        </Heading>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-start gap-2">
+                          <div className="p-1.5 bg-white rounded border border-orange-200">
+                            <Calendar className="w-4 h-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">Duration</p>
+                            <p className="text-sm font-semibold text-orange-900 mt-0.5">
+                              {calculateDuration(plan.pausedFrom, plan.pausedTo)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="p-1.5 bg-white rounded border border-orange-200">
+                            <Clock className="w-4 h-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">Resume At</p>
+                            <p className="text-sm font-semibold text-orange-900 mt-0.5">
+                              {new Date(plan.pausedTo).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="p-1.5 bg-white rounded border border-orange-200">
+                            <Calendar className="w-4 h-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">Paused From</p>
+                            <p className="text-sm font-semibold text-orange-900 mt-0.5">
+                              {new Date(plan.pausedFrom).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-orange-600 mt-3 italic">
+                        The plan will automatically resume and become available after the pause period ends.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Status Actions */}
               <div className="flex items-center gap-3">
                 {plan.status === 'draft' && (
@@ -271,13 +447,117 @@ export default function GuiderPlanDetailPage() {
                     variant="outline"
                     className="border-gray-600 text-gray-600 hover:bg-gray-50"
                   >
-                    <X className="w-4 h-4 mr-2" />
+                    <Archive className="w-4 h-4 mr-2" />
                     Archive Plan
+                  </Button>
+                )}
+                {plan.status === 'archived' && (
+                  <Button
+                    onClick={() => handleStatusChange('unarchive')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <ArchiveRestore className="w-4 h-4 mr-2" />
+                    Unarchive Plan
                   </Button>
                 )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Pause Dialog */}
+          <Dialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Pause Plan</DialogTitle>
+                <DialogDescription>
+                  The plan will be paused immediately and will automatically resume after the selected date and time.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6 py-4">
+                {/* Pause Until Section */}
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Pause Until</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="paused-to-date">Date</Label>
+                      <Input
+                        id="paused-to-date"
+                        type="date"
+                        min={getCurrentDate()}
+                        value={pausedToDate}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setPausedToDate(value);
+                          // If same date and time is in the past, clear time
+                          if (value === getCurrentDate() && pausedToTime) {
+                            const currentTime = getCurrentTime();
+                            if (pausedToTime <= currentTime) {
+                              setPausedToTime('');
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="paused-to-time">Time</Label>
+                      <Input
+                        id="paused-to-time"
+                        type="time"
+                        min={pausedToDate === getCurrentDate() ? getCurrentTime() : undefined}
+                        value={pausedToTime}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setPausedToTime(value);
+                          // Validate if date/time is in the past
+                          if (pausedToDate && value && isDateTimeInPast(pausedToDate, value)) {
+                            toast.error('Pause until date/time must be in the future');
+                            setPausedToTime('');
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                {pausedToDate && pausedToTime && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-900 mb-1">Pause Schedule</p>
+                        <p className="text-sm text-blue-800">
+                          The plan will be paused <span className="font-semibold">now</span> and will automatically resume on{' '}
+                          <span className="font-semibold">
+                            {new Date(combineDateTime(pausedToDate, pausedToTime)).toLocaleString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setShowPauseDialog(false);
+                  // Reset form
+                  setPausedToDate('');
+                  setPausedToTime('');
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handlePauseConfirm}>
+                  Pause Plan
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

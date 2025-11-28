@@ -107,12 +107,10 @@ export default function PlanDetailsPage() {
           fetchReviews();
         }
       } else {
-        toast.error('Plan not found');
         router.push('/explore');
       }
     } catch (error) {
       console.error('Error fetching plan:', error);
-      toast.error('Failed to load plan details');
       router.push('/explore');
     } finally {
       setIsLoading(false);
@@ -200,17 +198,11 @@ export default function PlanDetailsPage() {
       const response = await bookingsService.createBooking(bookingData);
       
       if (response.success && response.data) {
-        toast.success('Booking request sent successfully!');
         setExistingBooking(response.data);
         setShowConfirmDialog(false);
-      } else {
-        const errorMessage = response.message || response.error || 'Failed to create booking';
-        toast.error(errorMessage, { duration: 5000 });
       }
     } catch (error: any) {
       console.error('Booking error:', error);
-      const errorMessage = error?.message || error?.error || 'Failed to create booking';
-      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setIsSubmitting(false);
     }
@@ -242,6 +234,7 @@ export default function PlanDetailsPage() {
       day: 'numeric'
     });
   };
+
 
   if (isLoading) {
     return (

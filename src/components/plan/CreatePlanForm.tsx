@@ -155,7 +155,6 @@ export default function CreatePlanForm() {
       if (createdPlan) {
         await updatePlanStep(createdPlan._id, currentStep, stepData, token);
         markStepCompleted(currentStep);
-        toast.success(`Step ${currentStep} saved successfully!`);
       } else if (currentStep === 1 && isStepValid(1)) {
         // For step 1, we need to create the plan first
         // Merge stepData with existing planData for createPlan call
@@ -167,14 +166,10 @@ export default function CreatePlanForm() {
           // Update the first step to mark it as completed
           await updatePlanStep(newPlan._id, 1, stepData, token);
           markStepCompleted(1);
-          toast.success('Plan created and Step 1 saved successfully!');
         }
-      } else {
-        toast.error('Please complete Step 1 first to create the plan');
       }
     } catch (error) {
       console.error('Error saving step:', error);
-      toast.error('Failed to save step data');
     } finally {
       setIsSaving(false);
     }
@@ -198,7 +193,6 @@ export default function CreatePlanForm() {
           await updatePlanStep(createdPlan._id, currentStep, stepData, token);
           setLastSavedStepData(prev => ({ ...prev, [currentStep]: stepData }));
         }
-        toast.success('Draft saved successfully!');
       } else {
         // Create plan as draft if step 1 is valid (only Step 1 data)
         const step1Data = getStepData(1, planData);
@@ -207,12 +201,10 @@ export default function CreatePlanForm() {
           // Save step 1 data
           await updatePlanStep(newPlan._id, 1, step1Data, token);
           setLastSavedStepData(prev => ({ ...prev, [1]: step1Data }));
-          toast.success('Plan created and saved as draft!');
         }
       }
     } catch (error) {
       console.error('Error saving draft:', error);
-      toast.error('Failed to save draft');
     } finally {
       setIsSaving(false);
     }
@@ -232,10 +224,8 @@ export default function CreatePlanForm() {
     setIsSaving(true);
     try {
       await publishPlan(createdPlan._id, token);
-      toast.success('Plan published successfully! It is now visible to travelers.');
     } catch (error) {
       console.error('Error publishing plan:', error);
-      toast.error('Failed to publish plan');
     } finally {
       setIsSaving(false);
     }
@@ -288,7 +278,6 @@ export default function CreatePlanForm() {
         if (hasStepDataChanged(currentStep, planData)) {
           await updatePlanStep(createdPlan._id, currentStep, stepData, token);
           setLastSavedStepData(prev => ({ ...prev, [currentStep]: stepData }));
-          toast.success(`Step ${currentStep} saved`);
         }
         markStepCompleted(currentStep);
         nextStep();
@@ -303,13 +292,11 @@ export default function CreatePlanForm() {
             setLastSavedStepData(prev => ({ ...prev, [1]: step1Data }));
             markStepCompleted(1);
             nextStep();
-            toast.success('Plan created and Step 1 saved');
           }
         }
       }
     } catch (error) {
       console.error('Error saving step:', error);
-      toast.error('Failed to save step');
     } finally {
       setIsSaving(false);
     }
@@ -337,8 +324,6 @@ export default function CreatePlanForm() {
       }
       markStepCompleted(currentStep);
       
-      toast.success('Plan completed successfully!');
-      
       // Navigate to the plan detail page
       if (isEditMode) {
         router.push(`/guider/my-plans/${createdPlan._id}`);
@@ -347,7 +332,6 @@ export default function CreatePlanForm() {
       }
     } catch (error) {
       console.error('Error finishing plan:', error);
-      toast.error('Failed to save final step');
     } finally {
       setIsSaving(false);
     }
