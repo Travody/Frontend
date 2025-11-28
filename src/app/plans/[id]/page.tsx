@@ -7,7 +7,7 @@ import DatePicker from '@/components/ui/DatePicker';
 import { plansService, bookingsService, reviewsService } from '@/lib/api';
 import type { Plan, CreateBookingData, Booking, Review } from '@/types';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
@@ -70,12 +70,18 @@ export default function PlanDetailsPage() {
   });
 
   useEffect(() => {
+    // Redirect guiders to their own plan detail page
+    if (user && isGuiderUser(user)) {
+      router.push(`/guider/my-plans/${planId}`);
+      return;
+    }
+    
     if (planId) {
       fetchPlanDetails();
       checkExistingBooking();
       setBookingData(prev => ({ ...prev, planId }));
     }
-  }, [planId, isAuthenticated, token]);
+  }, [planId, isAuthenticated, token, user, router]);
 
   useEffect(() => {
     if (user) {

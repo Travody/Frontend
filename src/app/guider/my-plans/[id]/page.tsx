@@ -331,12 +331,6 @@ export default function GuiderPlanDetailPage() {
                       Edit Plan
                     </Button>
                   </Link>
-                  <Link href={`/plans/${plan._id}`} target="_blank">
-                    <Button variant="outline">
-                      <Eye className="w-4 h-4 mr-2" />
-                      View as Traveler
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </CardHeader>
