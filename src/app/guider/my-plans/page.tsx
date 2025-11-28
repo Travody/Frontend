@@ -7,7 +7,6 @@ import { plansService } from '@/lib/api';
 import type { Plan } from '@/types';
 import { MapPin, Clock, Users, Star, Calendar, Eye, Edit, Globe, Lock, Plus } from 'lucide-react';
 import Link from 'next/link';
-import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,12 +57,9 @@ export default function MyPlansPage() {
       const response = await plansService.getGuiderPlans(status);
       if (response.success && response.data) {
         setPlans(response.data);
-      } else {
-        toast.error('Failed to load plans');
       }
     } catch (error) {
       console.error('Error fetching plans:', error);
-      toast.error('Failed to load plans');
     } finally {
       setIsLoading(false);
     }

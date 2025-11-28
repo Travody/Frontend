@@ -78,6 +78,8 @@ export interface Plan {
   specialInstructions?: string;
   viewCount: number;
   bookingCount: number;
+  pausedFrom?: string;
+  pausedTo?: string;
   reviews?: Review[];
   createdAt: string;
   updatedAt: string;

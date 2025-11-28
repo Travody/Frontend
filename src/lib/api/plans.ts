@@ -67,8 +67,11 @@ export class PlansService {
   /**
    * Pause plan
    */
-  async pausePlan(planId: string): Promise<ApiResponse<Plan>> {
-    return apiClient.patch<Plan>(`/plans/${planId}/pause`, {}, { showToast: true });
+  async pausePlan(
+    planId: string, 
+    pausedTo: string
+  ): Promise<ApiResponse<Plan>> {
+    return apiClient.patch<Plan>(`/plans/${planId}/pause`, { pausedTo }, { showToast: true });
   }
 
   /**
@@ -76,6 +79,13 @@ export class PlansService {
    */
   async archivePlan(planId: string): Promise<ApiResponse<Plan>> {
     return apiClient.patch<Plan>(`/plans/${planId}/archive`, {}, { showToast: true });
+  }
+
+  /**
+   * Unarchive plan
+   */
+  async unarchivePlan(planId: string): Promise<ApiResponse<Plan>> {
+    return apiClient.patch<Plan>(`/plans/${planId}/unarchive`, {}, { showToast: true });
   }
 
   /**
