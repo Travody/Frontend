@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useToast } from '@/contexts/ToastContext';
-import { setToastInstance as setApiToastInstance } from '@/lib/api/client';
+import { setToastInstance as setApiToastInstance } from '@/lib/api/api-client';
 import { setToastInstance as setLibToastInstance } from '@/lib/toast';
 
 /**

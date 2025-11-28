@@ -9,8 +9,8 @@
  */
 
 // Export API client
-export { apiClient, ApiClient, getApiBaseUrl } from './client';
-export type { ApiResponse, RequestOptions } from './client';
+export { apiClient, ApiClient, getApiBaseUrl } from './api-client';
+export type { ApiResponse, RequestOptions } from './api-client';
 
 // Export all services
 export { authService, AuthService } from './auth';
