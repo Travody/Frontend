@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Star, MapPin, Phone, Mail, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, Booking, ReviewEligibility, Review } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { bookingsService, reviewsService } from '@/lib/api';
+import type { Booking, ReviewEligibility, Review } from '@/types';
+import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +50,7 @@ export default function TravelerBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const response = await apiService.getTravelerBookings(token!);
+      const response = await bookingsService.getTravelerBookings();
       if (response.success && response.data) {
         setBookings(response.data.bookings);
         // Fetch review eligibility for completed bookings
@@ -59,12 +60,11 @@ export default function TravelerBookingsPage() {
         for (const booking of completedBookings) {
           await fetchReviewEligibility(booking._id);
         }
-      } else {
-        toast.error('Failed to load bookings');
       }
+      // Error toast is already shown by API client
     } catch (error) {
       console.error('Failed to fetch bookings:', error);
-      toast.error('Failed to load bookings');
+      // Error toast is already shown by API client
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +72,7 @@ export default function TravelerBookingsPage() {
 
   const fetchReviewEligibility = async (bookingId: string) => {
     try {
-      const response = await apiService.canUserReview(bookingId, token!);
+      const response = await reviewsService.canUserReview(bookingId);
       if (response.success && response.data) {
         setReviewEligibility((prev) => ({
           ...prev,
@@ -107,16 +107,15 @@ export default function TravelerBookingsPage() {
     }
     
     try {
-      const response = await apiService.cancelBooking(currentBookingId, cancelReason, token!);
+      const response = await bookingsService.cancelBooking(currentBookingId, cancelReason);
       if (response.success) {
-        toast.success('Booking cancelled successfully');
+        // Success toast is already shown by API client (showToast: true)
         fetchBookings();
-      } else {
-        toast.error(response.message || 'Failed to cancel booking');
       }
+      // Error toast is already shown by API client
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      toast.error('Failed to cancel booking');
+      // Error toast is already shown by API client
     } finally {
       setShowCancelDialog(false);
       setCurrentBookingId(null);
@@ -139,36 +138,29 @@ export default function TravelerBookingsPage() {
       let response;
       if (existingReview) {
         // Update existing review
-        response = await apiService.updateReview(existingReview._id, rating, comment, token!);
+        response = await reviewsService.updateReview(existingReview._id, rating, comment);
       } else {
         // Create new review
-        response = await apiService.createReview(
-          {
-            reviewType: currentReviewType,
-            bookingId: currentBookingId,
-            rating,
-            comment,
-          },
-          token!
-        );
+        response = await reviewsService.createReview({
+          reviewType: currentReviewType,
+          bookingId: currentBookingId,
+          rating,
+          comment,
+        });
       }
 
       if (response.success) {
-        toast.success(
-          existingReview
-            ? `${currentReviewType === 'booking' ? 'Booking' : 'Guider'} review updated successfully`
-            : `${currentReviewType === 'booking' ? 'Booking' : 'Guider'} review added successfully`
-        );
+        // Success toast is already shown by API client (showToast: true)
         // Refresh eligibility and reviews
         await fetchReviewEligibility(currentBookingId);
         fetchBookings();
       } else {
-        toast.error(response.message || 'Failed to submit review');
+        // Error toast is already shown by API client
         throw new Error(response.message || 'Failed to submit review');
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error(error?.message || 'Failed to submit review');
+      // Error toast is already shown by API client
       throw error;
     }
   };

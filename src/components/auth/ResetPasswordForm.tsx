@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { apiService } from '@/lib/api';
+import toast from '@/lib/toast';
+import { authService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,7 +53,7 @@ export default function ResetPasswordForm({ userType, loginPath }: ResetPassword
     setIsLoading(true);
 
     try {
-      const response = await apiService.resetPassword({
+      const response = await authService.resetPassword({
         email: formData.email,
         otp: formData.otp,
         newPassword: formData.newPassword,

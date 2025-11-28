@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Clock, Upload, Video, FileText, Loader2 } from 'lucide-react';
 import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
-import { apiService, VerificationStepsConfig, VerificationFieldConfig, UpdateVerificationStepDto } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { guidesService, usersService } from '@/lib/api';
+import type { VerificationStepsConfig, VerificationFieldConfig, UpdateVerificationStepDto } from '@/types';
+import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -84,7 +85,7 @@ export default function GuiderVerificationDashboard() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await apiService.getVerificationStepsConfig();
+        const response = await guidesService.getVerificationStepsConfig();
         if (response.success && response.data) {
           setConfig(response.data);
         } else {
@@ -189,31 +190,21 @@ export default function GuiderVerificationDashboard() {
         data: formData,
       };
 
-      const response = await apiService.updateVerificationStep(
+      const response = await guidesService.updateVerificationStep(
         userId,
-        updateDto,
-        token
+        updateDto
       );
 
       if (response.success) {
-        if (stepNumber === 4) {
-          toast.success('Verification request sent to admin for approval!');
-        } else {
-          toast.success('Step completed successfully!');
-        }
-        
-        const userResponse = await apiService.getCurrentUser(token, 'guider');
+        const userResponse = await usersService.getCurrentUser('guider');
         if (userResponse.success && userResponse.data) {
           refreshUser(userResponse.data);
           setFormData({});
           setFilePreviews({});
         }
-      } else {
-        toast.error(response.message || 'Failed to save step');
       }
     } catch (error) {
       console.error('Failed to submit step:', error);
-      toast.error('Failed to save step. Please try again.');
     } finally {
       setSubmitting(false);
     }

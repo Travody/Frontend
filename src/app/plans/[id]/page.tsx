@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { MapPin, Clock, Users, Star, Calendar, Phone, Mail, CheckCircle, AlertCircle, ArrowLeft, Info, Minus, Plus, X } from 'lucide-react';
 import DatePicker from '@/components/ui/DatePicker';
-import { apiService, Plan, CreateBookingData, Booking, Review } from '@/lib/api';
+import { plansService, bookingsService, reviewsService } from '@/lib/api';
+import type { Plan, CreateBookingData, Booking, Review } from '@/types';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -92,7 +93,7 @@ export default function PlanDetailsPage() {
 
     setIsLoading(true);
     try {
-      const response = await apiService.getPlanById(planId);
+      const response = await plansService.getPlanById(planId);
       if (response.success && response.data) {
         setPlan(response.data);
         // If reviews are included in the response, use them
@@ -123,7 +124,7 @@ export default function PlanDetailsPage() {
 
     setIsLoadingReviews(true);
     try {
-      const response = await apiService.getReviewsByPlan(planId, 'booking');
+      const response = await reviewsService.getReviewsByPlan(planId, 'booking');
       if (response.success && response.data) {
         setReviews(response.data);
       }
@@ -137,7 +138,7 @@ export default function PlanDetailsPage() {
   const checkExistingBooking = async () => {
     if (!planId || !isAuthenticated || !token) return;
     try {
-      const response = await apiService.getExistingBookingForPlan(planId, token);
+      const response = await bookingsService.getExistingBookingForPlan(planId);
       if (response.success && response.data) {
         setExistingBooking(response.data);
       }
@@ -196,7 +197,7 @@ export default function PlanDetailsPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await apiService.createBooking(bookingData, token);
+      const response = await bookingsService.createBooking(bookingData);
       
       if (response.success && response.data) {
         toast.success('Booking request sent successfully!');

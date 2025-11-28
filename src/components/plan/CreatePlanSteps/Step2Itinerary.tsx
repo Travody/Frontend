@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, X, Upload, Image } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

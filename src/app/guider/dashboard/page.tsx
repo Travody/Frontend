@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import GuiderVerificationDashboard from '@/components/dashboard/GuiderVerificationDashboard';
 import GuiderVerifiedDashboard from '@/components/dashboard/GuiderVerifiedDashboard';
-import { apiService } from '@/lib/api';
+import { usersService } from '@/lib/api';
 
 export default function GuiderDashboard() {
   const { user, token, refreshUser, isAuthenticated, isLoading } = useAuth();
@@ -32,7 +32,7 @@ export default function GuiderDashboard() {
 
     const fetchUserData = async () => {
       try {
-        const response = await apiService.getCurrentUser(token, 'guider');
+        const response = await usersService.getCurrentUser('guider');
         if (response.success && response.data) {
           // refreshUser will normalize the data (convert _id to id)
           refreshUser(response.data);

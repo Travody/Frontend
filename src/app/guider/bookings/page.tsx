@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, ArrowLeft, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, Booking, BookingStats } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { bookingsService } from '@/lib/api';
+import type { Booking, BookingStats } from '@/types';
+import toast from '@/lib/toast';
 import { PromptDialog } from '@/components/ui/prompt-dialog';
 import AppLayout from '@/components/layout/AppLayout';
 import Link from 'next/link';
@@ -41,9 +42,9 @@ export default function GuiderBookingsDashboard() {
   const fetchDashboardData = async () => {
     try {
       const [bookingsResponse, pendingResponse, statsResponse] = await Promise.all([
-        apiService.getGuiderBookings(token!),
-        apiService.getPendingConfirmations(token!),
-        apiService.getBookingStats(token!)
+        bookingsService.getGuiderBookings(),
+        bookingsService.getPendingConfirmations(),
+        bookingsService.getBookingStats()
       ]);
 
       if (bookingsResponse.success && bookingsResponse.data) {
@@ -59,7 +60,6 @@ export default function GuiderBookingsDashboard() {
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      toast.error('Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
@@ -69,21 +69,17 @@ export default function GuiderBookingsDashboard() {
     if (!currentBookingId || !currentDecision) return;
     
     try {
-      const response = await apiService.confirmBooking(currentBookingId, {
+      const response = await bookingsService.confirmBooking(currentBookingId, {
         decision: currentDecision,
         message: currentDecision === 'confirmed' ? message || undefined : undefined,
         cancellationReason: currentDecision === 'cancelled' ? message : undefined
-      }, token!);
+      });
 
       if (response.success) {
-        toast.success(`Booking ${currentDecision} successfully!`);
         fetchDashboardData();
-      } else {
-        toast.error(response.message || `Failed to ${currentDecision} booking`);
       }
     } catch (error) {
       console.error(`Error ${currentDecision} booking:`, error);
-      toast.error(`Failed to ${currentDecision} booking`);
     } finally {
       setShowConfirmDialog(false);
       setShowCancelDialog(false);

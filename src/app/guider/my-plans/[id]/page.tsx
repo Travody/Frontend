@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
-import { apiService, Plan } from '@/lib/api';
+import { plansService } from '@/lib/api';
+import type { Plan } from '@/types';
 import AppLayout from '@/components/layout/AppLayout';
 import {
   MapPin,
@@ -24,7 +25,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heading } from '@/components/ui/heading';
@@ -70,7 +71,7 @@ export default function GuiderPlanDetailPage() {
 
     setIsLoading(true);
     try {
-      const response = await apiService.getPlanById(planId);
+      const response = await plansService.getPlanById(planId);
       if (response.success && response.data) {
         const userId = user?.id || (user as any)?._id;
         // Handle both string ID and populated object
@@ -106,25 +107,21 @@ export default function GuiderPlanDetailPage() {
       let response;
       switch (action) {
         case 'publish':
-          response = await apiService.publishPlan(plan._id, token);
+          response = await plansService.publishPlan(plan._id);
           break;
         case 'pause':
-          response = await apiService.pausePlan(plan._id, token);
+          response = await plansService.pausePlan(plan._id);
           break;
         case 'archive':
-          response = await apiService.archivePlan(plan._id, token);
+          response = await plansService.archivePlan(plan._id);
           break;
       }
 
       if (response.success && response.data) {
         setPlan(response.data);
-        toast.success(`Plan ${action === 'publish' ? 'published' : action === 'pause' ? 'paused' : 'archived'} successfully`);
-      } else {
-        toast.error(`Failed to ${action} plan`);
       }
     } catch (error) {
       console.error(`Error ${action}ing plan:`, error);
-      toast.error(`Failed to ${action} plan`);
     }
   };
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, ArrowLeft } from 'lucide-react';
-import { apiService } from '@/lib/api';
+import { authService } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,7 @@ export default function ForgotPasswordForm({ userType, loginPath }: ForgotPasswo
     setIsLoading(true);
 
     try {
-      const response = await apiService.forgotPassword({
+      const response = await authService.forgotPassword({
         email,
         userType,
       });

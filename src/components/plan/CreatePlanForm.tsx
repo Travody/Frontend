@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlanCreation } from '@/hooks/usePlanCreation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, Save, Globe, Lock, MapPin, Clock, Users, Star, X, Maximize2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

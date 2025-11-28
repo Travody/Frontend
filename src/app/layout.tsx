@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import ToasterProvider from "@/components/ui/ToasterProvider";
+import ToastProviderWrapper from "@/components/providers/ToastProviderWrapper";
 import GoogleOAuthProviderWrapper from "@/components/providers/GoogleOAuthProvider";
 
 const poppins = Poppins({
@@ -26,8 +28,12 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans antialiased`} suppressHydrationWarning>
         <GoogleOAuthProviderWrapper>
           <AuthProvider>
-            {children}
-            <ToasterProvider />
+            <ToastProvider>
+              <ToastProviderWrapper>
+                {children}
+                <ToasterProvider />
+              </ToastProviderWrapper>
+            </ToastProvider>
           </AuthProvider>
         </GoogleOAuthProviderWrapper>
       </body>

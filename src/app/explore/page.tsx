@@ -3,10 +3,11 @@
 import { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { apiService, Guide, Plan } from '@/lib/api';
+import { guidesService, plansService } from '@/lib/api';
+import type { Guide, Plan } from '@/types';
 import { Search, MapPin, Star, Calendar, User, CheckCircle, Award, Clock, Users, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import toast from '@/lib/toast';
 import DateRangePicker from '@/components/ui/DateRangePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,7 +83,7 @@ function ExploreContent() {
         if (defaultFromDate) searchData.fromDate = defaultFromDate;
         if (toDateValue) searchData.toDate = toDateValue;
 
-        const response = await apiService.searchGuides(searchData);
+        const response = await guidesService.searchGuides(searchData);
         if (response.success && response.data) {
           setGuides(response.data);
           setPlans([]);
@@ -95,7 +96,7 @@ function ExploreContent() {
         if (defaultFromDate) searchData.fromDate = defaultFromDate;
         if (toDateValue) searchData.toDate = toDateValue;
 
-        const response = await apiService.searchPlans(searchData);
+        const response = await plansService.searchPlans(searchData);
         if (response.success && response.data) {
           setPlans(response.data.plans || []);
           setGuides([]);

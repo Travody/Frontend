@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
-import { apiService } from '@/lib/api';
+import { usersService } from '@/lib/api';
 import { tourTypes } from '@/lib/tour-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,7 +114,7 @@ function GuiderProfileEditContent() {
       if (!token || !isAuthenticated) return;
 
       try {
-        const response = await apiService.getCurrentUser(token, 'guider');
+        const response = await usersService.getCurrentUser('guider');
         if (response.success && response.data) {
           const data = response.data as any;
           setProfileData(data);
@@ -270,11 +270,11 @@ function GuiderProfileEditContent() {
         if (formData.indianFestivals) updateData.indianFestivals = formData.indianFestivals;
       }
 
-      const response = await apiService.updateGuiderProfile(profileData._id, updateData, token);
+      const response = await usersService.updateGuiderProfile(profileData._id, updateData);
       
       if (response.success) {
         // Refresh profile data
-        const refreshResponse = await apiService.getCurrentUser(token, 'guider');
+        const refreshResponse = await usersService.getCurrentUser('guider');
         if (refreshResponse.success && refreshResponse.data) {
           const refreshedData = refreshResponse.data as any;
           setProfileData(refreshedData);

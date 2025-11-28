@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Star, MapPin, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { apiService, Plan } from '@/lib/api';
+import { plansService } from '@/lib/api';
+import type { Plan } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export default function FeaturedTours() {
   const fetchFeaturedPlans = async () => {
     try {
       setIsLoading(true);
-      const response = await apiService.searchPlans({
+      const response = await plansService.searchPlans({
         limit: 3,
         page: 1
       });
