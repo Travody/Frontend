@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import ToasterProvider from "@/components/ui/ToasterProvider";
 import ToastProviderWrapper from "@/components/providers/ToastProviderWrapper";
 import GoogleOAuthProviderWrapper from "@/components/providers/GoogleOAuthProvider";
@@ -28,12 +29,14 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans antialiased`} suppressHydrationWarning>
         <GoogleOAuthProviderWrapper>
           <AuthProvider>
+            <NotificationProvider>
             <ToastProvider>
               <ToastProviderWrapper>
                 {children}
                 <ToasterProvider />
               </ToastProviderWrapper>
             </ToastProvider>
+            </NotificationProvider>
           </AuthProvider>
         </GoogleOAuthProviderWrapper>
       </body>
