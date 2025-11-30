@@ -17,14 +17,14 @@ export function NotificationBell() {
   }
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { refreshNotifications } = useNotifications();
+  const { fetchUnreadCount } = useNotifications();
 
-  // Refresh notifications when dropdown is opened
+  // Refresh unread count when dropdown is opened (don't reload all notifications to avoid flicker)
   useEffect(() => {
     if (isOpen) {
-      refreshNotifications();
+      fetchUnreadCount();
     }
-  }, [isOpen, refreshNotifications]);
+  }, [isOpen, fetchUnreadCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
