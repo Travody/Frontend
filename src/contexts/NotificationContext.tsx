@@ -34,14 +34,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotifications = useCallback(async (params?: { unreadOnly?: boolean; page?: number; limit?: number; append?: boolean }) => {
+  const fetchNotifications = useCallback(async (params?: { unreadOnly?: boolean; page?: number; limit?: number; append?: boolean; silent?: boolean }) => {
     const page = params?.page || 1;
     const limit = params?.limit || 20;
     const append = params?.append || false;
+    const silent = params?.silent || false;
 
+    // Only show loading if we don't have notifications yet, if appending, or if not silent
     if (append) {
       setIsLoadingMore(true);
-    } else {
+    } else if (!silent) {
       setIsLoading(true);
     }
     setError(null);
@@ -136,7 +138,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [notifications]);
 
   const refreshNotifications = useCallback(async () => {
-    await Promise.all([fetchNotifications({ page: 1 }), fetchUnreadCount()]);
+    // Use silent mode to avoid showing loading state when refreshing
+    await Promise.all([fetchNotifications({ page: 1, silent: true }), fetchUnreadCount()]);
   }, [fetchNotifications, fetchUnreadCount]);
 
   const loadMore = useCallback(async () => {
