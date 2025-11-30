@@ -6,6 +6,7 @@ import { Search, User, Menu, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -119,6 +120,9 @@ export default function Header({ user }: HeaderProps) {
               </>
             )}
 
+            {/* Notifications */}
+            <NotificationBell />
+
             {/* User Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -161,14 +165,19 @@ export default function Header({ user }: HeaderProps) {
             </DropdownMenu>
           </div>
 
-          {/* Mobile & Tablet menu button */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
+          {/* Mobile & Tablet - Notifications and Menu */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {/* Notifications */}
+            <NotificationBell />
+            
+            {/* Menu button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
             <SheetContent side="left" className="w-[280px] sm:w-[320px]">
               <SheetHeader className="mb-6">
                 <SheetTitle>Menu</SheetTitle>
@@ -231,7 +240,8 @@ export default function Header({ user }: HeaderProps) {
                   </Button>
                 </div>
             </SheetContent>
-          </Sheet>
+            </Sheet>
+          </div>
         </div>
       </header>
     );
