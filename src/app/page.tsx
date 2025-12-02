@@ -13,7 +13,7 @@ export default function Home() {
         <FeaturedTours />
         <ExploreCategories />
         <VerifiedGuides />
-        <Testimonials />
+        {/* <Testimonials /> */}
       </div>
     </AppLayout>
   );

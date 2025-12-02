@@ -122,7 +122,7 @@ export default function PrivacyPage() {
                       <li>Improve our services</li>
                     </ul>
                     <p className="text-gray-600 mb-4">
-                      You can control cookies through your browser settings. For more information, see our <a href="/cookies" className="text-primary-600 hover:underline">Cookie Policy</a>.
+                      You can control cookies through your browser settings.
                     </p>
                   </section>
 

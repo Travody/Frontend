@@ -97,33 +97,7 @@ export class ApiClient {
 
       // Handle 401 Unauthorized before parsing (token expired or invalid)
       if (response.status === 401) {
-        // Get userType before clearing to determine redirect path
-        let userType: string | null = null;
-        if (typeof window !== 'undefined') {
-          userType = localStorage.getItem('userType');
-          // Clear auth data from localStorage
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('userType');
-          localStorage.removeItem('userData');
-        }
-        
-        // Call logout callback if registered (from AuthContext)
-        if (logoutCallback) {
-          logoutCallback();
-        } else {
-          // Fallback: redirect to respective login page based on userType
-          if (typeof window !== 'undefined') {
-            if (userType === 'traveler') {
-              window.location.href = '/auth/traveler/login';
-            } else if (userType === 'guider') {
-              window.location.href = '/auth/guider/login';
-            } else {
-              window.location.href = '/';
-            }
-          }
-        }
-        
-        // Try to parse error message if possible
+        // Try to parse error message first
         let errorMessage = 'Session expired. Please login again.';
         try {
           const text = await response.text();
@@ -135,7 +109,37 @@ export class ApiClient {
           // Use default message if parsing fails
         }
         
-        // Show error toast
+        // Only trigger logout/redirect if this is an authenticated request (not login/signup)
+        // When skipAuth is true, it means it's a login/signup request - don't logout/redirect
+        if (!skipAuth) {
+          // Get userType before clearing to determine redirect path
+          let userType: string | null = null;
+          if (typeof window !== 'undefined') {
+            userType = localStorage.getItem('userType');
+            // Clear auth data from localStorage
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userType');
+            localStorage.removeItem('userData');
+          }
+          
+          // Call logout callback if registered (from AuthContext)
+          if (logoutCallback) {
+            logoutCallback();
+          } else {
+            // Fallback: redirect to respective login page based on userType
+            if (typeof window !== 'undefined') {
+              if (userType === 'traveler') {
+                window.location.href = '/auth/traveler/login';
+              } else if (userType === 'guider') {
+                window.location.href = '/auth/guider/login';
+              } else {
+                window.location.href = '/';
+              }
+            }
+          }
+        }
+        
+        // Show error toast (for both authenticated and unauthenticated 401 errors)
         this.showToast('error', errorMessage);
         
         return {

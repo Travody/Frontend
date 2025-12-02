@@ -16,13 +16,13 @@ const features = [
     ]
   },
   {
-    icon: Shield,
-    title: "Safety First",
+    icon: MapPin,
+    title: "Local Expertise",
     items: [
-      "Insurance coverage included",
-      "24/7 emergency support",
-      "Real-time location tracking",
-      "Safety training certified"
+      "In-depth local knowledge",
+      "Hidden gems & authentic experiences",
+      "Cultural insights & history",
+      "Best routes & timing"
     ]
   },
   {
