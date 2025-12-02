@@ -22,10 +22,12 @@ export class GuidesService {
 
   /**
    * Get verification steps configuration
+   * @param guiderType - Optional guider type to get config for specific type
    */
-  async getVerificationStepsConfig(): Promise<ApiResponse<VerificationStepsConfig>> {
+  async getVerificationStepsConfig(guiderType?: 'Professional' | 'Agency'): Promise<ApiResponse<VerificationStepsConfig>> {
+    const queryParams = guiderType ? `?guiderType=${guiderType}` : '';
     return apiClient.get<VerificationStepsConfig>(
-      '/guides/verification-steps-config',
+      `/guides/verification-steps-config${queryParams}`,
       { skipAuth: true }
     );
   }

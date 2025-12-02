@@ -10,6 +10,13 @@ export function setToastInstance(instance: typeof toastInstance) {
   toastInstance = instance;
 }
 
+// Logout callback will be accessed via a global function to avoid React context issues
+let logoutCallback: (() => void) | null = null;
+
+export function setLogoutCallback(callback: (() => void) | null) {
+  logoutCallback = callback;
+}
+
 // Get API base URL at runtime to ensure env variable is available
 export const getApiBaseUrl = () => {
   return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
@@ -87,6 +94,56 @@ export class ApiClient {
         method,
         headers,
       });
+
+      // Handle 401 Unauthorized before parsing (token expired or invalid)
+      if (response.status === 401) {
+        // Get userType before clearing to determine redirect path
+        let userType: string | null = null;
+        if (typeof window !== 'undefined') {
+          userType = localStorage.getItem('userType');
+          // Clear auth data from localStorage
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('userData');
+        }
+        
+        // Call logout callback if registered (from AuthContext)
+        if (logoutCallback) {
+          logoutCallback();
+        } else {
+          // Fallback: redirect to respective login page based on userType
+          if (typeof window !== 'undefined') {
+            if (userType === 'traveler') {
+              window.location.href = '/auth/traveler/login';
+            } else if (userType === 'guider') {
+              window.location.href = '/auth/guider/login';
+            } else {
+              window.location.href = '/';
+            }
+          }
+        }
+        
+        // Try to parse error message if possible
+        let errorMessage = 'Session expired. Please login again.';
+        try {
+          const text = await response.text();
+          if (text) {
+            const parsed = JSON.parse(text);
+            errorMessage = parsed.message || parsed.error || errorMessage;
+          }
+        } catch {
+          // Use default message if parsing fails
+        }
+        
+        // Show error toast
+        this.showToast('error', errorMessage);
+        
+        return {
+          success: false,
+          message: errorMessage,
+          error: 'Unauthorized',
+        };
+      }
 
       // Parse response
       let data: any;
