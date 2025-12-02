@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import { usersService } from '@/lib/api';
-import { tourTypes } from '@/lib/tour-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,8 +46,6 @@ interface GuiderProfileData {
     gstNumber?: string;
   };
   tourGuideInfo?: {
-    tourTypes?: string[];
-    specializations?: string[];
     certifications?: string[];
     pricePerHour?: number;
     pricePerDay?: number;
@@ -57,24 +54,11 @@ interface GuiderProfileData {
     rating?: number;
     totalReviews?: number;
     totalTours?: number;
-    responseTime?: number;
-    cancellationPolicy?: string;
     tourDurations?: string[];
-    groupSizes?: string[];
-    accessibility?: string[];
     aboutMe?: string;
-    whyChooseMe?: string;
     languagesSpoken?: string[];
     hasVehicle?: boolean;
     vehicleDescription?: string;
-    isExperienced?: boolean;
-  };
-  indiaSpecificInfo?: {
-    indianStates?: string[];
-    indianCities?: string[];
-    indianLanguages?: string[];
-    indianCuisines?: string[];
-    indianFestivals?: string[];
   };
 }
 
@@ -86,7 +70,7 @@ const commonLanguages = [
 function GuiderProfileEditContent() {
   const { user, token, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour' | 'india'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour'>('personal');
   const [profileData, setProfileData] = useState<GuiderProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,12 +79,10 @@ function GuiderProfileEditContent() {
     personal: boolean;
     business: boolean;
     tour: boolean;
-    india: boolean;
   }>({
     personal: false,
     business: false,
     tour: false,
-    india: false,
   });
 
   useEffect(() => {
@@ -137,39 +119,18 @@ function GuiderProfileEditContent() {
             hasGSTNumber: data.businessInfo?.hasGSTNumber || false,
             gstNumber: data.businessInfo?.gstNumber || '',
             // Tour Guide Info
-            tourTypes: data.tourGuideInfo?.tourTypes || [],
-            specializations: data.tourGuideInfo?.specializations || [],
-            newSpecialization: '',
             certifications: data.tourGuideInfo?.certifications || [],
             newCertification: '',
             pricePerHour: data.tourGuideInfo?.pricePerHour || '',
             pricePerDay: data.tourGuideInfo?.pricePerDay || '',
             pricePerTour: data.tourGuideInfo?.pricePerTour || '',
             currency: data.tourGuideInfo?.currency || 'INR',
-            responseTime: data.tourGuideInfo?.responseTime || '',
-            cancellationPolicy: data.tourGuideInfo?.cancellationPolicy || '',
             tourDurations: data.tourGuideInfo?.tourDurations || [],
             newTourDuration: '',
-            groupSizes: data.tourGuideInfo?.groupSizes || [],
-            newGroupSize: '',
-            accessibility: data.tourGuideInfo?.accessibility || [],
-            newAccessibility: '',
             aboutMe: data.tourGuideInfo?.aboutMe || '',
-            whyChooseMe: data.tourGuideInfo?.whyChooseMe || '',
             languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
             hasVehicle: data.tourGuideInfo?.hasVehicle || false,
             vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
-            isExperienced: data.tourGuideInfo?.isExperienced || false,
-            // India Specific Info
-            indianStates: data.indiaSpecificInfo?.indianStates || [],
-            newIndianState: '',
-            indianCities: data.indiaSpecificInfo?.indianCities || [],
-            newIndianCity: '',
-            indianLanguages: data.indiaSpecificInfo?.indianLanguages || [],
-            indianCuisines: data.indiaSpecificInfo?.indianCuisines || [],
-            newIndianCuisine: '',
-            indianFestivals: data.indiaSpecificInfo?.indianFestivals || [],
-            newIndianFestival: '',
           });
         }
       } catch (error) {
@@ -217,7 +178,7 @@ function GuiderProfileEditContent() {
     });
   };
 
-  const handleSubmit = async (tab: 'personal' | 'business' | 'tour' | 'india') => {
+  const handleSubmit = async (tab: 'personal' | 'business' | 'tour') => {
     if (!profileData || !token) return;
 
     setSaving(true);
@@ -243,31 +204,16 @@ function GuiderProfileEditContent() {
         if (formData.gstNumber) updateData.gstNumber = formData.gstNumber;
       } else if (tab === 'tour') {
         // Tour Guide Info
-        if (formData.tourTypes) updateData.tourTypes = formData.tourTypes;
-        if (formData.specializations) updateData.specializations = formData.specializations;
         if (formData.certifications) updateData.certifications = formData.certifications;
         if (formData.pricePerHour) updateData.pricePerHour = Number(formData.pricePerHour);
         if (formData.pricePerDay) updateData.pricePerDay = Number(formData.pricePerDay);
         if (formData.pricePerTour) updateData.pricePerTour = Number(formData.pricePerTour);
         if (formData.currency) updateData.currency = formData.currency;
-        if (formData.responseTime) updateData.responseTime = Number(formData.responseTime);
-        if (formData.cancellationPolicy !== undefined) updateData.cancellationPolicy = formData.cancellationPolicy;
         if (formData.tourDurations) updateData.tourDurations = formData.tourDurations;
-        if (formData.groupSizes) updateData.groupSizes = formData.groupSizes;
-        if (formData.accessibility) updateData.accessibility = formData.accessibility;
         if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
-        if (formData.whyChooseMe !== undefined) updateData.whyChooseMe = formData.whyChooseMe;
         if (formData.languagesSpoken) updateData.languagesSpoken = formData.languagesSpoken;
         if (formData.hasVehicle !== undefined) updateData.hasVehicle = formData.hasVehicle;
         if (formData.vehicleDescription) updateData.vehicleDescription = formData.vehicleDescription;
-        if (formData.isExperienced !== undefined) updateData.isExperienced = formData.isExperienced;
-      } else if (tab === 'india') {
-        // India Specific Info
-        if (formData.indianStates) updateData.indianStates = formData.indianStates;
-        if (formData.indianCities) updateData.indianCities = formData.indianCities;
-        if (formData.indianLanguages) updateData.indianLanguages = formData.indianLanguages;
-        if (formData.indianCuisines) updateData.indianCuisines = formData.indianCuisines;
-        if (formData.indianFestivals) updateData.indianFestivals = formData.indianFestivals;
       }
 
       const response = await usersService.updateGuiderProfile(profileData._id, updateData);
@@ -291,11 +237,11 @@ function GuiderProfileEditContent() {
     }
   };
 
-  const toggleEditMode = (tab: 'personal' | 'business' | 'tour' | 'india') => {
+  const toggleEditMode = (tab: 'personal' | 'business' | 'tour') => {
     setEditingTabs((prev) => ({ ...prev, [tab]: !prev[tab] }));
   };
 
-  const renderEditHeader = (tab: 'personal' | 'business' | 'tour' | 'india') => {
+  const renderEditHeader = (tab: 'personal' | 'business' | 'tour') => {
     const isEditing = editingTabs[tab];
     
     return (
@@ -339,30 +285,15 @@ function GuiderProfileEditContent() {
                 } else if (tab === 'tour') {
                   setFormData((prev: any) => ({
                     ...prev,
-                    tourTypes: data.tourGuideInfo?.tourTypes || [],
-                    specializations: data.tourGuideInfo?.specializations || [],
                     certifications: data.tourGuideInfo?.certifications || [],
                     pricePerHour: data.tourGuideInfo?.pricePerHour || '',
                     pricePerDay: data.tourGuideInfo?.pricePerDay || '',
                     pricePerTour: data.tourGuideInfo?.pricePerTour || '',
                     currency: data.tourGuideInfo?.currency || 'INR',
-                    responseTime: data.tourGuideInfo?.responseTime || '',
-                    cancellationPolicy: data.tourGuideInfo?.cancellationPolicy || '',
                     aboutMe: data.tourGuideInfo?.aboutMe || '',
-                    whyChooseMe: data.tourGuideInfo?.whyChooseMe || '',
                     languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
                     hasVehicle: data.tourGuideInfo?.hasVehicle || false,
                     vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
-                    isExperienced: data.tourGuideInfo?.isExperienced || false,
-                  }));
-                } else if (tab === 'india') {
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    indianStates: data.indiaSpecificInfo?.indianStates || [],
-                    indianCities: data.indiaSpecificInfo?.indianCities || [],
-                    indianLanguages: data.indiaSpecificInfo?.indianLanguages || [],
-                    indianCuisines: data.indiaSpecificInfo?.indianCuisines || [],
-                    indianFestivals: data.indiaSpecificInfo?.indianFestivals || [],
                   }));
                 }
               }}
@@ -414,7 +345,6 @@ function GuiderProfileEditContent() {
     { id: 'personal' as const, label: 'Personal', icon: User },
     { id: 'business' as const, label: 'Business', icon: Building2 },
     { id: 'tour' as const, label: 'Tour Guide', icon: MapPin },
-    { id: 'india' as const, label: 'India Specific', icon: Coins },
   ];
 
   const renderPersonalInfo = () => {
@@ -806,79 +736,6 @@ function GuiderProfileEditContent() {
         </div>
       </div>
 
-      {/* Tour Types */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Tour Types</label>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {tourTypes.map((tourType) => {
-            const Icon = tourType.icon;
-            const isSelected = formData.tourTypes?.includes(tourType.name);
-            return (
-              <button
-                key={tourType.name}
-                type="button"
-                onClick={() => toggleArrayItem('tourTypes', tourType.name)}
-                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                  isSelected
-                    ? `${tourType.color} border-current`
-                    : 'bg-white border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className={`w-5 h-5 ${isSelected ? '' : 'text-gray-400'}`} />
-                  <span className={`text-sm font-medium ${isSelected ? '' : 'text-gray-600'}`}>
-                    {tourType.name}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Specializations */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Specializations</label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newSpecialization || ''}
-            onChange={(e) => handleInputChange('newSpecialization', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('specializations', 'newSpecialization');
-              }
-            }}
-            placeholder="e.g., Ancient Temples, Street Food"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('specializations', 'newSpecialization')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.specializations?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.specializations.map((spec: string, idx: number) => (
-              <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-2">
-                {spec}
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('specializations', idx)}
-                  className="text-blue-800 hover:text-blue-900"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Certifications */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -952,19 +809,6 @@ function GuiderProfileEditContent() {
       {/* Additional Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Response Time (hours)
-          </label>
-          <input
-            type="number"
-            value={formData.responseTime || ''}
-            onChange={(e) => handleInputChange('responseTime', e.target.value)}
-            placeholder="24"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
-        <div>
           <label className="flex items-center gap-2 mb-2">
             <input
               type="checkbox"
@@ -987,17 +831,6 @@ function GuiderProfileEditContent() {
             />
           )}
         </div>
-        <div>
-          <label className="flex items-center gap-2 mb-2">
-            <input
-              type="checkbox"
-              checked={formData.isExperienced || false}
-              onChange={(e) => handleInputChange('isExperienced', e.target.checked)}
-              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Experienced Guide</span>
-          </label>
-        </div>
       </div>
 
       {/* About Me */}
@@ -1009,231 +842,6 @@ function GuiderProfileEditContent() {
           rows={4}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
-      </div>
-
-      {/* Why Choose Me */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Why Choose Me</label>
-        <textarea
-          value={formData.whyChooseMe || ''}
-          onChange={(e) => handleInputChange('whyChooseMe', e.target.value)}
-          rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Cancellation Policy */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <FileText className="w-4 h-4" />
-          Cancellation Policy
-        </label>
-        <textarea
-          value={formData.cancellationPolicy || ''}
-          onChange={(e) => handleInputChange('cancellationPolicy', e.target.value)}
-          rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-      </div>
-    </div>
-  );
-  };
-
-  const renderIndiaSpecificInfo = () => {
-    const isEditing = editingTabs.india;
-    
-    return (
-      <div className="space-y-6">
-        {renderEditHeader('india')}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Indian States</label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newIndianState || ''}
-            onChange={(e) => handleInputChange('newIndianState', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('indianStates', 'newIndianState');
-              }
-            }}
-            placeholder="e.g., Rajasthan, Maharashtra"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('indianStates', 'newIndianState')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.indianStates?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.indianStates.map((state: string, idx: number) => (
-              <span key={idx} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm flex items-center gap-2">
-                {state}
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('indianStates', idx)}
-                  className="text-orange-800 hover:text-orange-900"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Indian Cities</label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newIndianCity || ''}
-            onChange={(e) => handleInputChange('newIndianCity', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('indianCities', 'newIndianCity');
-              }
-            }}
-            placeholder="e.g., Jaipur, Mumbai"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('indianCities', 'newIndianCity')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.indianCities?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.indianCities.map((city: string, idx: number) => (
-              <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-2">
-                {city}
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('indianCities', idx)}
-                  className="text-blue-800 hover:text-blue-900"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Languages className="w-4 h-4" />
-          Indian Languages
-        </label>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {commonLanguages.map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              onClick={() => toggleArrayItem('indianLanguages', lang)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                formData.indianLanguages?.includes(lang)
-                  ? 'bg-primary-100 text-primary-800 border-2 border-primary-500'
-                  : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:border-gray-300'
-              }`}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Indian Cuisines</label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newIndianCuisine || ''}
-            onChange={(e) => handleInputChange('newIndianCuisine', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('indianCuisines', 'newIndianCuisine');
-              }
-            }}
-            placeholder="e.g., Rajasthani, Gujarati, Bengali"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('indianCuisines', 'newIndianCuisine')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.indianCuisines?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.indianCuisines.map((cuisine: string, idx: number) => (
-              <span key={idx} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm flex items-center gap-2">
-                {cuisine}
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('indianCuisines', idx)}
-                  className="text-red-800 hover:text-red-900"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Indian Festivals</label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newIndianFestival || ''}
-            onChange={(e) => handleInputChange('newIndianFestival', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('indianFestivals', 'newIndianFestival');
-              }
-            }}
-            placeholder="e.g., Diwali, Holi, Dussehra"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('indianFestivals', 'newIndianFestival')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.indianFestivals?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.indianFestivals.map((festival: string, idx: number) => (
-              <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm flex items-center gap-2">
-                {festival}
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('indianFestivals', idx)}
-                  className="text-purple-800 hover:text-purple-900"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1265,7 +873,7 @@ function GuiderProfileEditContent() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -1284,7 +892,6 @@ function GuiderProfileEditContent() {
               {activeTab === 'personal' && renderPersonalInfo()}
               {activeTab === 'business' && renderBusinessInfo()}
               {activeTab === 'tour' && renderTourGuideInfo()}
-              {activeTab === 'india' && renderIndiaSpecificInfo()}
             </CardContent>
           </Card>
 

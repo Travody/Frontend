@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { usersService, reviewsService } from '@/lib/api';
 import type { Review } from '@/types';
-import { tourTypes } from '@/lib/tour-types';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,25 +49,15 @@ interface GuiderProfileData {
     gstNumber?: string;
   };
   tourGuideInfo?: {
-    tourTypes?: string[];
-    specializations?: string[];
     certifications?: string[];
     rating?: number;
     totalReviews?: number;
     totalTours?: number;
-    responseTime?: number;
-    cancellationPolicy?: string;
     tourDurations?: string[];
-    groupSizes?: string[];
-    accessibility?: string[];
     aboutMe?: string;
-    whyChooseMe?: string;
     languagesSpoken?: string[];
     hasVehicle?: boolean;
     vehicleDescription?: string;
-    isExperienced?: boolean;
-    gallery?: string[];
-    highlights?: string[];
     availabilitySchedule?: {
       type: 'all_days' | 'recurring';
       recurring?: {
@@ -79,13 +68,6 @@ interface GuiderProfileData {
         };
       };
     };
-  };
-  indiaSpecificInfo?: {
-    indianStates?: string[];
-    indianCities?: string[];
-    indianLanguages?: string[];
-    indianCuisines?: string[];
-    indianFestivals?: string[];
   };
 }
 
@@ -289,7 +271,7 @@ function LanguageSelector({ label, selectedLanguages, onLanguageChange, isEditin
 function GuiderProfileContent() {
   const { user, token, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour' | 'reviews' | 'india' | 'account'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour' | 'reviews' | 'account'>('personal');
   const [profileData, setProfileData] = useState<GuiderProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -298,13 +280,11 @@ function GuiderProfileContent() {
     personal: boolean;
     business: boolean;
     tour: boolean;
-    india: boolean;
     account: boolean;
   }>({
     personal: false,
     business: false,
     tour: false,
-    india: false,
     account: false,
   });
   const [newEmail, setNewEmail] = useState('');
@@ -365,37 +345,14 @@ function GuiderProfileContent() {
             hasGSTNumber: data.businessInfo?.hasGSTNumber || false,
             gstNumber: data.businessInfo?.gstNumber || '',
             // Tour Guide Info
-            tourTypes: data.tourGuideInfo?.tourTypes || [],
-            specializations: data.tourGuideInfo?.specializations || [],
-            newSpecialization: '',
             certifications: data.tourGuideInfo?.certifications || [],
             newCertification: '',
-            responseTime: data.tourGuideInfo?.responseTime || '',
-            cancellationPolicy: data.tourGuideInfo?.cancellationPolicy || '',
-            accessibility: data.tourGuideInfo?.accessibility || [],
-            newAccessibility: '',
             aboutMe: data.tourGuideInfo?.aboutMe || '',
-            whyChooseMe: data.tourGuideInfo?.whyChooseMe || '',
             languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
             hasVehicle: data.tourGuideInfo?.hasVehicle || false,
             vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
-            isExperienced: data.tourGuideInfo?.isExperienced || false,
-            gallery: data.tourGuideInfo?.gallery || [],
-            newGalleryUrl: '',
-            highlights: data.tourGuideInfo?.highlights || [],
-            newHighlight: '',
             // Availability Schedule
             availabilitySchedule: data.tourGuideInfo?.availabilitySchedule || { type: 'all_days' },
-            // India Specific Info
-            indianStates: data.indiaSpecificInfo?.indianStates || [],
-            newIndianState: '',
-            indianCities: data.indiaSpecificInfo?.indianCities || [],
-            newIndianCity: '',
-            indianLanguages: data.indiaSpecificInfo?.indianLanguages || [],
-            indianCuisines: data.indiaSpecificInfo?.indianCuisines || [],
-            newIndianCuisine: '',
-            indianFestivals: data.indiaSpecificInfo?.indianFestivals || [],
-            newIndianFestival: '',
           });
         }
       } catch (error) {
@@ -459,7 +416,7 @@ function GuiderProfileContent() {
     });
   };
 
-  const handleSubmit = async (tab: 'personal' | 'business' | 'tour' | 'india') => {
+  const handleSubmit = async (tab: 'personal' | 'business' | 'tour') => {
     if (!profileData || !token) return;
 
     setSaving(true);
@@ -482,27 +439,12 @@ function GuiderProfileContent() {
         if (formData.hasGSTNumber !== undefined) updateData.hasGSTNumber = formData.hasGSTNumber;
         if (formData.gstNumber !== undefined) updateData.gstNumber = formData.gstNumber;
       } else if (tab === 'tour') {
-        if (formData.tourTypes) updateData.tourTypes = formData.tourTypes;
-        if (formData.specializations) updateData.specializations = formData.specializations;
         if (formData.certifications) updateData.certifications = formData.certifications;
-        if (formData.responseTime !== undefined && formData.responseTime !== '') updateData.responseTime = Number(formData.responseTime);
-        if (formData.cancellationPolicy !== undefined) updateData.cancellationPolicy = formData.cancellationPolicy;
-        if (formData.accessibility) updateData.accessibility = formData.accessibility;
         if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
-        if (formData.whyChooseMe !== undefined) updateData.whyChooseMe = formData.whyChooseMe;
         if (formData.languagesSpoken) updateData.languagesSpoken = formData.languagesSpoken;
         if (formData.hasVehicle !== undefined) updateData.hasVehicle = formData.hasVehicle;
         if (formData.vehicleDescription !== undefined) updateData.vehicleDescription = formData.vehicleDescription;
-        if (formData.isExperienced !== undefined) updateData.isExperienced = formData.isExperienced;
-        if (formData.gallery) updateData.gallery = formData.gallery;
-        if (formData.highlights) updateData.highlights = formData.highlights;
         if (formData.availabilitySchedule) updateData.availabilitySchedule = formData.availabilitySchedule;
-      } else if (tab === 'india') {
-        if (formData.indianStates) updateData.indianStates = formData.indianStates;
-        if (formData.indianCities) updateData.indianCities = formData.indianCities;
-        if (formData.indianLanguages) updateData.indianLanguages = formData.indianLanguages;
-        if (formData.indianCuisines) updateData.indianCuisines = formData.indianCuisines;
-        if (formData.indianFestivals) updateData.indianFestivals = formData.indianFestivals;
       }
 
       const response = await usersService.updateGuiderProfile(profileData._id, updateData);
@@ -539,7 +481,7 @@ function GuiderProfileContent() {
     }
   };
 
-  const toggleEditMode = (tab: 'personal' | 'business' | 'tour' | 'india' | 'account') => {
+  const toggleEditMode = (tab: 'personal' | 'business' | 'tour' | 'account') => {
     setEditingTabs((prev) => ({ ...prev, [tab]: !prev[tab] }));
     // Reset form data to current values when entering edit mode
     if (!editingTabs[tab]) {
@@ -574,36 +516,18 @@ function GuiderProfileContent() {
       } else if (tab === 'tour') {
         setFormData((prev: any) => ({
           ...prev,
-          tourTypes: data.tourGuideInfo?.tourTypes || [],
-          specializations: data.tourGuideInfo?.specializations || [],
           certifications: data.tourGuideInfo?.certifications || [],
-          responseTime: data.tourGuideInfo?.responseTime || '',
-          cancellationPolicy: data.tourGuideInfo?.cancellationPolicy || '',
-          accessibility: data.tourGuideInfo?.accessibility || [],
           aboutMe: data.tourGuideInfo?.aboutMe || '',
-          whyChooseMe: data.tourGuideInfo?.whyChooseMe || '',
           languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
           hasVehicle: data.tourGuideInfo?.hasVehicle || false,
           vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
-          isExperienced: data.tourGuideInfo?.isExperienced || false,
-          gallery: data.tourGuideInfo?.gallery || [],
-          highlights: data.tourGuideInfo?.highlights || [],
           availabilitySchedule: data.tourGuideInfo?.availabilitySchedule || { type: 'all_days' },
-        }));
-      } else if (tab === 'india') {
-        setFormData((prev: any) => ({
-          ...prev,
-          indianStates: data.indiaSpecificInfo?.indianStates || [],
-          indianCities: data.indiaSpecificInfo?.indianCities || [],
-          indianLanguages: data.indiaSpecificInfo?.indianLanguages || [],
-          indianCuisines: data.indiaSpecificInfo?.indianCuisines || [],
-          indianFestivals: data.indiaSpecificInfo?.indianFestivals || [],
         }));
       }
     }
   };
 
-  const renderEditHeader = (tab: 'personal' | 'business' | 'tour' | 'india' | 'account') => {
+  const renderEditHeader = (tab: 'personal' | 'business' | 'tour' | 'account') => {
     const isEditing = editingTabs[tab];
     
     return (
@@ -647,29 +571,12 @@ function GuiderProfileContent() {
                 } else if (tab === 'tour') {
                   setFormData((prev: any) => ({
                     ...prev,
-                    tourTypes: data.tourGuideInfo?.tourTypes || [],
-                    specializations: data.tourGuideInfo?.specializations || [],
                     certifications: data.tourGuideInfo?.certifications || [],
-                    responseTime: data.tourGuideInfo?.responseTime || '',
-                    cancellationPolicy: data.tourGuideInfo?.cancellationPolicy || '',
                     aboutMe: data.tourGuideInfo?.aboutMe || '',
-                    whyChooseMe: data.tourGuideInfo?.whyChooseMe || '',
                     languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
                     hasVehicle: data.tourGuideInfo?.hasVehicle || false,
                     vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
-                    isExperienced: data.tourGuideInfo?.isExperienced || false,
-                    gallery: data.tourGuideInfo?.gallery || [],
-                    highlights: data.tourGuideInfo?.highlights || [],
                     availabilitySchedule: data.tourGuideInfo?.availabilitySchedule || { type: 'all_days' },
-                  }));
-                } else if (tab === 'india') {
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    indianStates: data.indiaSpecificInfo?.indianStates || [],
-                    indianCities: data.indiaSpecificInfo?.indianCities || [],
-                    indianLanguages: data.indiaSpecificInfo?.indianLanguages || [],
-                    indianCuisines: data.indiaSpecificInfo?.indianCuisines || [],
-                    indianFestivals: data.indiaSpecificInfo?.indianFestivals || [],
                   }));
                 } else if (tab === 'account') {
                   setNewEmail(data.email || user?.email || '');
@@ -728,7 +635,6 @@ function GuiderProfileContent() {
     ...(profileData?.guiderType === 'Agency' ? [{ id: 'business' as const, label: 'Business', icon: Building2 }] : []),
     { id: 'tour' as const, label: 'Tour Guide', icon: MapPin },
     { id: 'reviews' as const, label: 'Reviews', icon: Star },
-    { id: 'india' as const, label: 'India Specific', icon: Coins },
     { id: 'account' as const, label: 'Account', icon: Info },
   ];
 
@@ -1072,115 +978,6 @@ function GuiderProfileContent() {
           </div>
         )}
         
-        {/* Tour Types */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Tour Types
-          </label>
-          {isEditing ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {tourTypes.map((tourType) => {
-                const Icon = tourType.icon;
-                const isSelected = (formData.tourTypes || []).includes(tourType.name);
-                return (
-                  <button
-                    key={tourType.name}
-                    type="button"
-                    onClick={() => toggleArrayItem('tourTypes', tourType.name)}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      isSelected
-                        ? `${tourType.color} border-current`
-                        : 'bg-white border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Icon className={`w-5 h-5 ${isSelected ? '' : 'text-gray-400'}`} />
-                      <span className={`text-sm font-medium ${isSelected ? '' : 'text-gray-600'}`}>
-                        {tourType.name}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {profileData?.tourGuideInfo?.tourTypes && profileData.tourGuideInfo.tourTypes.length > 0 ? (
-                profileData.tourGuideInfo.tourTypes.map((type, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                    {type}
-                  </span>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Specializations */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Specializations</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newSpecialization || ''}
-                  onChange={(e) => handleInputChange('newSpecialization', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('specializations', 'newSpecialization');
-                    }
-                  }}
-                  placeholder="Add a specialization"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('specializations', 'newSpecialization')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.specializations?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.specializations.map((spec: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{spec}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('specializations', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.specializations?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No specializations added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.tourGuideInfo?.specializations && profileData.tourGuideInfo.specializations.length > 0 ? (
-                profileData.tourGuideInfo.specializations.map((spec, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{spec}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Certifications */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -1246,107 +1043,6 @@ function GuiderProfileContent() {
           )}
         </div>
 
-        {/* Response Time & Cancellation Policy */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Response Time (minutes)
-            </label>
-            {isEditing ? (
-              <input
-                type="number"
-                value={formData.responseTime || ''}
-                onChange={(e) => handleInputChange('responseTime', e.target.value)}
-                placeholder="e.g., 30"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              />
-            ) : (
-              <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
-                {profileData?.tourGuideInfo?.responseTime ? `${profileData.tourGuideInfo.responseTime} minutes` : 'Not set'}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cancellation Policy</label>
-            {isEditing ? (
-              <input
-                type="text"
-                value={formData.cancellationPolicy || ''}
-                onChange={(e) => handleInputChange('cancellationPolicy', e.target.value)}
-                placeholder="e.g., Free cancellation up to 24 hours"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              />
-            ) : (
-              <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
-                {profileData?.tourGuideInfo?.cancellationPolicy || 'Not set'}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Accessibility */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Accessibility</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newAccessibility || ''}
-                  onChange={(e) => handleInputChange('newAccessibility', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('accessibility', 'newAccessibility');
-                    }
-                  }}
-                  placeholder="e.g., Wheelchair accessible"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('accessibility', 'newAccessibility')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.accessibility?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.accessibility.map((acc: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{acc}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('accessibility', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.accessibility?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No accessibility options added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.tourGuideInfo?.accessibility && profileData.tourGuideInfo.accessibility.length > 0 ? (
-                profileData.tourGuideInfo.accessibility.map((acc, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{acc}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* About Me */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">About Me</label>
@@ -1361,24 +1057,6 @@ function GuiderProfileContent() {
           ) : (
             <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
               {profileData?.tourGuideInfo?.aboutMe || 'Not set'}
-            </p>
-          )}
-        </div>
-
-        {/* Why Choose Me */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Why Choose Me</label>
-          {isEditing ? (
-            <textarea
-              value={formData.whyChooseMe || ''}
-              onChange={(e) => handleInputChange('whyChooseMe', e.target.value)}
-              rows={4}
-              placeholder="What makes you unique as a guide..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-            />
-          ) : (
-            <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
-              {profileData?.tourGuideInfo?.whyChooseMe || 'Not set'}
             </p>
           )}
         </div>
@@ -1432,153 +1110,6 @@ function GuiderProfileContent() {
                 <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
                   {profileData?.tourGuideInfo?.vehicleDescription || 'Not set'}
                 </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Experience */}
-        <div>
-          <label className="flex items-center gap-2 mb-2">
-            {isEditing ? (
-              <>
-                <input
-                  type="checkbox"
-                  checked={formData.isExperienced || false}
-                  onChange={(e) => handleInputChange('isExperienced', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-gray-700">Is Experienced Guide</span>
-              </>
-            ) : (
-              <span className="text-sm font-medium text-gray-700">
-                Is Experienced Guide: {profileData?.tourGuideInfo?.isExperienced ? 'Yes' : 'No'}
-              </span>
-            )}
-          </label>
-        </div>
-
-        {/* Gallery */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Gallery (Image URLs)</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="url"
-                  value={formData.newGalleryUrl || ''}
-                  onChange={(e) => handleInputChange('newGalleryUrl', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('gallery', 'newGalleryUrl');
-                    }
-                  }}
-                  placeholder="https://example.com/image.jpg"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('gallery', 'newGalleryUrl')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.gallery?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.gallery.map((url: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center justify-between">
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 truncate flex-1 mr-2">
-                        {url}
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('gallery', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.gallery?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No gallery images added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.tourGuideInfo?.gallery && profileData.tourGuideInfo.gallery.length > 0 ? (
-                profileData.tourGuideInfo.gallery.map((url, idx) => (
-                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 bg-gray-50 p-3 rounded-lg block break-all">
-                    {url}
-                  </a>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Highlights */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Highlights</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newHighlight || ''}
-                  onChange={(e) => handleInputChange('newHighlight', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('highlights', 'newHighlight');
-                    }
-                  }}
-                  placeholder="Add a highlight"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('highlights', 'newHighlight')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.highlights?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.highlights.map((highlight: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{highlight}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('highlights', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.highlights?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No highlights added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.tourGuideInfo?.highlights && profileData.tourGuideInfo.highlights.length > 0 ? (
-                profileData.tourGuideInfo.highlights.map((highlight, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{highlight}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
               )}
             </div>
           )}
@@ -1752,273 +1283,6 @@ function GuiderProfileContent() {
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderIndiaSpecificInfo = () => {
-    const isEditing = editingTabs.india;
-    
-    return (
-      <div className="space-y-6">
-        {renderEditHeader('india')}
-        
-        {/* Indian States */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Indian States</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newIndianState || ''}
-                  onChange={(e) => handleInputChange('newIndianState', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('indianStates', 'newIndianState');
-                    }
-                  }}
-                  placeholder="e.g., Rajasthan"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('indianStates', 'newIndianState')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.indianStates?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.indianStates.map((state: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{state}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('indianStates', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.indianStates?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No states added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.indiaSpecificInfo?.indianStates && profileData.indiaSpecificInfo.indianStates.length > 0 ? (
-                profileData.indiaSpecificInfo.indianStates.map((state, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{state}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Indian Cities */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Indian Cities</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newIndianCity || ''}
-                  onChange={(e) => handleInputChange('newIndianCity', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('indianCities', 'newIndianCity');
-                    }
-                  }}
-                  placeholder="e.g., Jaipur"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('indianCities', 'newIndianCity')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.indianCities?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.indianCities.map((city: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{city}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('indianCities', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.indianCities?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No cities added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.indiaSpecificInfo?.indianCities && profileData.indiaSpecificInfo.indianCities.length > 0 ? (
-                profileData.indiaSpecificInfo.indianCities.map((city, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{city}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Indian Languages */}
-        <LanguageSelector
-          label="Indian Languages"
-          selectedLanguages={isEditing ? (formData.indianLanguages || []) : (profileData?.indiaSpecificInfo?.indianLanguages || [])}
-          onLanguageChange={isEditing ? (languages: string[]) => handleInputChange('indianLanguages', languages) : undefined}
-          isEditing={isEditing}
-          defaultLanguages={defaultLanguages}
-        />
-
-        {/* Indian Cuisines */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Indian Cuisines</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newIndianCuisine || ''}
-                  onChange={(e) => handleInputChange('newIndianCuisine', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('indianCuisines', 'newIndianCuisine');
-                    }
-                  }}
-                  placeholder="e.g., Rajasthani Thali"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('indianCuisines', 'newIndianCuisine')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.indianCuisines?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.indianCuisines.map((cuisine: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{cuisine}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('indianCuisines', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.indianCuisines?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No cuisines added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.indiaSpecificInfo?.indianCuisines && profileData.indiaSpecificInfo.indianCuisines.length > 0 ? (
-                profileData.indiaSpecificInfo.indianCuisines.map((cuisine, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{cuisine}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Indian Festivals */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Indian Festivals</label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newIndianFestival || ''}
-                  onChange={(e) => handleInputChange('newIndianFestival', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('indianFestivals', 'newIndianFestival');
-                    }
-                  }}
-                  placeholder="e.g., Diwali"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('indianFestivals', 'newIndianFestival')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.indianFestivals?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.indianFestivals.map((festival: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{festival}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('indianFestivals', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.indianFestivals?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No festivals added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.indiaSpecificInfo?.indianFestivals && profileData.indiaSpecificInfo.indianFestivals.length > 0 ? (
-                profileData.indiaSpecificInfo.indianFestivals.map((festival, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{festival}</span>
-                  </div>
-                ))
               ) : (
                 <p className="text-gray-500">Not set</p>
               )}
@@ -2528,7 +1792,6 @@ function GuiderProfileContent() {
               {activeTab === 'business' && renderBusinessInfo()}
               {activeTab === 'tour' && renderTourGuideInfo()}
               {activeTab === 'reviews' && renderReviews()}
-              {activeTab === 'india' && renderIndiaSpecificInfo()}
               {activeTab === 'account' && renderAccountInfo()}
             </CardContent>
           </Card>
