@@ -2,15 +2,17 @@
 
 import { useEffect } from 'react';
 import { useToast } from '@/contexts/ToastContext';
-import { setToastInstance as setApiToastInstance } from '@/lib/api/api-client';
+import { useAuth } from '@/contexts/AuthContext';
+import { setToastInstance as setApiToastInstance, setLogoutCallback } from '@/lib/api/api-client';
 import { setToastInstance as setLibToastInstance } from '@/lib/toast';
 
 /**
- * This component connects the ToastContext to the API client and toast utility
- * so that API calls and components can show toasts without React context issues
+ * This component connects the ToastContext and AuthContext to the API client
+ * so that API calls can show toasts and handle logout without React context issues
  */
 export default function ToastProviderWrapper({ children }: { children: React.ReactNode }) {
   const toast = useToast();
+  const { logout } = useAuth();
 
   useEffect(() => {
     // Make toast available to API client
@@ -24,11 +26,15 @@ export default function ToastProviderWrapper({ children }: { children: React.Rea
     // Make toast available to toast utility (for react-hot-toast compatibility)
     setLibToastInstance(toast);
 
+    // Make logout function available to API client for 401 handling
+    setLogoutCallback(logout);
+
     return () => {
       setApiToastInstance(null);
       setLibToastInstance(null as any);
+      setLogoutCallback(null);
     };
-  }, [toast]);
+  }, [toast, logout]);
 
   return <>{children}</>;
 }

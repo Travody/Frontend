@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Clock, Upload, Video, FileText, Loader2 } from 'lucide-react';
 import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
 import { guidesService, usersService } from '@/lib/api';
@@ -47,9 +47,6 @@ export default function GuiderVerificationDashboard() {
   const currentStep = user.currentVerificationStep || 1;
   const verificationData = user.verificationData;
 
-  const step4Data = verificationData?.steps?.find((s) => s.stepNumber === 4);
-  const step4SubmittedForReview = step4Data?.data?.submittedForReview === true;
-
   const loadStepData = useCallback((configData: VerificationStepsConfig, stepNumber: number) => {
     if (!verificationData?.steps) {
       setFormData({});
@@ -85,7 +82,9 @@ export default function GuiderVerificationDashboard() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await guidesService.getVerificationStepsConfig();
+        // Get config based on user's guiderType
+        const guiderType = (user as any)?.guiderType || 'Professional';
+        const response = await guidesService.getVerificationStepsConfig(guiderType);
         if (response.success && response.data) {
           setConfig(response.data);
         } else {
@@ -100,11 +99,24 @@ export default function GuiderVerificationDashboard() {
     };
 
     fetchConfig();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (config) {
-      loadStepData(config, currentStep);
+      // Calculate effective current step (skip hidden steps)
+      const visibleSteps = config.steps.filter(step => !step.isHidden).sort((a, b) => a.stepNumber - b.stepNumber);
+      const lastStepNumber = Math.max(...config.steps.map(s => s.stepNumber));
+      let effectiveStep = currentStep;
+      const currentStepConfigFromAll = config.steps.find((s) => s.stepNumber === currentStep);
+      if (currentStepConfigFromAll?.isHidden) {
+        const nextVisibleStep = visibleSteps.find(s => s.stepNumber > currentStep);
+        if (nextVisibleStep) {
+          effectiveStep = nextVisibleStep.stepNumber;
+        } else {
+          effectiveStep = visibleSteps.length > 0 ? visibleSteps[visibleSteps.length - 1].stepNumber : lastStepNumber;
+        }
+      }
+      loadStepData(config, effectiveStep);
     }
   }, [currentStep, verificationData, config, loadStepData]);
 
@@ -116,9 +128,12 @@ export default function GuiderVerificationDashboard() {
 
   const calculateProgress = (): number => {
     if (!config) return 0;
-    const totalSteps = config.steps.length;
-    const completedSteps = currentStep - 1;
-    return Math.round((completedSteps / totalSteps) * 100);
+    // Filter out hidden steps for progress calculation
+    const visibleSteps = config.steps.filter(step => !step.isHidden);
+    const totalSteps = visibleSteps.length;
+    // Count completed visible steps
+    const completedSteps = visibleSteps.filter(step => step.stepNumber < currentStep).length;
+    return totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
   };
 
   const handleFileChange = (fieldName: string, file: File | null) => {
@@ -165,6 +180,12 @@ export default function GuiderVerificationDashboard() {
     const stepConfig = config.steps.find((s) => s.stepNumber === stepNumber);
     if (!stepConfig) {
       toast.error('Step configuration not found. Please refresh the page.');
+      return;
+    }
+    
+    // Don't allow submitting hidden steps
+    if (stepConfig.isHidden) {
+      toast.error('This step is hidden and cannot be submitted.');
       return;
     }
 
@@ -226,7 +247,29 @@ export default function GuiderVerificationDashboard() {
     );
   }
 
-  const currentStepConfig = config.steps.find((s) => s.stepNumber === currentStep);
+  // Get current step config, skipping hidden steps
+  const visibleSteps = config.steps.filter(step => !step.isHidden).sort((a, b) => a.stepNumber - b.stepNumber);
+  
+  // Get the last step number (highest stepNumber in config)
+  const lastStepNumber = Math.max(...config.steps.map(s => s.stepNumber));
+  const lastStepData = verificationData?.steps?.find((s) => s.stepNumber === lastStepNumber);
+  const lastStepSubmittedForReview = lastStepData?.data?.submittedForReview === true;
+  
+  // If current step is hidden, find the next visible step
+  let effectiveCurrentStep = currentStep;
+  const currentStepConfigFromAll = config.steps.find((s) => s.stepNumber === currentStep);
+  if (currentStepConfigFromAll?.isHidden) {
+    // Find the next visible step after the hidden one
+    const nextVisibleStep = visibleSteps.find(s => s.stepNumber > currentStep);
+    if (nextVisibleStep) {
+      effectiveCurrentStep = nextVisibleStep.stepNumber;
+    } else {
+      // If no next visible step, use the last visible step or last step number
+      effectiveCurrentStep = visibleSteps.length > 0 ? visibleSteps[visibleSteps.length - 1].stepNumber : lastStepNumber;
+    }
+  }
+  
+  const currentStepConfig = config.steps.find((s) => s.stepNumber === effectiveCurrentStep && !s.isHidden);
   const progress = calculateProgress();
 
   return (
@@ -277,42 +320,46 @@ export default function GuiderVerificationDashboard() {
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Steps Progress */}
-              <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4">
-                {config.steps.map((step, index) => {
-                  const status = getStepStatus(step.stepNumber);
-                  return (
-                    <div key={step.stepNumber} className="flex items-center min-w-0 flex-shrink-0">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          status === 'completed'
-                            ? 'bg-green-500'
-                            : status === 'current'
-                            ? 'bg-primary-500'
-                            : 'bg-gray-300'
-                        }`}
-                      >
-                        {status === 'completed' ? (
-                          <Check className="w-5 h-5 text-white" />
-                        ) : (
-                          <span className="text-white font-bold">{step.stepNumber}</span>
-                        )}
-                      </div>
-                      <div className="ml-3 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
-                          {step.stepName}
+              <div className="flex items-center w-full mb-8 overflow-x-auto pb-4">
+                {config.steps
+                  .filter(step => !step.isHidden) // Filter out hidden steps
+                  .map((step, index, visibleSteps) => {
+                    const status = getStepStatus(step.stepNumber);
+                    return (
+                      <React.Fragment key={step.stepNumber}>
+                        <div className="flex items-center flex-shrink-0">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              status === 'completed'
+                                ? 'bg-green-500'
+                                : status === 'current'
+                                ? 'bg-primary-500'
+                                : 'bg-gray-300'
+                            }`}
+                          >
+                            {status === 'completed' ? (
+                              <Check className="w-5 h-5 text-white" />
+                            ) : (
+                              <span className="text-white font-bold">{step.stepNumber}</span>
+                            )}
+                          </div>
+                          <div className="ml-3 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {step.stepName}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate">{step.description}</div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 truncate">{step.description}</div>
-                      </div>
-                      {index < config.steps.length - 1 && (
-                        <div
-                          className={`flex-1 h-0.5 mx-4 min-w-[50px] ${
-                            status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                        {index < visibleSteps.length - 1 && (
+                          <div
+                            className={`flex-1 h-0.5 mx-4 min-w-[50px] ${
+                              status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
+                          />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
               </div>
 
               <Separator />
@@ -343,7 +390,7 @@ export default function GuiderVerificationDashboard() {
 
                     {/* Submit Button */}
                     <div className="mt-8">
-                      {currentStep === 4 && step4SubmittedForReview ? (
+                      {currentStep === lastStepNumber && lastStepSubmittedForReview ? (
                         <Card className="bg-blue-50 border-blue-200 mb-4">
                           <CardContent className="p-4">
                             <div className="flex items-start">
@@ -363,15 +410,15 @@ export default function GuiderVerificationDashboard() {
                         <Button
                           type="button"
                           onClick={(e) => handleSubmit(e)}
-                          disabled={submitting || (currentStep === 4 && step4SubmittedForReview)}
+                          disabled={submitting || (currentStep === lastStepNumber && lastStepSubmittedForReview)}
                           size="lg"
                         >
                           {submitting ? (
                             <>
                               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                              {currentStep === 4 ? 'Sending...' : 'Saving...'}
+                              {currentStep === lastStepNumber ? 'Sending...' : 'Saving...'}
                             </>
-                          ) : currentStep === 4 ? (
+                          ) : currentStep === lastStepNumber ? (
                             'Send for Admin Approval'
                           ) : (
                             'Save & Continue'
@@ -424,6 +471,46 @@ function DynamicField({
             placeholder={field.placeholder || field.fieldLabel}
             required={field.required}
           />
+        );
+
+      case 'image':
+        return (
+          <div className="space-y-2">
+            <input
+              ref={(el) => {
+                fileInputRefs.current[field.fieldName] = el;
+              }}
+              type="file"
+              accept={field.accept || 'image/*'}
+              onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+              className="hidden"
+              data-field={field.fieldName}
+              required={field.required && !value}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                fileInputRefs.current[field.fieldName]?.click();
+              }}
+              className="w-full"
+            >
+              <Upload className="w-5 h-5 mr-2" />
+              {value ? 'Change Image' : 'Upload Image'}
+            </Button>
+            {preview && (
+              <div className="mt-2">
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-w-full h-64 object-contain rounded-lg border border-gray-200"
+                />
+              </div>
+            )}
+            {value && !preview && (
+              <p className="text-sm text-gray-600">Selected: {value}</p>
+            )}
+          </div>
         );
 
       case 'file':
@@ -507,6 +594,11 @@ function DynamicField({
         );
 
       case 'select':
+        const selectOptions = field.options || [
+          { label: 'Aadhar', value: 'aadhar' },
+          { label: 'PAN', value: 'pan' },
+          { label: 'Other', value: 'other' }
+        ];
         return (
           <Select
             value={value || ''}
@@ -516,9 +608,11 @@ function DynamicField({
               <SelectValue placeholder={`Select ${field.fieldLabel}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="aadhar">Aadhar</SelectItem>
-              <SelectItem value="pan">PAN</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {selectOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         );

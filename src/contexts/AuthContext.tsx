@@ -129,12 +129,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    // Get userType before clearing to determine redirect path
+    const userType = localStorage.getItem('userType');
+    
     setUser(null);
     setToken(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('userType');
     localStorage.removeItem('userData');
-    router.push('/');
+    
+    // Redirect to respective login page based on user type
+    if (userType === 'traveler') {
+      router.push('/auth/traveler/login');
+    } else if (userType === 'guider') {
+      router.push('/auth/guider/login');
+    } else {
+      // Fallback to home page if userType is unknown
+      router.push('/');
+    }
   };
 
   const refreshUser = useCallback((userData: any) => {
