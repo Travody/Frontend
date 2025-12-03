@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { MapPin, Clock, Users, Star, Calendar, Phone, Mail, CheckCircle, AlertCircle, ArrowLeft, Info, Minus, Plus, X } from 'lucide-react';
 import DatePicker from '@/components/ui/DatePicker';
-import { plansService, bookingsService, reviewsService } from '@/lib/api';
+import { plansService, bookingsService, reviewsService, usersService } from '@/lib/api';
 import type { Plan, CreateBookingData, Booking, Review } from '@/types';
 import Link from 'next/link';
 import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { BaseDialog } from '@/components/ui/base-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -40,12 +41,15 @@ import { Separator } from '@/components/ui/separator';
 export default function PlanDetailsPage() {
   const params = useParams();
   const planId = params?.id as string;
-  const { user, isAuthenticated, token } = useAuth();
+  const { user, isAuthenticated, token, refreshUser } = useAuth();
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [existingBooking, setExistingBooking] = useState<Booking | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
@@ -175,6 +179,12 @@ export default function PlanDetailsPage() {
       return;
     }
 
+    // Check if user has phone number
+    if (!user?.mobile || user.mobile.trim() === '') {
+      setShowPhoneDialog(true);
+      return;
+    }
+
     if (!bookingData.bookingDate) {
       toast.error('Please select a date');
       return;
@@ -191,6 +201,48 @@ export default function PlanDetailsPage() {
     }
 
     setShowConfirmDialog(true);
+  };
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input and limit to 10 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setPhoneNumber(value);
+  };
+
+  const handleAddPhoneNumber = async () => {
+    if (!phoneNumber || phoneNumber.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    setIsUpdatingPhone(true);
+    try {
+      // Format phone number with +91 prefix
+      const formattedPhone = `+91 ${phoneNumber}`;
+      const response = await usersService.updateTravelerProfile({ mobile: formattedPhone });
+      if (response.success) {
+        // Fetch updated user data
+        const userResponse = await usersService.getCurrentUser('traveler');
+        if (userResponse.success && userResponse.data) {
+          // Refresh user data in context
+          refreshUser(userResponse.data);
+          // Update booking data with new phone
+          setBookingData(prev => ({ ...prev, travelerPhone: formattedPhone }));
+        }
+        setShowPhoneDialog(false);
+        setPhoneNumber('');
+        toast.success('Phone number added successfully');
+        // Proceed with booking
+        if (bookingData.bookingDate && bookingData.startTime) {
+          setShowConfirmDialog(true);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error updating phone:', error);
+      toast.error(error?.response?.data?.message || 'Failed to update phone number');
+    } finally {
+      setIsUpdatingPhone(false);
+    }
   };
 
   const handleConfirmBooking = async () => {
@@ -830,57 +882,98 @@ export default function PlanDetailsPage() {
         </Container>
       </Section>
 
+      {/* Phone Number Dialog */}
+      <BaseDialog
+        isOpen={showPhoneDialog}
+        onClose={() => {
+          setShowPhoneDialog(false);
+          setPhoneNumber('');
+        }}
+        title="Add Phone Number"
+        description="A phone number is required to complete your booking. Please add your phone number to continue."
+        icon={<Phone className="w-5 h-5 text-primary-600" />}
+        confirmText={isUpdatingPhone ? 'Saving...' : 'Save & Continue'}
+        cancelText="Cancel"
+        onConfirm={handleAddPhoneNumber}
+        confirmDisabled={isUpdatingPhone || !phoneNumber || phoneNumber.length !== 10}
+        cancelDisabled={isUpdatingPhone}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 font-medium">
+                +91
+              </div>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="9876543210"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange}
+                disabled={isUpdatingPhone}
+                className="pl-12"
+                maxLength={10}
+              />
+            </div>
+            {phoneNumber && phoneNumber.length !== 10 ? (
+              <p className="text-xs text-red-500">
+                Please enter exactly 10 digits
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500">
+                This will be saved to your profile and used for booking communications.
+              </p>
+            )}
+          </div>
+        </div>
+      </BaseDialog>
+
       {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Booking Request</DialogTitle>
-            <DialogDescription>
-              Please review your booking details before confirming
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+      <BaseDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        title="Confirm Booking Request"
+        description="Please review your booking details before confirming"
+        confirmText={isSubmitting ? 'Sending...' : 'Confirm & Send Request'}
+        cancelText="Cancel"
+        onConfirm={handleConfirmBooking}
+        confirmDisabled={isSubmitting}
+        cancelDisabled={isSubmitting}
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Tour</p>
+            <p className="font-medium text-gray-900">{plan.title}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Tour</p>
-              <p className="font-medium text-gray-900">{plan.title}</p>
+              <p className="text-sm text-gray-600 mb-1">Date</p>
+              <p className="font-medium text-gray-900">
+                {bookingData.bookingDate ? formatDate(bookingData.bookingDate) : 'Not selected'}
+              </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Date</p>
-                <p className="font-medium text-gray-900">
-                  {bookingData.bookingDate ? formatDate(bookingData.bookingDate) : 'Not selected'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Time</p>
-                <p className="font-medium text-gray-900">{bookingData.startTime || 'Not selected'}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Participants</p>
-                <p className="font-medium text-gray-900">{bookingData.numberOfParticipants} {bookingData.numberOfParticipants === 1 ? 'person' : 'people'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Price</p>
-                <p className="font-medium text-gray-900">
-                  {plan.pricing ? formatPrice(totalPrice, plan.pricing.currency) : 'N/A'}
-                </p>
-              </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Time</p>
+              <p className="font-medium text-gray-900">{bookingData.startTime || 'Not selected'}</p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmBooking} disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Confirm & Send Request'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Participants</p>
+              <p className="font-medium text-gray-900">{bookingData.numberOfParticipants} {bookingData.numberOfParticipants === 1 ? 'person' : 'people'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Total Price</p>
+              <p className="font-medium text-gray-900">
+                {plan.pricing ? formatPrice(totalPrice, plan.pricing.currency) : 'N/A'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </BaseDialog>
     </AppLayout>
   );
 }

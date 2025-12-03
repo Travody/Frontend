@@ -32,9 +32,9 @@ interface GuiderProfileData {
     showcaseName: string;
     fullName?: string;
     city?: string;
-    overview?: string;
-    languagesKnown?: string[];
     education?: string;
+    aboutMe?: string;
+    certifications?: string[];
     awards?: string[];
   };
   businessInfo?: {
@@ -46,7 +46,6 @@ interface GuiderProfileData {
     gstNumber?: string;
   };
   tourGuideInfo?: {
-    certifications?: string[];
     pricePerHour?: number;
     pricePerDay?: number;
     pricePerTour?: number;
@@ -55,7 +54,6 @@ interface GuiderProfileData {
     totalReviews?: number;
     totalTours?: number;
     tourDurations?: string[];
-    aboutMe?: string;
     languagesSpoken?: string[];
     hasVehicle?: boolean;
     vehicleDescription?: string;
@@ -106,9 +104,10 @@ function GuiderProfileEditContent() {
             showcaseName: data.personalInfo?.showcaseName || '',
             fullName: data.personalInfo?.fullName || '',
             city: data.personalInfo?.city || '',
-            overview: data.personalInfo?.overview || '',
-            languagesKnown: data.personalInfo?.languagesKnown || [],
             education: data.personalInfo?.education || '',
+            aboutMe: data.personalInfo?.aboutMe || '',
+            certifications: data.personalInfo?.certifications || [],
+            newCertification: '',
             awards: data.personalInfo?.awards || [],
             newAward: '',
             // Business Info
@@ -119,15 +118,12 @@ function GuiderProfileEditContent() {
             hasGSTNumber: data.businessInfo?.hasGSTNumber || false,
             gstNumber: data.businessInfo?.gstNumber || '',
             // Tour Guide Info
-            certifications: data.tourGuideInfo?.certifications || [],
-            newCertification: '',
             pricePerHour: data.tourGuideInfo?.pricePerHour || '',
             pricePerDay: data.tourGuideInfo?.pricePerDay || '',
             pricePerTour: data.tourGuideInfo?.pricePerTour || '',
             currency: data.tourGuideInfo?.currency || 'INR',
             tourDurations: data.tourGuideInfo?.tourDurations || [],
             newTourDuration: '',
-            aboutMe: data.tourGuideInfo?.aboutMe || '',
             languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
             hasVehicle: data.tourGuideInfo?.hasVehicle || false,
             vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
@@ -190,9 +186,9 @@ function GuiderProfileEditContent() {
         if (formData.showcaseName) updateData.showcaseName = formData.showcaseName;
         if (formData.fullName) updateData.fullName = formData.fullName;
         if (formData.city) updateData.city = formData.city;
-        if (formData.overview !== undefined) updateData.overview = formData.overview;
-        if (formData.languagesKnown) updateData.languagesKnown = formData.languagesKnown;
         if (formData.education) updateData.education = formData.education;
+        if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
+        if (formData.certifications) updateData.certifications = formData.certifications;
         if (formData.awards) updateData.awards = formData.awards;
       } else if (tab === 'business') {
         // Business Info
@@ -204,7 +200,6 @@ function GuiderProfileEditContent() {
         if (formData.gstNumber) updateData.gstNumber = formData.gstNumber;
       } else if (tab === 'tour') {
         // Tour Guide Info
-        if (formData.certifications) updateData.certifications = formData.certifications;
         if (formData.pricePerHour) updateData.pricePerHour = Number(formData.pricePerHour);
         if (formData.pricePerDay) updateData.pricePerDay = Number(formData.pricePerDay);
         if (formData.pricePerTour) updateData.pricePerTour = Number(formData.pricePerTour);
@@ -267,9 +262,9 @@ function GuiderProfileEditContent() {
                     showcaseName: data.personalInfo?.showcaseName || '',
                     fullName: data.personalInfo?.fullName || '',
                     city: data.personalInfo?.city || '',
-                    overview: data.personalInfo?.overview || '',
-                    languagesKnown: data.personalInfo?.languagesKnown || [],
                     education: data.personalInfo?.education || '',
+                    aboutMe: data.personalInfo?.aboutMe || '',
+                    certifications: data.personalInfo?.certifications || [],
                     awards: data.personalInfo?.awards || [],
                   }));
                 } else if (tab === 'business') {
@@ -285,12 +280,10 @@ function GuiderProfileEditContent() {
                 } else if (tab === 'tour') {
                   setFormData((prev: any) => ({
                     ...prev,
-                    certifications: data.tourGuideInfo?.certifications || [],
                     pricePerHour: data.tourGuideInfo?.pricePerHour || '',
                     pricePerDay: data.tourGuideInfo?.pricePerDay || '',
                     pricePerTour: data.tourGuideInfo?.pricePerTour || '',
                     currency: data.tourGuideInfo?.currency || 'INR',
-                    aboutMe: data.tourGuideInfo?.aboutMe || '',
                     languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
                     hasVehicle: data.tourGuideInfo?.hasVehicle || false,
                     vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
@@ -418,72 +411,76 @@ function GuiderProfileEditContent() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Overview (max 200 characters)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">About Me</label>
         {isEditing ? (
-          <>
-            <textarea
-              value={formData.overview || ''}
-              onChange={(e) => handleInputChange('overview', e.target.value)}
-              maxLength={200}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <p className="text-sm text-gray-500 mt-1">{formData.overview?.length || 0}/200</p>
-          </>
+          <textarea
+            value={formData.aboutMe || ''}
+            onChange={(e) => handleInputChange('aboutMe', e.target.value)}
+            rows={4}
+            placeholder="Tell us about yourself and your guiding experience..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
         ) : (
-          <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
-            {profileData?.personalInfo?.overview || 'Not set'}
+          <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
+            {profileData?.personalInfo?.aboutMe || 'Not set'}
           </p>
         )}
       </div>
 
+      {/* Certifications */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Languages className="w-4 h-4" />
-          Languages Known
+          <Award className="w-4 h-4" />
+          Certifications
         </label>
         {isEditing ? (
           <>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {commonLanguages.map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => toggleArrayItem('languagesKnown', lang)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    formData.languagesKnown?.includes(lang)
-                      ? 'bg-primary-100 text-primary-800 border-2 border-primary-500'
-                      : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:border-gray-300'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={formData.newCertification || ''}
+                onChange={(e) => handleInputChange('newCertification', e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addArrayItem('certifications', 'newCertification');
+                  }
+                }}
+                placeholder="e.g., Government Licensed, First Aid"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => addArrayItem('certifications', 'newCertification')}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Add
+              </button>
             </div>
-            {formData.languagesKnown?.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.languagesKnown.map((lang: string, idx: number) => (
-                  <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm flex items-center gap-2">
-                    {lang}
+            {formData.certifications?.length > 0 && (
+              <div className="space-y-2">
+                {formData.certifications.map((cert: string, idx: number) => (
+                  <div key={idx} className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm flex items-center justify-between">
+                    <span>{cert}</span>
                     <button
                       type="button"
-                      onClick={() => removeArrayItem('languagesKnown', idx)}
-                      className="text-primary-800 hover:text-primary-900"
+                      onClick={() => removeArrayItem('certifications', idx)}
+                      className="text-red-600 hover:text-red-800"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
-                  </span>
+                  </div>
                 ))}
               </div>
             )}
           </>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {profileData?.personalInfo?.languagesKnown && profileData.personalInfo.languagesKnown.length > 0 ? (
-              profileData.personalInfo.languagesKnown.map((lang, idx) => (
-                <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
-                  {lang}
-                </span>
+          <div className="space-y-2">
+            {profileData?.personalInfo?.certifications && profileData.personalInfo.certifications.length > 0 ? (
+              profileData.personalInfo.certifications.map((cert, idx) => (
+                <div key={idx} className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+                  <span>{cert}</span>
+                </div>
               ))
             ) : (
               <p className="text-gray-500">Not set</p>
@@ -736,52 +733,6 @@ function GuiderProfileEditContent() {
         </div>
       </div>
 
-      {/* Certifications */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Award className="w-4 h-4" />
-          Certifications
-        </label>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={formData.newCertification || ''}
-            onChange={(e) => handleInputChange('newCertification', e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addArrayItem('certifications', 'newCertification');
-              }
-            }}
-            placeholder="e.g., Government Licensed, First Aid"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => addArrayItem('certifications', 'newCertification')}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Add
-          </button>
-        </div>
-        {formData.certifications?.length > 0 && (
-          <div className="space-y-2">
-            {formData.certifications.map((cert: string, idx: number) => (
-              <div key={idx} className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm flex items-center justify-between">
-                <span>{cert}</span>
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('certifications', idx)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Languages Spoken */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -833,16 +784,6 @@ function GuiderProfileEditContent() {
         </div>
       </div>
 
-      {/* About Me */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">About Me</label>
-        <textarea
-          value={formData.aboutMe || ''}
-          onChange={(e) => handleInputChange('aboutMe', e.target.value)}
-          rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-      </div>
     </div>
   );
   };

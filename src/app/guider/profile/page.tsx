@@ -35,9 +35,9 @@ interface GuiderProfileData {
     showcaseName: string;
     fullName?: string;
     city?: string;
-    overview?: string;
-    languagesKnown?: string[];
     education?: string;
+    aboutMe?: string;
+    certifications?: string[];
     awards?: string[];
   };
   businessInfo?: {
@@ -49,12 +49,10 @@ interface GuiderProfileData {
     gstNumber?: string;
   };
   tourGuideInfo?: {
-    certifications?: string[];
     rating?: number;
     totalReviews?: number;
     totalTours?: number;
     tourDurations?: string[];
-    aboutMe?: string;
     languagesSpoken?: string[];
     hasVehicle?: boolean;
     vehicleDescription?: string;
@@ -332,9 +330,10 @@ function GuiderProfileContent() {
             showcaseName: data.personalInfo?.showcaseName || '',
             fullName: data.personalInfo?.fullName || '',
             city: data.personalInfo?.city || '',
-            overview: data.personalInfo?.overview || '',
-            languagesKnown: data.personalInfo?.languagesKnown || [],
             education: data.personalInfo?.education || '',
+            aboutMe: data.personalInfo?.aboutMe || '',
+            certifications: data.personalInfo?.certifications || [],
+            newCertification: '',
             awards: data.personalInfo?.awards || [],
             newAward: '',
             // Business Info
@@ -345,9 +344,6 @@ function GuiderProfileContent() {
             hasGSTNumber: data.businessInfo?.hasGSTNumber || false,
             gstNumber: data.businessInfo?.gstNumber || '',
             // Tour Guide Info
-            certifications: data.tourGuideInfo?.certifications || [],
-            newCertification: '',
-            aboutMe: data.tourGuideInfo?.aboutMe || '',
             languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
             hasVehicle: data.tourGuideInfo?.hasVehicle || false,
             vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
@@ -427,9 +423,9 @@ function GuiderProfileContent() {
         if (formData.showcaseName) updateData.showcaseName = formData.showcaseName;
         if (formData.fullName !== undefined) updateData.fullName = formData.fullName;
         if (formData.city !== undefined) updateData.city = formData.city;
-        if (formData.overview !== undefined) updateData.overview = formData.overview;
-        if (formData.languagesKnown) updateData.languagesKnown = formData.languagesKnown;
         if (formData.education !== undefined) updateData.education = formData.education;
+        if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
+        if (formData.certifications) updateData.certifications = formData.certifications;
         if (formData.awards) updateData.awards = formData.awards;
       } else if (tab === 'business') {
         if (formData.companyName !== undefined) updateData.companyName = formData.companyName;
@@ -439,8 +435,6 @@ function GuiderProfileContent() {
         if (formData.hasGSTNumber !== undefined) updateData.hasGSTNumber = formData.hasGSTNumber;
         if (formData.gstNumber !== undefined) updateData.gstNumber = formData.gstNumber;
       } else if (tab === 'tour') {
-        if (formData.certifications) updateData.certifications = formData.certifications;
-        if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
         if (formData.languagesSpoken) updateData.languagesSpoken = formData.languagesSpoken;
         if (formData.hasVehicle !== undefined) updateData.hasVehicle = formData.hasVehicle;
         if (formData.vehicleDescription !== undefined) updateData.vehicleDescription = formData.vehicleDescription;
@@ -462,9 +456,9 @@ function GuiderProfileContent() {
               showcaseName: refreshedData.personalInfo?.showcaseName || '',
               fullName: refreshedData.personalInfo?.fullName || '',
               city: refreshedData.personalInfo?.city || '',
-              overview: refreshedData.personalInfo?.overview || '',
-              languagesKnown: refreshedData.personalInfo?.languagesKnown || [],
               education: refreshedData.personalInfo?.education || '',
+              aboutMe: refreshedData.personalInfo?.aboutMe || '',
+              certifications: refreshedData.personalInfo?.certifications || [],
               awards: refreshedData.personalInfo?.awards || [],
             }));
           }
@@ -498,9 +492,9 @@ function GuiderProfileContent() {
           showcaseName: data.personalInfo?.showcaseName || '',
           fullName: data.personalInfo?.fullName || '',
           city: data.personalInfo?.city || '',
-          overview: data.personalInfo?.overview || '',
-          languagesKnown: data.personalInfo?.languagesKnown || [],
           education: data.personalInfo?.education || '',
+          aboutMe: data.personalInfo?.aboutMe || '',
+          certifications: data.personalInfo?.certifications || [],
           awards: data.personalInfo?.awards || [],
         }));
       } else if (tab === 'business') {
@@ -516,8 +510,6 @@ function GuiderProfileContent() {
       } else if (tab === 'tour') {
         setFormData((prev: any) => ({
           ...prev,
-          certifications: data.tourGuideInfo?.certifications || [],
-          aboutMe: data.tourGuideInfo?.aboutMe || '',
           languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
           hasVehicle: data.tourGuideInfo?.hasVehicle || false,
           vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
@@ -553,9 +545,9 @@ function GuiderProfileContent() {
                     showcaseName: data.personalInfo?.showcaseName || '',
                     fullName: data.personalInfo?.fullName || '',
                     city: data.personalInfo?.city || '',
-                    overview: data.personalInfo?.overview || '',
-                    languagesKnown: data.personalInfo?.languagesKnown || [],
                     education: data.personalInfo?.education || '',
+                    aboutMe: data.personalInfo?.aboutMe || '',
+                    certifications: data.personalInfo?.certifications || [],
                     awards: data.personalInfo?.awards || [],
                   }));
                 } else if (tab === 'business') {
@@ -571,8 +563,6 @@ function GuiderProfileContent() {
                 } else if (tab === 'tour') {
                   setFormData((prev: any) => ({
                     ...prev,
-                    certifications: data.tourGuideInfo?.certifications || [],
-                    aboutMe: data.tourGuideInfo?.aboutMe || '',
                     languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
                     hasVehicle: data.tourGuideInfo?.hasVehicle || false,
                     vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
@@ -580,7 +570,10 @@ function GuiderProfileContent() {
                   }));
                 } else if (tab === 'account') {
                   setNewEmail(data.email || user?.email || '');
-                  setNewPhone(data.mobile || user?.mobile || '');
+                  // Extract phone number without +91 prefix for editing
+                  const existingPhone = data.mobile || user?.mobile || '';
+                  const phoneDigits = existingPhone.replace(/\+91\s?/g, '').replace(/\D/g, '');
+                  setNewPhone(phoneDigits);
                   setShowOtpVerification(false);
                   setOtp('');
                   setOtpSent(false);
@@ -707,31 +700,84 @@ function GuiderProfileContent() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Overview</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">About Me</label>
           {isEditing ? (
-            <>
-              <textarea
-                value={formData.overview || ''}
-                onChange={(e) => handleInputChange('overview', e.target.value)}
-                maxLength={200}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              />
-              <p className="text-sm text-gray-500 mt-1">{formData.overview?.length || 0}/200</p>
-            </>
+            <textarea
+              value={formData.aboutMe || ''}
+              onChange={(e) => handleInputChange('aboutMe', e.target.value)}
+              rows={4}
+              placeholder="Tell us about yourself and your guiding experience..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+            />
           ) : (
-            <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
-              {profileData?.personalInfo?.overview || 'Not set'}
+            <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
+              {profileData?.personalInfo?.aboutMe || 'Not set'}
             </p>
           )}
         </div>
-        <LanguageSelector
-          label="Languages Known"
-          selectedLanguages={isEditing ? (formData.languagesKnown || []) : (profileData?.personalInfo?.languagesKnown || [])}
-          onLanguageChange={isEditing ? (languages: string[]) => handleInputChange('languagesKnown', languages) : undefined}
-          isEditing={isEditing}
-          defaultLanguages={defaultLanguages}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <Award className="w-4 h-4" />
+            Certifications
+          </label>
+          {isEditing ? (
+            <>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={formData.newCertification || ''}
+                  onChange={(e) => handleInputChange('newCertification', e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addArrayItem('certifications', 'newCertification');
+                    }
+                  }}
+                  placeholder="Add a certification"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={() => addArrayItem('certifications', 'newCertification')}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                >
+                  Add
+                </button>
+              </div>
+              {(formData.certifications?.length > 0) && (
+                <div className="space-y-2 mt-3">
+                  {formData.certifications.map((cert: string, idx: number) => (
+                    <div key={idx} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm flex items-center justify-between">
+                      <span className="text-gray-900">{cert}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('certifications', idx)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {formData.certifications?.length === 0 && (
+                <p className="text-gray-500 text-sm mt-2">No certifications added yet</p>
+              )}
+            </>
+          ) : (
+            <div className="space-y-2">
+              {profileData?.personalInfo?.certifications && profileData.personalInfo.certifications.length > 0 ? (
+                profileData.personalInfo.certifications.map((cert, idx) => (
+                  <div key={idx} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
+                    <span className="text-gray-900">{cert}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">Not set</p>
+              )}
+            </div>
+          )}
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
             <Trophy className="w-4 h-4" />
@@ -978,89 +1024,6 @@ function GuiderProfileContent() {
           </div>
         )}
         
-        {/* Certifications */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Award className="w-4 h-4" />
-            Certifications
-          </label>
-          {isEditing ? (
-            <>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={formData.newCertification || ''}
-                  onChange={(e) => handleInputChange('newCertification', e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addArrayItem('certifications', 'newCertification');
-                    }
-                  }}
-                  placeholder="Add a certification"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                />
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('certifications', 'newCertification')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Add
-                </button>
-              </div>
-              {(formData.certifications?.length > 0) && (
-                <div className="space-y-2 mt-3">
-                  {formData.certifications.map((cert: string, idx: number) => (
-                    <div key={idx} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm flex items-center justify-between">
-                      <span className="text-gray-900">{cert}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('certifications', idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {formData.certifications?.length === 0 && (
-                <p className="text-gray-500 text-sm mt-2">No certifications added yet</p>
-              )}
-            </>
-          ) : (
-            <div className="space-y-2">
-              {profileData?.tourGuideInfo?.certifications && profileData.tourGuideInfo.certifications.length > 0 ? (
-                profileData.tourGuideInfo.certifications.map((cert, idx) => (
-                  <div key={idx} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
-                    <span className="text-gray-900">{cert}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Not set</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* About Me */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">About Me</label>
-          {isEditing ? (
-            <textarea
-              value={formData.aboutMe || ''}
-              onChange={(e) => handleInputChange('aboutMe', e.target.value)}
-              rows={4}
-              placeholder="Tell us about yourself and your guiding experience..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-            />
-          ) : (
-            <p className="text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
-              {profileData?.tourGuideInfo?.aboutMe || 'Not set'}
-            </p>
-          )}
-        </div>
-
         {/* Languages Spoken */}
         <LanguageSelector
           label="Languages Spoken"
@@ -1348,15 +1311,23 @@ function GuiderProfileContent() {
     }
   };
 
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input and limit to 10 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setNewPhone(value);
+  };
+
   const handleUpdatePhone = async () => {
-    if (!newPhone || newPhone.trim().length < 10) {
-      toast.error('Please enter a valid phone number');
+    if (!newPhone || newPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await usersService.updateGuiderProfile(profileData?._id || '', { mobile: newPhone });
+      // Format phone number with +91 prefix
+      const formattedPhone = `+91 ${newPhone}`;
+      const response = await usersService.updateGuiderProfile(profileData?._id || '', { mobile: formattedPhone });
       if (response.success) {
         // Refresh profile data
         const refreshResponse = await usersService.getCurrentUser('guider');
@@ -1375,11 +1346,19 @@ function GuiderProfileContent() {
     if (!profileData || !token) return;
 
     const emailChanged = newEmail && newEmail !== (profileData.email || user?.email);
-    const phoneChanged = newPhone && newPhone !== (profileData.mobile || user?.mobile);
+    // Extract digits from existing phone for comparison
+    const existingPhoneDigits = (profileData.mobile || user?.mobile || '').replace(/\+91\s?/g, '').replace(/\D/g, '');
+    const phoneChanged = newPhone && newPhone.length === 10 && newPhone !== existingPhoneDigits;
 
     if (!emailChanged && !phoneChanged) {
       // No changes, just exit edit mode
       setEditingTabs((prev) => ({ ...prev, account: false }));
+      return;
+    }
+
+    // Validate phone if changed
+    if (phoneChanged && newPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -1519,13 +1498,30 @@ function GuiderProfileContent() {
               Mobile
             </label>
             {isEditing ? (
-              <input
-                type="tel"
-                value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, ''))}
-                placeholder="Enter phone number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              />
+              <>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 font-medium">
+                    +91
+                  </div>
+                  <input
+                    type="tel"
+                    value={newPhone}
+                    onChange={handlePhoneNumberChange}
+                    placeholder="9876543210"
+                    maxLength={10}
+                    className="w-full pl-12 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                  />
+                </div>
+                {newPhone && newPhone.length !== 10 ? (
+                  <p className="text-xs text-red-500 mt-1">
+                    Please enter exactly 10 digits
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter your 10-digit mobile number
+                  </p>
+                )}
+              </>
             ) : (
               <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
                 {profileData?.mobile || user?.mobile || 'Not set'}

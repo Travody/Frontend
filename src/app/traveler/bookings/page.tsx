@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { BaseDialog } from '@/components/ui/base-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -600,40 +601,30 @@ export default function TravelerBookingsPage() {
       </Section>
 
       {/* Cancel Booking Dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel Booking</DialogTitle>
-            <DialogDescription>
-              Please provide a reason for cancellation. This will help us improve our service.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="cancelReason">Cancellation Reason</Label>
-              <Textarea
-                id="cancelReason"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Enter cancellation reason..."
-                rows={4}
-              />
-            </div>
+      <BaseDialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        title="Cancel Booking"
+        description="Please provide a reason for cancellation. This will help us improve our service."
+        confirmText="Cancel Booking"
+        cancelText="Keep Booking"
+        onConfirm={confirmCancelBooking}
+        confirmVariant="destructive"
+        confirmDisabled={!cancelReason.trim()}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="cancelReason">Cancellation Reason</Label>
+            <Textarea
+              id="cancelReason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Enter cancellation reason..."
+              rows={4}
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              Keep Booking
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmCancelBooking}
-              disabled={!cancelReason.trim()}
-            >
-              Cancel Booking
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </BaseDialog>
 
       {/* Review Dialog */}
       <ReviewDialog

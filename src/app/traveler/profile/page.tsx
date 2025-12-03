@@ -75,7 +75,6 @@ function TravelerProfileContent() {
     firstName: '',
     lastName: '',
     city: '',
-    mobile: '',
     profileImageUrl: '',
     travelStyle: '' as 'Adventure' | 'Cultural' | 'Relaxation' | 'Wildlife' | '',
     preferredCategories: [] as string[],
@@ -153,7 +152,6 @@ function TravelerProfileContent() {
           firstName: profileData.firstName || '',
           lastName: profileData.lastName || '',
           city: profileData.city || '',
-          mobile: profileData.mobile || '',
           profileImageUrl: profileData.profileImageUrl || '',
           travelStyle: profileData.travelStyle || '',
           preferredCategories: profileData.preferredCategories || [],
@@ -171,14 +169,16 @@ function TravelerProfileContent() {
           firstName: profileData.firstName || '',
           lastName: profileData.lastName || '',
           city: profileData.city || '',
-          mobile: profileData.mobile || '',
           profileImageUrl: profileData.profileImageUrl || '',
           travelStyle: profileData.travelStyle || '',
           preferredCategories: profileData.preferredCategories || [],
           travelPreferences: profileData.travelPreferences || '',
         });
         setNewEmail(profileData.email || user?.email || '');
-        setNewPhone(profileData.mobile || user?.mobile || '');
+        // Extract phone number without +91 prefix for editing
+        const existingPhone = profileData.mobile || user?.mobile || '';
+        const phoneDigits = existingPhone.replace(/\+91\s?/g, '').replace(/\D/g, '');
+        setNewPhone(phoneDigits);
       }
     }
     setEditingTabs((prev) => ({ ...prev, [tab]: !prev[tab] }));
@@ -247,7 +247,9 @@ function TravelerProfileContent() {
         setNewEmail('');
         setOtpSent(false);
         
-        const phoneChanged = newPhone && newPhone !== (profileData?.mobile || user?.mobile);
+        // Extract digits from existing phone for comparison
+        const existingPhoneDigits = (profileData?.mobile || user?.mobile || '').replace(/\+91\s?/g, '').replace(/\D/g, '');
+        const phoneChanged = newPhone && newPhone.length === 10 && newPhone !== existingPhoneDigits;
         if (phoneChanged) {
           await handleUpdatePhone();
         }
@@ -261,15 +263,23 @@ function TravelerProfileContent() {
     }
   };
 
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input and limit to 10 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setNewPhone(value);
+  };
+
   const handleUpdatePhone = async () => {
-    if (!newPhone || newPhone.trim().length < 10) {
-      toast.error('Please enter a valid phone number');
+    if (!newPhone || newPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await usersService.updateTravelerProfile({ mobile: newPhone });
+      // Format phone number with +91 prefix
+      const formattedPhone = `+91 ${newPhone}`;
+      const response = await usersService.updateTravelerProfile({ mobile: formattedPhone });
       if (response.success) {
         const refreshResponse = await usersService.getCurrentUser('traveler');
         if (refreshResponse.success && refreshResponse.data) {
@@ -287,10 +297,18 @@ function TravelerProfileContent() {
     if (!profileData || !token) return;
 
     const emailChanged = newEmail && newEmail !== (profileData.email || user?.email);
-    const phoneChanged = newPhone && newPhone !== (profileData.mobile || user?.mobile);
+    // Extract digits from existing phone for comparison
+    const existingPhoneDigits = (profileData.mobile || user?.mobile || '').replace(/\+91\s?/g, '').replace(/\D/g, '');
+    const phoneChanged = newPhone && newPhone.length === 10 && newPhone !== existingPhoneDigits;
 
     if (!emailChanged && !phoneChanged) {
       setEditingTabs((prev) => ({ ...prev, account: false }));
+      return;
+    }
+
+    // Validate phone if changed
+    if (phoneChanged && newPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -330,7 +348,6 @@ function TravelerProfileContent() {
         if (formData.firstName) updateData.firstName = formData.firstName;
         if (formData.lastName !== undefined) updateData.lastName = formData.lastName;
         if (formData.city !== undefined) updateData.city = formData.city;
-        if (formData.mobile !== undefined) updateData.mobile = formData.mobile;
         if (formData.profileImageUrl) {
           await usersService.updateTravelerProfileImage(formData.profileImageUrl);
         }
@@ -557,26 +574,6 @@ function TravelerProfileContent() {
                         </p>
                       )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="mobile" className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        Mobile
-                      </Label>
-                      {editingTabs.personal ? (
-                        <Input
-                          id="mobile"
-                          type="tel"
-                          value={formData.mobile}
-                          onChange={(e) => handleInputChange('mobile', e.target.value.replace(/\D/g, ''))}
-                          placeholder="Enter phone number"
-                        />
-                      ) : (
-                        <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                          {profileData?.mobile || user?.mobile || 'Not set'}
-                        </p>
-                      )}
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -775,13 +772,31 @@ function TravelerProfileContent() {
                         Mobile
                       </Label>
                       {editingTabs.account ? (
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={newPhone}
-                          onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, ''))}
-                          placeholder="Enter phone number"
-                        />
+                        <>
+                          <div className="relative">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 font-medium">
+                              +91
+                            </div>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              value={newPhone}
+                              onChange={handlePhoneNumberChange}
+                              placeholder="9876543210"
+                              className="pl-12"
+                              maxLength={10}
+                            />
+                          </div>
+                          {newPhone && newPhone.length !== 10 ? (
+                            <p className="text-xs text-red-500">
+                              Please enter exactly 10 digits
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              Enter your 10-digit mobile number
+                            </p>
+                          )}
+                        </>
                       ) : (
                         <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
                           {profileData?.mobile || user?.mobile || 'Not set'}
