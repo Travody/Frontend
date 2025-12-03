@@ -47,6 +47,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { BaseDialog } from '@/components/ui/base-dialog';
 
 export default function GuiderPlanDetailPage() {
   const params = useParams();
@@ -56,6 +58,8 @@ export default function GuiderPlanDetailPage() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [showPauseConfirmDialog, setShowPauseConfirmDialog] = useState(false);
+  const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
   const [pausedToDate, setPausedToDate] = useState('');
   const [pausedToTime, setPausedToTime] = useState('');
 
@@ -124,12 +128,13 @@ export default function GuiderPlanDetailPage() {
           response = await plansService.publishPlan(plan._id);
           break;
         case 'pause':
-          // Show dialog to get pause duration
-          setShowPauseDialog(true);
+          // Show confirmation dialog first
+          setShowPauseConfirmDialog(true);
           return;
         case 'archive':
-          response = await plansService.archivePlan(plan._id);
-          break;
+          // Show confirmation dialog first
+          setShowArchiveConfirmDialog(true);
+          return;
         case 'unarchive':
           response = await plansService.unarchivePlan(plan._id);
           break;
@@ -140,6 +145,27 @@ export default function GuiderPlanDetailPage() {
       }
     } catch (error) {
       console.error(`Error ${action}ing plan:`, error);
+    }
+  };
+
+  const handlePauseConfirmationProceed = () => {
+    // Close confirmation dialog and show pause duration dialog
+    setShowPauseConfirmDialog(false);
+    setShowPauseDialog(true);
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!token || !plan) return;
+    
+    setShowArchiveConfirmDialog(false);
+    
+    try {
+      const response = await plansService.archivePlan(plan._id);
+      if (response.success && response.data) {
+        setPlan(response.data);
+      }
+    } catch (error) {
+      console.error('Error archiving plan:', error);
     }
   };
 
@@ -458,100 +484,117 @@ export default function GuiderPlanDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Pause Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showPauseConfirmDialog}
+            onClose={() => setShowPauseConfirmDialog(false)}
+            onConfirm={handlePauseConfirmationProceed}
+            title="Pause Plan"
+            message="All confirmed upcoming trips will be cancelled automatically. Do you want to continue?"
+            confirmText="Continue"
+            cancelText="Cancel"
+            variant="warning"
+          />
+
+          {/* Archive Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showArchiveConfirmDialog}
+            onClose={() => setShowArchiveConfirmDialog(false)}
+            onConfirm={handleArchiveConfirm}
+            title="Archive Plan"
+            message="This plan will be hidden and not bookable. You can unarchive it later if needed."
+            confirmText="Archive"
+            cancelText="Cancel"
+            variant="default"
+          />
+
           {/* Pause Dialog */}
-          <Dialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Pause Plan</DialogTitle>
-                <DialogDescription>
-                  The plan will be paused immediately and will automatically resume after the selected date and time.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                {/* Pause Until Section */}
-                <div className="space-y-4">
-                  <Label className="text-base font-semibold">Pause Until</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="paused-to-date">Date</Label>
-                      <Input
-                        id="paused-to-date"
-                        type="date"
-                        min={getCurrentDate()}
-                        value={pausedToDate}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setPausedToDate(value);
-                          // If same date and time is in the past, clear time
-                          if (value === getCurrentDate() && pausedToTime) {
-                            const currentTime = getCurrentTime();
-                            if (pausedToTime <= currentTime) {
-                              setPausedToTime('');
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="paused-to-time">Time</Label>
-                      <Input
-                        id="paused-to-time"
-                        type="time"
-                        min={pausedToDate === getCurrentDate() ? getCurrentTime() : undefined}
-                        value={pausedToTime}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setPausedToTime(value);
-                          // Validate if date/time is in the past
-                          if (pausedToDate && value && isDateTimeInPast(pausedToDate, value)) {
-                            toast.error('Pause until date/time must be in the future');
+          <BaseDialog
+            isOpen={showPauseDialog}
+            onClose={() => {
+              setShowPauseDialog(false);
+              // Reset form
+              setPausedToDate('');
+              setPausedToTime('');
+            }}
+            title="Pause Plan"
+            description="The plan will be paused immediately and will automatically resume after the selected date and time."
+            confirmText="Pause Plan"
+            cancelText="Cancel"
+            onConfirm={handlePauseConfirm}
+            maxWidth="max-w-2xl"
+          >
+            <div className="grid gap-6">
+              {/* Pause Until Section */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Pause Until</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="paused-to-date">Date</Label>
+                    <Input
+                      id="paused-to-date"
+                      type="date"
+                      min={getCurrentDate()}
+                      value={pausedToDate}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setPausedToDate(value);
+                        // If same date and time is in the past, clear time
+                        if (value === getCurrentDate() && pausedToTime) {
+                          const currentTime = getCurrentTime();
+                          if (pausedToTime <= currentTime) {
                             setPausedToTime('');
                           }
-                        }}
-                      />
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paused-to-time">Time</Label>
+                    <Input
+                      id="paused-to-time"
+                      type="time"
+                      min={pausedToDate === getCurrentDate() ? getCurrentTime() : undefined}
+                      value={pausedToTime}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setPausedToTime(value);
+                        // Validate if date/time is in the past
+                        if (pausedToDate && value && isDateTimeInPast(pausedToDate, value)) {
+                          toast.error('Pause until date/time must be in the future');
+                          setPausedToTime('');
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              {pausedToDate && pausedToTime && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900 mb-1">Pause Schedule</p>
+                      <p className="text-sm text-blue-800">
+                        The plan will be paused <span className="font-semibold">now</span> and will automatically resume on{' '}
+                        <span className="font-semibold">
+                          {new Date(combineDateTime(pausedToDate, pausedToTime)).toLocaleString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Preview */}
-                {pausedToDate && pausedToTime && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-blue-900 mb-1">Pause Schedule</p>
-                        <p className="text-sm text-blue-800">
-                          The plan will be paused <span className="font-semibold">now</span> and will automatically resume on{' '}
-                          <span className="font-semibold">
-                            {new Date(combineDateTime(pausedToDate, pausedToTime)).toLocaleString('en-US', {
-                              month: 'long',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setShowPauseDialog(false);
-                  // Reset form
-                  setPausedToDate('');
-                  setPausedToTime('');
-                }}>
-                  Cancel
-                </Button>
-                <Button onClick={handlePauseConfirm}>
-                  Pause Plan
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              )}
+            </div>
+          </BaseDialog>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
