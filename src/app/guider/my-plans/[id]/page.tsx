@@ -47,6 +47,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export default function GuiderPlanDetailPage() {
   const params = useParams();
@@ -56,6 +57,8 @@ export default function GuiderPlanDetailPage() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [showPauseConfirmDialog, setShowPauseConfirmDialog] = useState(false);
+  const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
   const [pausedToDate, setPausedToDate] = useState('');
   const [pausedToTime, setPausedToTime] = useState('');
 
@@ -124,12 +127,13 @@ export default function GuiderPlanDetailPage() {
           response = await plansService.publishPlan(plan._id);
           break;
         case 'pause':
-          // Show dialog to get pause duration
-          setShowPauseDialog(true);
+          // Show confirmation dialog first
+          setShowPauseConfirmDialog(true);
           return;
         case 'archive':
-          response = await plansService.archivePlan(plan._id);
-          break;
+          // Show confirmation dialog first
+          setShowArchiveConfirmDialog(true);
+          return;
         case 'unarchive':
           response = await plansService.unarchivePlan(plan._id);
           break;
@@ -140,6 +144,27 @@ export default function GuiderPlanDetailPage() {
       }
     } catch (error) {
       console.error(`Error ${action}ing plan:`, error);
+    }
+  };
+
+  const handlePauseConfirmationProceed = () => {
+    // Close confirmation dialog and show pause duration dialog
+    setShowPauseConfirmDialog(false);
+    setShowPauseDialog(true);
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!token || !plan) return;
+    
+    setShowArchiveConfirmDialog(false);
+    
+    try {
+      const response = await plansService.archivePlan(plan._id);
+      if (response.success && response.data) {
+        setPlan(response.data);
+      }
+    } catch (error) {
+      console.error('Error archiving plan:', error);
     }
   };
 
@@ -457,6 +482,30 @@ export default function GuiderPlanDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Pause Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showPauseConfirmDialog}
+            onClose={() => setShowPauseConfirmDialog(false)}
+            onConfirm={handlePauseConfirmationProceed}
+            title="Pause Plan"
+            message="All confirmed upcoming trips will be cancelled automatically. Do you want to continue?"
+            confirmText="Continue"
+            cancelText="Cancel"
+            variant="warning"
+          />
+
+          {/* Archive Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showArchiveConfirmDialog}
+            onClose={() => setShowArchiveConfirmDialog(false)}
+            onConfirm={handleArchiveConfirm}
+            title="Archive Plan"
+            message="This plan will be hidden and not bookable. You can unarchive it later if needed."
+            confirmText="Archive"
+            cancelText="Cancel"
+            variant="default"
+          />
 
           {/* Pause Dialog */}
           <Dialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
