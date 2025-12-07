@@ -88,7 +88,7 @@ export default function GuiderLoginForm() {
       const response = await authService.googleAuthGuider(credentialResponse.credential);
       
       if (response.success) {
-        if ((response as any).requiresGuiderType && response.data) {
+        if (response.data?.requiresGuiderType && response.data) {
           setPendingGoogleAuth({
             email: response.data.email,
             firstName: response.data.firstName,

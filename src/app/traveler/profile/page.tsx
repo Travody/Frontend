@@ -5,7 +5,7 @@ import { User, Phone, Mail, Edit, Save, X, MapPin, Globe, Award, Image as ImageI
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { usersService } from '@/lib/api';
+import { usersService, uploadService } from '@/lib/api';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -201,10 +201,22 @@ function TravelerProfileContent() {
       return;
     }
 
+    const userId = user?.id || (user as any)?._id;
+    if (!userId) {
+      toast.error('User ID not found. Please refresh the page.');
+      return;
+    }
+
     try {
-      const mockUrl = URL.createObjectURL(file);
-      handleInputChange('profileImageUrl', mockUrl);
-      toast.success('Profile image updated (demo mode)');
+      toast.info('Uploading image...');
+      const response = await uploadService.uploadProfilePicture(file, userId);
+      
+      if (response.success && response.data?.imageUrl) {
+        handleInputChange('profileImageUrl', response.data.imageUrl);
+        toast.success('Profile image uploaded successfully');
+      } else {
+        toast.error(response.message || 'Failed to upload image');
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error('Failed to upload image');

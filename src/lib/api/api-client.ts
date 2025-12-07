@@ -75,8 +75,10 @@ export class ApiClient {
 
     try {
       // Build headers
+      // Don't set Content-Type for FormData - browser will set it with boundary
+      const isFormData = restOptions.body instanceof FormData;
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(optionsHeaders as Record<string, string> || {}),
       };
 
@@ -267,10 +269,12 @@ export class ApiClient {
     data?: any,
     options?: Omit<RequestOptions, 'method' | 'body'>
   ): Promise<ApiResponse<T>> {
+    // If data is FormData, use it directly; otherwise stringify JSON
+    const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined);
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     });
   }
 

@@ -21,6 +21,12 @@ export default function GuiderVerificationPage() {
         router.push('/');
         return;
       }
+
+      // If account is verified, redirect to dashboard
+      if (user.accountVerified) {
+        router.push('/guider/dashboard');
+        return;
+      }
     }
   }, [isAuthenticated, isLoading, user, router]);
 
