@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Clock, Plus, X, Upload, Image } from 'lucide-react';
+import { Clock, Plus, X, Upload, Image, Loader2 } from 'lucide-react';
 import toast from '@/lib/toast';
+import { uploadService } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -125,7 +126,7 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
   const handleFileUpload = async (files: FileList) => {
     setUploading(true);
     try {
-      const uploadedUrls: any[] = [];
+      const uploadedUrls: string[] = [];
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -140,13 +141,29 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
           continue;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockUrl = URL.createObjectURL(file);
-        uploadedUrls.push(mockUrl);
+        try {
+          // Determine folder based on file type
+          const folder = file.type.startsWith('video/') 
+            ? 'plans/gallery/videos' 
+            : 'plans/gallery/images';
+          
+          const response = await uploadService.uploadFile(file, folder);
+          
+          if (response.success && response.data?.url) {
+            uploadedUrls.push(response.data.url);
+          } else {
+            toast.error(`Failed to upload ${file.name}: ${response.message || 'Unknown error'}`);
+          }
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          toast.error(`Failed to upload ${file.name}`);
+        }
       }
 
+      if (uploadedUrls.length > 0) {
       handleInputChange('gallery', [...formData.gallery, ...uploadedUrls]);
+        toast.success(`Successfully uploaded ${uploadedUrls.length} file(s)`);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload files');

@@ -19,4 +19,5 @@ export { guidesService, GuidesService } from './guides';
 export { plansService, PlansService } from './plans';
 export { bookingsService, BookingsService } from './bookings';
 export { reviewsService, ReviewsService } from './reviews';
+export { uploadService, UploadService } from './upload';
 
