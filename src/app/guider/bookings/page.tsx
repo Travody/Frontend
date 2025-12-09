@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, ArrowLeft, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { bookingsService } from '@/lib/api';
 import type { Booking, BookingStats } from '@/types';
 import toast from '@/lib/toast';
@@ -12,6 +13,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
@@ -20,9 +22,11 @@ import { Heading } from '@/components/ui/heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Separator } from '@/components/ui/separator';
+import StatsGrid from '@/components/dashboard/StatsGrid';
 
 export default function GuiderBookingsDashboard() {
   const { token } = useAuth();
+  const { goBack } = useNavigationHistory();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
@@ -157,17 +161,14 @@ export default function GuiderBookingsDashboard() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      {/* Breadcrumb Navigation - Positioned at top */}
+      <Breadcrumb
+        items={[
+          { label: 'Booking Management' },
+        ]}
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
-          {/* Back Navigation */}
-          <div className="mb-6">
-            <Link href="/guider/dashboard">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-          </div>
 
           <PageHeader
             title="Booking Management"
@@ -176,63 +177,37 @@ export default function GuiderBookingsDashboard() {
 
           {/* Stats Cards */}
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                      <Calendar className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Total Bookings</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-3 bg-green-100 rounded-lg">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Confirmed</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.confirmedBookings}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-3 bg-yellow-100 rounded-lg">
-                      <AlertCircle className="w-6 h-6 text-yellow-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Pending</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.pendingBookings}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="p-3 bg-purple-100 rounded-lg">
-                      <Users className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                      <p className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue?.toLocaleString() || 0}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <StatsGrid
+              stats={[
+                {
+                  title: 'Total Bookings',
+                  value: stats.totalBookings || 0,
+                  icon: Calendar,
+                  iconColor: 'blue',
+                },
+                {
+                  title: 'Confirmed',
+                  value: stats.confirmedBookings || 0,
+                  icon: CheckCircle,
+                  iconColor: 'green',
+                },
+                {
+                  title: 'Pending',
+                  value: stats.pendingBookings || 0,
+                  icon: AlertCircle,
+                  iconColor: 'yellow',
+                },
+                {
+                  title: 'Total Revenue',
+                  value: stats.totalRevenue || 0,
+                  icon: Users,
+                  iconColor: 'purple',
+                  formatValue: (val) => `₹${Number(val).toLocaleString('en-IN')}`,
+                },
+              ]}
+              columns={4}
+              className="mb-8"
+            />
           )}
 
           {/* Pending Confirmations Alert */}

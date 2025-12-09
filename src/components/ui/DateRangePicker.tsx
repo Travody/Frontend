@@ -179,18 +179,18 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
   today.setHours(0, 0, 0, 0);
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
-      <div className="relative">
+    <div ref={containerRef} className={`relative w-full ${className}`}>
+      <div className="relative w-full">
         <input
           type="text"
           readOnly
           value={formatDisplayValue()}
           placeholder={placeholder}
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-gray-900 bg-white cursor-pointer"
+          className="w-full pl-10 pr-4 h-11 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-gray-900 bg-white cursor-pointer text-base md:text-sm shadow-sm transition-colors"
           suppressHydrationWarning
         />
-        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       </div>
 
       {isOpen && (

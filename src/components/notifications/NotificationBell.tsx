@@ -48,11 +48,19 @@ export function NotificationBell() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-9 w-9"
+        className={`relative h-9 w-9 transition-all ${
+          isOpen || unreadCount > 0
+            ? 'text-primary-600'
+            : 'text-gray-700'
+        }`}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
+        <Bell className={`h-5 w-5 transition-all ${
+          isOpen || unreadCount > 0
+            ? 'text-primary-600'
+            : 'text-gray-700'
+        }`} />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}

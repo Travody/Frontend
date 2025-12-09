@@ -27,6 +27,7 @@ import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 import {
   Select,
@@ -411,7 +412,13 @@ function TravelerProfileContent() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      <Breadcrumb
+        items={[
+          { label: 'Profile' },
+        ]}
+        homeHref="/"
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
           {/* Profile Header */}
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
