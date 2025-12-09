@@ -20,6 +20,7 @@ import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 
 interface GuiderProfileData {
@@ -1739,7 +1740,13 @@ function GuiderProfileContent() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      <Breadcrumb
+        items={[
+          { label: 'Profile' },
+        ]}
+        homeHref="/guider/dashboard"
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
           {/* Profile Header */}
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">

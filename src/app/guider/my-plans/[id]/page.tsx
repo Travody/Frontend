@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import { plansService } from '@/lib/api';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import type { Plan } from '@/types';
 import AppLayout from '@/components/layout/AppLayout';
 import {
@@ -34,6 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Heading } from '@/components/ui/heading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -55,6 +57,7 @@ export default function GuiderPlanDetailPage() {
   const planId = params?.id as string;
   const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
   const router = useRouter();
+  const { goBack } = useNavigationHistory();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
@@ -255,17 +258,16 @@ export default function GuiderPlanDetailPage() {
   if (!planId) {
     return (
       <AppLayout>
+        <Breadcrumb
+          items={[
+            { label: 'My Plans', href: '/guider/my-plans' },
+          ]}
+        />
         <Section variant="muted" className="py-12">
           <Container>
             <div className="text-center">
               <Heading as="h2" variant="section" className="mb-2">Invalid Plan ID</Heading>
               <p className="text-gray-600 mb-4">The plan ID is missing or invalid.</p>
-              <Link href="/guider/my-plans">
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to My Plans
-                </Button>
-              </Link>
             </div>
           </Container>
         </Section>
@@ -317,17 +319,15 @@ export default function GuiderPlanDetailPage() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      {/* Breadcrumb Navigation - Positioned at top */}
+      <Breadcrumb
+        items={[
+          { label: 'My Plans', href: '/guider/my-plans' },
+          { label: plan.title || 'Plan Details' },
+        ]}
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
-          {/* Back Button */}
-          <div className="mb-6">
-            <Link href="/guider/my-plans">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to My Plans
-              </Button>
-            </Link>
-          </div>
 
           {/* Header Section */}
           <Card className="mb-6">

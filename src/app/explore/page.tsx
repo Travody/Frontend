@@ -165,9 +165,9 @@ function ExploreContent() {
             <Card className="border-0 shadow-xl">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col">
                     <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
-                    <div className="relative">
+                    <div className="relative flex-1 flex items-end">
                       <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                       <Input
                         id="location"
@@ -175,26 +175,33 @@ function ExploreContent() {
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="Goa, Delhi, Bengaluru..."
-                        className="pl-10"
+                        className="pl-10 h-11"
                         suppressHydrationWarning
                       />
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col">
                     <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">Date Range (Optional)</Label>
-                    <DateRangePicker
-                      value={dateRange}
-                      onChange={setDateRange}
-                      placeholder="Select date range"
-                    />
+                    <div className="flex-1 flex items-end">
+                      <DateRangePicker
+                        value={dateRange}
+                        onChange={setDateRange}
+                        placeholder="Select date range"
+                      />
+                    </div>
                   </div>
                   
-                  <div className="flex items-end">
-                    <Button type="submit" className="w-full" suppressHydrationWarning>
-                      <Search className="w-4 h-4 mr-2" />
+                  <div className="space-y-2 flex flex-col">
+                    <Label className="text-sm font-medium text-gray-700 opacity-0 pointer-events-none">
                       {searchType === 'guides' ? 'Find Guides' : 'Find Tours'}
-                    </Button>
+                    </Label>
+                    <div className="flex-1 flex items-end">
+                      <Button type="submit" className="w-full h-11" suppressHydrationWarning>
+                        <Search className="w-4 h-4 mr-2" />
+                        {searchType === 'guides' ? 'Find Guides' : 'Find Tours'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

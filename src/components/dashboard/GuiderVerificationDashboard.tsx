@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Clock, Upload, Video, FileText, Loader2, ArrowLeft, Edit2 } from 'lucide-react';
 import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { guidesService, usersService, uploadService } from '@/lib/api';
 import type { VerificationStepsConfig, VerificationFieldConfig, UpdateVerificationStepDto } from '@/types';
 import toast from '@/lib/toast';
@@ -43,7 +44,8 @@ interface VerificationStepDisplay {
 export default function GuiderVerificationDashboard() {
   const { user, token, refreshUser } = useAuth();
   const router = useRouter();
-  
+  const { goBack } = useNavigationHistory();
+
   if (!user || !isGuiderUser(user)) {
     return <div>Please log in to access verification</div>;
   }
@@ -149,11 +151,11 @@ export default function GuiderVerificationDashboard() {
       // stepNumber (1-based) = array index (0-based) + 1
       const lastStepNumber = config.steps.length;
       let effectiveStep = currentStep;
-      
+
       // Ensure currentStep is within valid range
       if (effectiveStep < 1) effectiveStep = 1;
       if (effectiveStep > lastStepNumber) effectiveStep = lastStepNumber;
-      
+
       loadStepData(config, effectiveStep);
     }
   }, [currentStep, verificationData, config, loadStepData]);
@@ -162,16 +164,16 @@ export default function GuiderVerificationDashboard() {
     // stepIndex is 0-based, convert to 1-based step number for comparison
     const stepNumber = stepIndex + 1;
     const stepStatus = getStepStatus(stepNumber);
-    
+
     // If step is approved, show as completed
     if (stepStatus === 'approved') return 'completed';
-    
+
     // If step is in revision, show as current (needs attention)
     if (stepStatus === 'revision') return 'current';
-    
+
     // If step is pending review, show as completed (waiting for admin)
     if (stepStatus === 'pending') return 'completed';
-    
+
     // Default logic
     if (stepNumber < currentStep) return 'completed';
     if (stepNumber === currentStep) return 'current';
@@ -182,22 +184,22 @@ export default function GuiderVerificationDashboard() {
     if (!config) return 0;
     // config.steps already excludes hidden steps
     const totalSteps = config.steps.length;
-    
+
     if (!verificationData?.steps || totalSteps === 0) return 0;
-    
+
     // Check if all steps are approved (complete)
     const allStepsApproved = verificationData.steps.every((step: any) => step?.status === 'approved');
     if (allStepsApproved) {
       return 100;
     }
-    
+
     // If last step is submitted for review, progress is 100%
     const lastStepIndex = totalSteps - 1;
     const lastStepData = verificationData?.steps?.[lastStepIndex];
     if (lastStepData?.data?.submittedForReview) {
       return 100;
     }
-    
+
     // Count completed steps (steps before current step)
     const completedSteps = Math.max(0, currentStep - 1);
     return totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
@@ -245,22 +247,22 @@ export default function GuiderVerificationDashboard() {
     if (!config) return false;
     const stepIndex = stepNumber - 1;
     if (stepIndex < 0 || stepIndex >= config.steps.length) return false;
-    
+
     const stepConfig = config.steps[stepIndex];
     if (!stepConfig || !stepConfig.fields) return false;
-    
+
     // Check all required fields
     for (const field of stepConfig.fields) {
       if (field.required) {
         const value = formData[field.fieldName];
         // Check if field is empty (null, undefined, empty string, or empty array)
-        if (value === undefined || value === null || value === '' || 
-            (Array.isArray(value) && value.length === 0)) {
+        if (value === undefined || value === null || value === '' ||
+          (Array.isArray(value) && value.length === 0)) {
           return false;
         }
       }
     }
-    
+
     return true;
   };
 
@@ -268,7 +270,7 @@ export default function GuiderVerificationDashboard() {
   const hasFormDataChanged = (stepNumber: number): boolean => {
     const stepStatus = getStepStatus(stepNumber);
     const isRevision = stepStatus === 'revision';
-    
+
     // For revision steps not in edit mode, compare with the original rejected step data
     if (isRevision && !editMode[stepNumber]) {
       // Get the original step data from verificationData
@@ -276,65 +278,65 @@ export default function GuiderVerificationDashboard() {
       const stepIndex = stepNumber - 1;
       const stepData = verificationData.steps[stepIndex] as any;
       if (!stepData || !stepData.data) return false;
-      
+
       const originalData = stepData.data;
       const currentKeys = Object.keys(formData).filter(key => formData[key] !== undefined && formData[key] !== null && formData[key] !== '');
       const originalKeys = Object.keys(originalData).filter(key => originalData[key] !== undefined && originalData[key] !== null && originalData[key] !== '');
-      
+
       // Check if keys are different
       if (currentKeys.length !== originalKeys.length) return true;
-      
+
       // Check if any values are different
       for (const key of currentKeys) {
         if (formData[key] !== originalData[key]) {
           return true;
         }
       }
-      
+
       // Check for keys in original that are not in current
       for (const key of originalKeys) {
         if (!(key in formData) || formData[key] !== originalData[key]) {
           return true;
         }
       }
-      
+
       // Check if any files are pending upload
       if (Object.keys(filesToUpload).length > 0) return true;
-      
+
       return false;
     }
-    
+
     // If not in edit mode and not revision, allow saving (for new steps or first submission)
     if (!editMode[stepNumber]) return true;
-    
+
     // In edit mode, compare with original form data
     const original = originalFormData[stepNumber];
     if (!original) return true; // If no original data, consider it changed (new step)
-    
+
     // Compare current formData with original
     const currentKeys = Object.keys(formData).filter(key => formData[key] !== undefined && formData[key] !== null && formData[key] !== '');
     const originalKeys = Object.keys(original).filter(key => original[key] !== undefined && original[key] !== null && original[key] !== '');
-    
+
     // Check if keys are different
     if (currentKeys.length !== originalKeys.length) return true;
-    
+
     // Check if any values are different
     for (const key of currentKeys) {
       if (formData[key] !== original[key]) {
         return true;
       }
     }
-    
+
     // Check for keys in original that are not in current
     for (const key of originalKeys) {
       if (!(key in formData) || formData[key] !== original[key]) {
         return true;
       }
     }
-    
+
     // Check if any files are pending upload
     if (Object.keys(filesToUpload).length > 0) return true;
-    
+
     return false;
   };
 
@@ -364,12 +366,12 @@ export default function GuiderVerificationDashboard() {
       }
 
       // Determine folder based on field type
-      const folder = fieldName.includes('video') || fieldName.includes('Video') 
-        ? 'verification/videos' 
+      const folder = fieldName.includes('video') || fieldName.includes('Video')
+        ? 'verification/videos'
         : 'verification/documents';
-      
+
       const response = await uploadService.uploadFile(file, folder);
-      
+
       if (response.success && response.data?.url) {
         // Store the URL in formData
         setFormData((prev) => ({
@@ -424,18 +426,18 @@ export default function GuiderVerificationDashboard() {
   const handleSubmitClick = (e?: React.FormEvent, stepNumberOverride?: number) => {
     e?.preventDefault();
     e?.stopPropagation();
-    
+
     const stepNumber = stepNumberOverride || user?.currentVerificationStep || 1;
     const lastStepNumber = config?.steps.length || 0;
     const stepStatus = getStepStatus(stepNumber);
-    
+
     // Show confirmation dialog for last step or when resubmitting a revision step
     if (stepNumber === lastStepNumber || stepStatus === 'revision') {
       setPendingSubmit({ e, stepNumber });
       setShowConfirmDialog(true);
       return;
     }
-    
+
     // For other steps, submit directly
     handleSubmit(e, stepNumber);
   };
@@ -443,13 +445,13 @@ export default function GuiderVerificationDashboard() {
   const handleSubmit = useCallback(async (e?: React.FormEvent, stepNumberOverride?: number) => {
     e?.preventDefault();
     e?.stopPropagation();
-    
+
     if (submitting) {
       return;
     }
 
     const userId = (user as any)?._id || user?.id;
-    
+
     if (!userId || !token || !config) {
       toast.error('Missing required information. Please refresh the page.');
       return;
@@ -479,7 +481,7 @@ export default function GuiderVerificationDashboard() {
     }
 
     setSubmitting(true);
-    
+
     try {
       const updateDto: UpdateVerificationStepDto = {
         step: stepNumber,
@@ -505,7 +507,7 @@ export default function GuiderVerificationDashboard() {
           });
           // Clear viewing step if set
           setViewingStep(null);
-          
+
           // If this was the last step and submitted for review, show success message
           if (stepNumber === lastStepNumber) {
             toast.success('Verification request sent to admin successfully! Your application is now pending review.');
@@ -545,12 +547,12 @@ export default function GuiderVerificationDashboard() {
   const lastStepIndex = lastStepNumber - 1;
   const lastStepData = verificationData?.steps?.[lastStepIndex];
   const lastStepSubmittedForReview = lastStepData?.data?.submittedForReview === true;
-  
+
   // Ensure currentStep is within valid range
   let effectiveCurrentStep = currentStep;
   if (effectiveCurrentStep < 1) effectiveCurrentStep = 1;
   if (effectiveCurrentStep > lastStepNumber) effectiveCurrentStep = lastStepNumber;
-  
+
   const getStepStatus = (stepNumber: number): 'pending' | 'revision' | 'approved' | undefined => {
     if (!verificationData?.steps) return undefined;
     const stepIndex = stepNumber - 1;
@@ -562,17 +564,17 @@ export default function GuiderVerificationDashboard() {
     const stepStatus = getStepStatus(stepNumber);
     const allSubmitted = areAllStepsSubmitted();
     const isInEditMode = editMode[stepNumber] || false;
-    
+
     // If step is approved, always disable editing
     if (stepStatus === 'approved') {
       return true;
     }
-    
+
     // If all steps are submitted for review, disable all fields except revision steps in edit mode
     if (allSubmitted && stepStatus !== 'revision' && !isInEditMode) {
       return true;
     }
-    
+
     // If step is in revision status and in edit mode (resubmit mode)
     if (stepStatus === 'revision' && isInEditMode) {
       // Only allow editing fields that are in rejectedFields
@@ -587,17 +589,17 @@ export default function GuiderVerificationDashboard() {
       // If no fieldName provided, disable by default (shouldn't happen, but safety check)
       return true;
     }
-    
+
     // If step is in revision status but not in edit mode, disable fields
     if (stepStatus === 'revision' && !isInEditMode) {
       return true;
     }
-    
+
     // If not in edit mode and not a revision step, disable fields
     if (!isInEditMode && allSubmitted) {
       return true;
     }
-    
+
     // Allow editing if in edit mode (for non-revision steps) or if not submitted
     return false;
   };
@@ -640,42 +642,65 @@ export default function GuiderVerificationDashboard() {
   const displayStepConfig = config.steps[displayStepIndex];
   const isDisplayStepCompleted = isStepCompleted(displayStep);
   const isDisplayStepInEditMode = editMode[displayStep] || false;
-  
+
   const currentStepIndex = effectiveCurrentStep - 1;
   const currentStepConfig = config.steps[currentStepIndex];
   const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Hero Section */}
-      <Section variant="primary" className="py-12">
-        <Container>
-          <div className="text-center">
-            <Heading as="h1" variant="page" className="text-white mb-2 text-4xl">
-              Hello, {user?.showcaseName || user?.email}! 👋
-            </Heading>
-            <p className="text-white/90 text-lg mb-8">
+      <Section variant="primary" className="py-10 pb-12 lg:pb-20 xl:pb-24 relative overflow-visible">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 opacity-95"></div>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+        <Container className="relative z-10">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center mb-2">
+              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-full">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+              Hello, {user?.personalInfo?.showcaseName || user?.personalInfo?.fullName || user?.email?.split('@')[0]}! 👋
+            </h1>
+            <p className="text-base md:text-lg text-white/95 mb-6 max-w-2xl mx-auto">
               {user?.accountVerified
-                ? 'Your account is verified! 🎉'
-                : 'Complete verification to start earning'}
+                ? 'Your account is verified! Start creating plans and earning.'
+                : 'Complete verification to start earning and attract travelers to your amazing experiences.'}
             </p>
-            
-            <Card className="max-w-md mx-auto border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+
+            <Card className="max-w-lg mx-auto border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+              <CardContent className="p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <Clock className="w-6 h-6 text-yellow-500" />
-                    <span className="text-gray-900 font-semibold">
-                      {user?.accountVerified ? 'Verified' : 'Verification in Progress'}
-                    </span>
+                    <div className={`p-2.5 rounded-lg ${user?.accountVerified ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                      {user?.accountVerified ? (
+                        <Check className="w-5 h-5 text-white" />
+                      ) : (
+                        <Clock className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-gray-900 font-semibold text-sm sm:text-base block">
+                        {user?.accountVerified ? 'Verified' : 'Verification in Progress'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {progress}% Complete
+                      </span>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{progress}%</div>
-                    <div className="text-sm text-gray-500">Complete</div>
+                    <div className="text-3xl font-bold text-gray-900">{progress}%</div>
+                    <div className="text-xs text-gray-500">Progress</div>
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Progress value={progress} className="h-2" />
+                  <Progress value={progress} className="h-2.5" />
                 </div>
               </CardContent>
             </Card>
@@ -684,16 +709,18 @@ export default function GuiderVerificationDashboard() {
       </Section>
 
       {/* Verification Steps */}
-      <Section>
+      <Section className="py-12 pt-8 lg:pt-20 xl:pt-24">
         <Container>
-          <Card>
-            <CardHeader>
-              <CardTitle>Complete your verification</CardTitle>
-              <CardDescription>Follow the steps below to verify your account</CardDescription>
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b">
+              <CardTitle className="text-2xl font-bold">Complete your verification</CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Follow the steps below to verify your account and start your journey as a guide
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8">
+            <CardContent className="p-6 space-y-8">
               {/* Steps Progress */}
-              <div className="flex items-center w-full mb-8 overflow-x-auto pb-4">
+              <div className="flex items-center w-full mb-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {config.steps.map((step, index) => {
                   // config.steps already excludes hidden steps, so index = step position (0-based)
                   const stepNumber = index + 1; // 1-based step number for display
@@ -702,47 +729,45 @@ export default function GuiderVerificationDashboard() {
                   const isRevision = stepStatus === 'revision';
                   const isApproved = stepStatus === 'approved';
                   const isPending = stepStatus === 'pending';
-                  
+
                   return (
                     <React.Fragment key={index}>
                       <div className="flex items-center flex-shrink-0">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            isApproved
-                              ? 'bg-green-500'
+                          className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${isApproved
+                              ? 'bg-green-500 ring-2 ring-green-200'
                               : isRevision
-                              ? 'bg-red-500'
-                              : isPending
-                              ? 'bg-yellow-500'
-                              : status === 'completed'
-                              ? 'bg-green-500'
-                              : status === 'current'
-                              ? 'bg-primary-500'
-                              : 'bg-gray-300'
-                          }`}
+                                ? 'bg-red-500 ring-2 ring-red-200'
+                                : isPending
+                                  ? 'bg-yellow-500 ring-2 ring-yellow-200'
+                                  : status === 'completed'
+                                    ? 'bg-green-500 ring-2 ring-green-200'
+                                    : status === 'current'
+                                      ? 'bg-primary-500 ring-2 ring-primary-200 scale-110'
+                                      : 'bg-gray-300 ring-2 ring-gray-200'
+                            }`}
                         >
                           {isApproved || (status === 'completed' && !isRevision && !isPending) ? (
-                            <Check className="w-5 h-5 text-white" />
+                            <Check className="w-6 h-6 text-white" />
                           ) : isRevision ? (
-                            <Clock className="w-5 h-5 text-white" />
+                            <Clock className="w-6 h-6 text-white" />
                           ) : (
-                            <span className="text-white font-bold">{stepNumber}</span>
+                            <span className="text-white font-bold text-lg">{stepNumber}</span>
                           )}
                         </div>
-                        <div className="ml-3 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="ml-3 min-w-0 max-w-[200px]">
+                          <div className="text-sm font-semibold text-gray-900 truncate">
                             {step.stepName}
-                            {isApproved && <span className="ml-2 text-xs text-green-600">(Approved)</span>}
-                            {isRevision && <span className="ml-2 text-xs text-red-600">(Needs Revision)</span>}
+                            {isApproved && <span className="ml-2 text-xs text-green-600 font-medium">(Approved)</span>}
+                            {isRevision && <span className="ml-2 text-xs text-red-600 font-medium">(Needs Revision)</span>}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">{step.description}</div>
+                          <div className="text-xs text-gray-500 truncate mt-0.5">{step.description}</div>
                         </div>
                       </div>
                       {index < config.steps.length - 1 && (
                         <div
-                          className={`flex-1 h-0.5 mx-4 min-w-[50px] ${
-                            isApproved || (status === 'completed' && !isRevision) ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
+                          className={`flex-1 h-0.5 mx-4 min-w-[50px] ${isApproved || (status === 'completed' && !isRevision) ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
                         />
                       )}
                     </React.Fragment>
@@ -759,10 +784,10 @@ export default function GuiderVerificationDashboard() {
                     {/* Step Name and Description - Hide when submitted for review (unless in revision/edit mode) */}
                     {(() => {
                       const currentStepStatus = getStepStatus(displayStep);
-                      const shouldHideHeader = areAllStepsSubmitted() && 
-                                              !isDisplayStepInEditMode && 
-                                              (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
-                      
+                      const shouldHideHeader = areAllStepsSubmitted() &&
+                        !isDisplayStepInEditMode &&
+                        (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
+
                       if (!shouldHideHeader) {
                         return (
                           <div className="flex items-center justify-between mb-4">
@@ -776,49 +801,49 @@ export default function GuiderVerificationDashboard() {
                               <p className="text-gray-600">{displayStepConfig.description}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                        {/* Edit Button - Show for completed steps or revision steps */}
-                        {(() => {
-                          const stepStatus = getStepStatus(displayStep);
-                          const allSubmitted = areAllStepsSubmitted();
-                          
-                          // Can edit if:
-                          // 1. Step is completed OR in revision
-                          // 2. Not approved
-                          // 3. Not in edit mode already
-                          // 4. If verification is submitted, only revision steps can be edited
-                          // 5. If verification is NOT submitted, any completed step can be edited (even if status is pending)
-                          
-                          const canEditWhenNotSubmitted = !allSubmitted && 
-                                                          isDisplayStepCompleted && 
-                                                          !isDisplayStepInEditMode && 
-                                                          stepStatus !== 'approved';
-                          
-                          const canEditWhenSubmitted = allSubmitted && 
-                                                       stepStatus === 'revision' && 
-                                                       !isDisplayStepInEditMode;
-                          
-                          if (!canEditWhenNotSubmitted && !canEditWhenSubmitted) return null;
-                          
-                          return (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => {
-                                // If we're viewing a different step, keep viewingStep set
-                                // If we're on current step, we don't need viewingStep
-                                if (displayStep !== effectiveCurrentStep) {
-                                  setViewingStep(displayStep);
-                                }
-                                handleEdit(displayStep);
-                              }}
-                              disabled={submitting}
-                              size="sm"
-                            >
-                              <Edit2 className="w-4 h-4 mr-2" />
-                              {stepStatus === 'revision' ? 'Update & Resubmit' : 'Edit'}
-                            </Button>
-                          );
-                        })()}
+                              {/* Edit Button - Show for completed steps or revision steps */}
+                              {(() => {
+                                const stepStatus = getStepStatus(displayStep);
+                                const allSubmitted = areAllStepsSubmitted();
+
+                                // Can edit if:
+                                // 1. Step is completed OR in revision
+                                // 2. Not approved
+                                // 3. Not in edit mode already
+                                // 4. If verification is submitted, only revision steps can be edited
+                                // 5. If verification is NOT submitted, any completed step can be edited (even if status is pending)
+
+                                const canEditWhenNotSubmitted = !allSubmitted &&
+                                  isDisplayStepCompleted &&
+                                  !isDisplayStepInEditMode &&
+                                  stepStatus !== 'approved';
+
+                                const canEditWhenSubmitted = allSubmitted &&
+                                  stepStatus === 'revision' &&
+                                  !isDisplayStepInEditMode;
+
+                                if (!canEditWhenNotSubmitted && !canEditWhenSubmitted) return null;
+
+                                return (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                      // If we're viewing a different step, keep viewingStep set
+                                      // If we're on current step, we don't need viewingStep
+                                      if (displayStep !== effectiveCurrentStep) {
+                                        setViewingStep(displayStep);
+                                      }
+                                      handleEdit(displayStep);
+                                    }}
+                                    disabled={submitting}
+                                    size="sm"
+                                  >
+                                    <Edit2 className="w-4 h-4 mr-2" />
+                                    {stepStatus === 'revision' ? 'Update & Resubmit' : 'Edit'}
+                                  </Button>
+                                );
+                              })()}
                             </div>
                           </div>
                         );
@@ -830,7 +855,7 @@ export default function GuiderVerificationDashboard() {
                     {(() => {
                       const stepStatus = getStepStatus(displayStep);
                       const rejectionInfo = getRejectionInfo(displayStep);
-                      
+
                       if (stepStatus === 'revision' && rejectionInfo) {
                         return (
                           <Card className="bg-red-50 border-red-200 mb-6">
@@ -886,7 +911,7 @@ export default function GuiderVerificationDashboard() {
                                     Verification Under Review
                                   </h3>
                                   <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                                    Great job! Your verification has been successfully submitted and is now being reviewed by our team. 
+                                    Great job! Your verification has been successfully submitted and is now being reviewed by our team.
                                     We're carefully checking all your information to ensure everything meets our standards.
                                   </p>
                                   <div className="bg-white rounded-lg p-4 mt-4 border border-blue-100">
@@ -930,45 +955,45 @@ export default function GuiderVerificationDashboard() {
                     {/* Dynamic Form Fields - Hide when submitted for review (unless in revision/edit mode) */}
                     {(() => {
                       const currentStepStatus = getStepStatus(displayStep);
-                      const shouldHideFields = areAllStepsSubmitted() && 
-                                              !isDisplayStepInEditMode && 
-                                              (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
-                      
+                      const shouldHideFields = areAllStepsSubmitted() &&
+                        !isDisplayStepInEditMode &&
+                        (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
+
                       if (shouldHideFields) {
                         return null;
                       }
-                      
+
                       const rejectionInfo = getRejectionInfo(displayStep);
                       // Get original step data to compare if field has been edited
                       const stepIndex = displayStep - 1;
                       const originalStepData = verificationData?.steps?.[stepIndex] as any;
                       const originalData = originalStepData?.data || {};
-                      
+
                       return (
                         <div className="space-y-6">
                           {displayStepConfig.fields.map((field) => {
                             // Calculate disabled state per field to handle rejectedFields in resubmit mode
                             const fieldDisabled = isFieldDisabled(displayStep, field.fieldName);
                             const isRejectedField = rejectionInfo?.rejectedFields?.includes(field.fieldName) || false;
-                            
+
                             // Check if field has been edited (value changed from original)
                             const originalValue = originalData[field.fieldName];
                             const currentValue = formData[field.fieldName];
-                            
+
                             // Field is considered edited if:
                             // 1. It was rejected AND
                             // 2. Current value exists AND
                             // 3. Current value is different from original value
-                            const hasBeenEdited = isRejectedField && 
-                                                 currentValue !== undefined && 
-                                                 currentValue !== null && 
-                                                 currentValue !== '' &&
-                                                 currentValue !== originalValue;
-                            
+                            const hasBeenEdited = isRejectedField &&
+                              currentValue !== undefined &&
+                              currentValue !== null &&
+                              currentValue !== '' &&
+                              currentValue !== originalValue;
+
                             // Only show highlighting if field is rejected AND hasn't been edited
                             const isRejected = isRejectedField && !hasBeenEdited;
                             const rejectionReason = isRejected ? rejectionInfo?.rejectionReasons?.[field.fieldName] : null;
-                            
+
                             return (
                               <DynamicField
                                 key={field.fieldName}
@@ -992,129 +1017,129 @@ export default function GuiderVerificationDashboard() {
                     {/* Navigation and Action Buttons - Hide when submitted for review (unless in revision/edit mode) */}
                     {(() => {
                       const currentStepStatus = getStepStatus(displayStep);
-                      const shouldHideButtons = areAllStepsSubmitted() && 
-                                                !isDisplayStepInEditMode && 
-                                                (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
-                      
+                      const shouldHideButtons = areAllStepsSubmitted() &&
+                        !isDisplayStepInEditMode &&
+                        (currentStepStatus === 'pending' || currentStepStatus === undefined || currentStepStatus === 'approved');
+
                       if (shouldHideButtons) {
                         return null;
                       }
-                      
+
                       return (
-                      <div className="mt-8">
-                        <div className="flex justify-between items-center gap-4">
-                          <div className="flex gap-2">
-                            {/* Back Button */}
-                            {displayStep > 1 && !areAllStepsSubmitted() && !isDisplayStepInEditMode && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={handleBack}
-                              disabled={submitting}
-                              size="lg"
-                            >
-                              <ArrowLeft className="w-4 h-4 mr-2" />
-                              Back
-                            </Button>
-                          )}
-                          {/* Cancel Button (only in edit mode) */}
-                          {isDisplayStepInEditMode && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => {
-                                setEditMode((prev) => ({ ...prev, [displayStep]: false }));
-                                // Clear original form data
-                                setOriginalFormData((prev) => {
-                                  const newData = { ...prev };
-                                  delete newData[displayStep];
-                                  return newData;
-                                });
-                                // If we were viewing a different step, go back to that step (not edit mode)
-                                // Otherwise, just reload the current step data
-                                if (viewingStep && viewingStep !== effectiveCurrentStep) {
-                                  // Stay on the viewing step, just exit edit mode
-                                  if (config) {
-                                    loadStepData(config, displayStep);
-                                  }
-                                } else {
-                                  // Reload step data to reset form
-                                  if (config) {
-                                    loadStepData(config, displayStep);
-                                  }
-                                }
-                              }}
-                              disabled={submitting}
-                              size="lg"
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          {/* Next/Continue Button - Show when viewing a previous completed step (not in edit mode) */}
-                          {viewingStep && viewingStep !== effectiveCurrentStep && !isDisplayStepInEditMode && (
-                            <Button
-                              type="button"
-                              variant="default"
-                              onClick={() => {
-                                // Navigate forward to the next step or current step
-                                const nextStep = Math.min(displayStep + 1, effectiveCurrentStep);
-                                if (nextStep === effectiveCurrentStep) {
-                                  // Return to current step
-                                  setViewingStep(null);
-                                  if (config) {
-                                    loadStepData(config, effectiveCurrentStep);
-                                  }
-                                } else {
-                                  // Go to next step
-                                  setViewingStep(nextStep);
-                                  if (config) {
-                                    loadStepData(config, nextStep);
-                                  }
-                                }
-                              }}
-                              size="lg"
-                            >
-                              {displayStep < effectiveCurrentStep ? 'Next' : 'Continue to Current Step'}
-                            </Button>
-                          )}
-                          {/* Save Button - Show when in edit mode, on current step, or for revision steps */}
-                          {(!viewingStep || viewingStep === effectiveCurrentStep || isDisplayStepInEditMode || getStepStatus(displayStep) === 'revision') && (
-                            <Button
-                              type="button"
-                              onClick={(e) => {
-                                // Use displayStep for submission (this is the step we're actually editing)
-                                handleSubmitClick(e, displayStep);
-                              }}
-                              disabled={
-                                submitting || 
-                                (displayStep === lastStepNumber && getStepStatus(displayStep) === 'pending' && !isDisplayStepInEditMode && areAllStepsSubmitted()) ||
-                                !areRequiredFieldsFilled(displayStep) ||
-                                (isDisplayStepInEditMode && !hasFormDataChanged(displayStep)) ||
-                                (getStepStatus(displayStep) === 'revision' && !isDisplayStepInEditMode && !hasFormDataChanged(displayStep)) ||
-                                (displayStep === lastStepNumber && !isDisplayStepInEditMode && !areAllStepsSubmitted() && !hasFormDataChanged(displayStep) && isDisplayStepCompleted)
-                              }
-                              size="lg"
-                            >
-                              {submitting ? (
-                                <>
-                                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                  {getStepStatus(displayStep) === 'revision' ? 'Resubmitting...' : 
-                                   displayStep === lastStepNumber ? 'Sending...' : 'Saving...'}
-                                </>
-                              ) : getStepStatus(displayStep) === 'revision' ? (
-                                isDisplayStepInEditMode ? 'Update & Resubmit' : 'Send for Approval Again'
-                              ) : displayStep === lastStepNumber ? (
-                                'Save & Send for Approval'
-                              ) : (
-                                'Save & Continue'
+                        <div className="mt-8">
+                          <div className="flex justify-between items-center gap-4">
+                            <div className="flex gap-2">
+                              {/* Back Button */}
+                              {displayStep > 1 && !areAllStepsSubmitted() && !isDisplayStepInEditMode && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={handleBack}
+                                  disabled={submitting}
+                                  size="lg"
+                                >
+                                  <ArrowLeft className="w-4 h-4 mr-2" />
+                                  Back
+                                </Button>
                               )}
-                            </Button>
-                          )}
+                              {/* Cancel Button (only in edit mode) */}
+                              {isDisplayStepInEditMode && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditMode((prev) => ({ ...prev, [displayStep]: false }));
+                                    // Clear original form data
+                                    setOriginalFormData((prev) => {
+                                      const newData = { ...prev };
+                                      delete newData[displayStep];
+                                      return newData;
+                                    });
+                                    // If we were viewing a different step, go back to that step (not edit mode)
+                                    // Otherwise, just reload the current step data
+                                    if (viewingStep && viewingStep !== effectiveCurrentStep) {
+                                      // Stay on the viewing step, just exit edit mode
+                                      if (config) {
+                                        loadStepData(config, displayStep);
+                                      }
+                                    } else {
+                                      // Reload step data to reset form
+                                      if (config) {
+                                        loadStepData(config, displayStep);
+                                      }
+                                    }
+                                  }}
+                                  disabled={submitting}
+                                  size="lg"
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              {/* Next/Continue Button - Show when viewing a previous completed step (not in edit mode) */}
+                              {viewingStep && viewingStep !== effectiveCurrentStep && !isDisplayStepInEditMode && (
+                                <Button
+                                  type="button"
+                                  variant="default"
+                                  onClick={() => {
+                                    // Navigate forward to the next step or current step
+                                    const nextStep = Math.min(displayStep + 1, effectiveCurrentStep);
+                                    if (nextStep === effectiveCurrentStep) {
+                                      // Return to current step
+                                      setViewingStep(null);
+                                      if (config) {
+                                        loadStepData(config, effectiveCurrentStep);
+                                      }
+                                    } else {
+                                      // Go to next step
+                                      setViewingStep(nextStep);
+                                      if (config) {
+                                        loadStepData(config, nextStep);
+                                      }
+                                    }
+                                  }}
+                                  size="lg"
+                                >
+                                  {displayStep < effectiveCurrentStep ? 'Next' : 'Continue to Current Step'}
+                                </Button>
+                              )}
+                              {/* Save Button - Show when in edit mode, on current step, or for revision steps */}
+                              {(!viewingStep || viewingStep === effectiveCurrentStep || isDisplayStepInEditMode || getStepStatus(displayStep) === 'revision') && (
+                                <Button
+                                  type="button"
+                                  onClick={(e) => {
+                                    // Use displayStep for submission (this is the step we're actually editing)
+                                    handleSubmitClick(e, displayStep);
+                                  }}
+                                  disabled={
+                                    submitting ||
+                                    (displayStep === lastStepNumber && getStepStatus(displayStep) === 'pending' && !isDisplayStepInEditMode && areAllStepsSubmitted()) ||
+                                    !areRequiredFieldsFilled(displayStep) ||
+                                    (isDisplayStepInEditMode && !hasFormDataChanged(displayStep)) ||
+                                    (getStepStatus(displayStep) === 'revision' && !isDisplayStepInEditMode && !hasFormDataChanged(displayStep)) ||
+                                    (displayStep === lastStepNumber && !isDisplayStepInEditMode && !areAllStepsSubmitted() && !hasFormDataChanged(displayStep) && isDisplayStepCompleted)
+                                  }
+                                  size="lg"
+                                >
+                                  {submitting ? (
+                                    <>
+                                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                      {getStepStatus(displayStep) === 'revision' ? 'Resubmitting...' :
+                                        displayStep === lastStepNumber ? 'Sending...' : 'Saving...'}
+                                    </>
+                                  ) : getStepStatus(displayStep) === 'revision' ? (
+                                    isDisplayStepInEditMode ? 'Update & Resubmit' : 'Send for Approval Again'
+                                  ) : displayStep === lastStepNumber ? (
+                                    'Save & Send for Approval'
+                                  ) : (
+                                    'Save & Continue'
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
                       );
                     })()}
                   </div>
@@ -1135,12 +1160,12 @@ export default function GuiderVerificationDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision' 
-                ? 'Resubmit for Admin Approval?' 
+              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision'
+                ? 'Resubmit for Admin Approval?'
                 : 'Send for Admin Approval?'}
             </DialogTitle>
             <DialogDescription>
-              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision' 
+              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision'
                 ? 'Are you sure you want to resubmit this step for admin review? The admin will review your updated information.'
                 : 'Are you sure you want to submit your verification request for admin review? Once submitted, you won\'t be able to make changes until the admin reviews your application.'}
             </DialogDescription>
@@ -1166,8 +1191,8 @@ export default function GuiderVerificationDashboard() {
                 setPendingSubmit(null);
               }}
             >
-              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision' 
-                ? 'Yes, Resubmit for Approval' 
+              {pendingSubmit && getStepStatus(pendingSubmit.stepNumber) === 'revision'
+                ? 'Yes, Resubmit for Approval'
                 : 'Yes, Send for Approval'}
             </Button>
           </DialogFooter>
@@ -1203,8 +1228,8 @@ function DynamicField({
   isRejected = false,
   rejectionReason = null,
 }: DynamicFieldProps) {
-  const fieldErrorClass = isRejected 
-    ? "border-red-500 border-2 bg-red-50 focus:border-red-600 focus:ring-red-500" 
+  const fieldErrorClass = isRejected
+    ? "border-red-500 border-2 bg-red-50 focus:border-red-600 focus:ring-red-500"
     : "";
 
   const renderField = () => {

@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { User, Building2, MapPin, Award, Star, Phone, Mail, Calendar, Languages, Trophy, Globe, Instagram, FileText, DollarSign, Clock, Car, Info, Coins, Save, X, Edit, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 import { usersService } from '@/lib/api';
@@ -18,6 +19,7 @@ import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 
 interface GuiderProfileData {
   _id: string;
@@ -68,6 +70,7 @@ const commonLanguages = [
 function GuiderProfileEditContent() {
   const { user, token, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
+  const { goBack } = useNavigationHistory();
   const [activeTab, setActiveTab] = useState<'personal' | 'business' | 'tour'>('personal');
   const [profileData, setProfileData] = useState<GuiderProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -790,7 +793,14 @@ function GuiderProfileEditContent() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      {/* Breadcrumb Navigation - Positioned at top */}
+      <Breadcrumb
+        items={[
+          { label: 'Profile', href: '/guider/profile' },
+          { label: 'Edit Profile' },
+        ]}
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
           {/* Header */}
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
@@ -836,14 +846,6 @@ function GuiderProfileEditContent() {
             </CardContent>
           </Card>
 
-          {/* Back Button */}
-          <div className="flex justify-end gap-4">
-            <Link href="/guider/profile">
-              <Button variant="outline">
-                Back to Profile
-              </Button>
-            </Link>
-          </div>
         </Container>
       </Section>
     </AppLayout>

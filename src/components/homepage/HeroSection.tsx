@@ -86,11 +86,11 @@ export default function HeroSection() {
           <div className="w-full max-w-4xl">
             <form onSubmit={(e) => handleSearch(e, 'tours')} className="bg-white rounded-xl shadow-2xl p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col">
                   <Label htmlFor="location" className="text-sm font-medium text-gray-700">
                     Where to?
                   </Label>
-                  <div className="relative">
+                  <div className="relative flex-1 flex items-end">
                     <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       id="location"
@@ -104,27 +104,34 @@ export default function HeroSection() {
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col">
                   <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
                     Date Range (Optional)
                   </Label>
-                  <DateRangePicker
-                    value={dateRange}
-                    onChange={setDateRange}
-                    placeholder="Select date range"
-                  />
+                  <div className="flex-1 flex items-end">
+                    <DateRangePicker
+                      value={dateRange}
+                      onChange={setDateRange}
+                      placeholder="Select date range"
+                    />
+                  </div>
                 </div>
                 
-                <div className="flex items-end">
-                  <Button 
-                    type="submit"
-                    size="lg"
-                    className="w-full h-11 text-base"
-                    suppressHydrationWarning
-                  >
-                    <Search className="w-4 h-4 mr-2" />
+                <div className="space-y-2 flex flex-col">
+                  <Label className="text-sm font-medium text-gray-700 opacity-0 pointer-events-none">
                     Find Tours
-                  </Button>
+                  </Label>
+                  <div className="flex-1 flex items-end">
+                    <Button 
+                      type="submit"
+                      size="lg"
+                      className="w-full h-11 text-base"
+                      suppressHydrationWarning
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Find Tours
+                    </Button>
+                  </div>
                 </div>
               </div>
             </form>

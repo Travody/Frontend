@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, User, Menu, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,7 @@ interface HeaderProps {
 export default function Header({ user }: HeaderProps) {
   const { logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
 
@@ -92,30 +93,50 @@ export default function Header({ user }: HeaderProps) {
               <>
                 <Link 
                   href="/guider/my-plans" 
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+                  className={`text-sm font-medium transition-colors relative group pb-1 ${
+                    pathname?.startsWith('/guider/my-plans')
+                      ? 'text-primary-600 font-semibold'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
                 >
                   My Plans
+                  <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
                 </Link>
                 <Link 
                   href="/guider/bookings" 
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+                  className={`text-sm font-medium transition-colors relative group pb-1 ${
+                    pathname?.startsWith('/guider/bookings')
+                      ? 'text-primary-600 font-semibold'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
                 >
                   My Bookings
+                  <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
                 </Link>
               </>
             ) : (
               <>
                 <Link 
                   href="/explore" 
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+                  className={`text-sm font-medium transition-colors relative group pb-1 ${
+                    pathname === '/explore' || pathname?.startsWith('/plans/')
+                      ? 'text-primary-600 font-semibold'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
                 >
                   Explore
+                  <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
                 </Link>
                 <Link 
                   href="/traveler/trips" 
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+                  className={`text-sm font-medium transition-colors relative group pb-1 ${
+                    pathname?.startsWith('/traveler/trips')
+                      ? 'text-primary-600 font-semibold'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
                 >
                   My Trips
+                  <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
                 </Link>
               </>
             )}
@@ -127,8 +148,18 @@ export default function Header({ user }: HeaderProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary-100 text-primary-700">
+                  <Avatar className={`h-9 w-9 transition-all ${
+                    (user.type === 'guider' && pathname?.startsWith('/guider/profile')) ||
+                    (user.type === 'traveler' && pathname?.startsWith('/traveler/profile'))
+                      ? 'ring-2 ring-primary-600 ring-offset-2'
+                      : ''
+                  }`}>
+                    <AvatarFallback className={`transition-colors ${
+                      (user.type === 'guider' && pathname?.startsWith('/guider/profile')) ||
+                      (user.type === 'traveler' && pathname?.startsWith('/traveler/profile'))
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-primary-100 text-primary-700'
+                    }`}>
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -147,7 +178,12 @@ export default function Header({ user }: HeaderProps) {
                 <DropdownMenuItem asChild>
                   <Link 
                     href={user.type === 'guider' ? '/guider/profile' : '/traveler/profile'}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${
+                      (user.type === 'guider' && pathname?.startsWith('/guider/profile')) ||
+                      (user.type === 'traveler' && pathname?.startsWith('/traveler/profile'))
+                        ? 'bg-primary-50 text-primary-600 font-semibold'
+                        : ''
+                    }`}
                   >
                     <User className="mr-2 h-4 w-4" />
                     <span>My Profile</span>
@@ -188,19 +224,31 @@ export default function Header({ user }: HeaderProps) {
                     <>
                       <Link 
                         href="/guider/my-plans" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname?.startsWith('/guider/my-plans')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         My Plans
                       </Link>
                       <Link 
                         href="/guider/bookings" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname?.startsWith('/guider/bookings')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         My Bookings
                       </Link>
                       <Link 
                         href="/guider/profile" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname?.startsWith('/guider/profile')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         My Profile
                       </Link>
@@ -209,19 +257,31 @@ export default function Header({ user }: HeaderProps) {
                     <>
                       <Link 
                         href="/explore" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname === '/explore' || pathname?.startsWith('/plans/')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         Explore
                       </Link>
                       <Link 
                         href="/traveler/trips" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname?.startsWith('/traveler/trips')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         My Trips
                       </Link>
                       <Link 
                         href="/traveler/profile" 
-                        className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                        className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                          pathname?.startsWith('/traveler/profile')
+                            ? 'bg-primary-50 text-primary-600 font-semibold'
+                            : 'text-gray-900 hover:bg-gray-100'
+                        }`}
                       >
                         My Profile
                       </Link>
@@ -283,15 +343,25 @@ export default function Header({ user }: HeaderProps) {
         <div className="hidden items-center gap-4 lg:flex">
           <Link 
             href="/explore" 
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+            className={`text-sm font-medium transition-colors relative group pb-1 ${
+              pathname === '/explore' || pathname?.startsWith('/plans/')
+                ? 'text-primary-600 font-semibold'
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
           >
             Explore
+            <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
           </Link>
           <Link 
             href="/become-guide" 
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+            className={`text-sm font-medium transition-colors relative group pb-1 ${
+              pathname?.startsWith('/become-guide')
+                ? 'text-primary-600 font-semibold'
+                : 'text-gray-700 hover:text-primary-600'
+            }`}
           >
             Become a Guide
+            <span className="absolute bottom-0 left-0 h-0.5 bg-primary-600 transition-all duration-300 ease-out w-0 group-hover:w-full"></span>
           </Link>
           <Link href="/auth/traveler/login">
             <Button variant="outline" size="sm">
@@ -321,13 +391,21 @@ export default function Header({ user }: HeaderProps) {
             <div className="space-y-2">
               <Link 
                 href="/explore" 
-                className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                  pathname === '/explore' || pathname?.startsWith('/plans/')
+                    ? 'bg-primary-50 text-primary-600 font-semibold'
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
               >
                 Explore
               </Link>
               <Link 
                 href="/become-guide" 
-                className="block px-3 py-2.5 text-base font-medium text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
+                  pathname?.startsWith('/become-guide')
+                    ? 'bg-primary-50 text-primary-600 font-semibold'
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
               >
                 Become a Guide
               </Link>

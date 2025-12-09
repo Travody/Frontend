@@ -17,6 +17,7 @@ import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 
 export default function MyPlansPage() {
   const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
@@ -112,7 +113,13 @@ export default function MyPlansPage() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      {/* Breadcrumb Navigation - Positioned at top */}
+      <Breadcrumb
+        items={[
+          { label: 'My Plans' },
+        ]}
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
           <div className="flex items-center justify-between mb-8">
             <PageHeader

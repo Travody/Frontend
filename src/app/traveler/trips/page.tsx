@@ -18,6 +18,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { Heading } from '@/components/ui/heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import ReviewDialog from '@/components/reviews/ReviewDialog';
 
 export default function TravelerTripsPage() {
@@ -212,7 +213,13 @@ export default function TravelerTripsPage() {
 
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      <Breadcrumb
+        items={[
+          { label: 'My Trips' },
+        ]}
+        homeHref="/"
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
           <PageHeader
             title="My Trips"

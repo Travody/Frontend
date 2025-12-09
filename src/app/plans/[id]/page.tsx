@@ -7,7 +7,7 @@ import DatePicker from '@/components/ui/DatePicker';
 import { plansService, bookingsService, reviewsService, usersService } from '@/lib/api';
 import type { Plan, CreateBookingData, Booking, Review } from '@/types';
 import Link from 'next/link';
-import { useAuth, isGuiderUser } from '@/contexts/AuthContext';
+import { useAuth, isGuiderUser, isTravelerUser } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from '@/lib/toast';
 import AppLayout from '@/components/layout/AppLayout';
@@ -37,6 +37,7 @@ import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Separator } from '@/components/ui/separator';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 
 export default function PlanDetailsPage() {
   const params = useParams();
@@ -326,18 +327,26 @@ export default function PlanDetailsPage() {
   const isBookingRequested = existingBooking && (existingBooking.status.status === 'pending' || existingBooking.status.status === 'confirmed');
   const totalPrice = plan.pricing ? plan.pricing.pricePerPerson * bookingData.numberOfParticipants : 0;
 
+  // Determine home href based on user type
+  let homeHref = '/';
+  if (user) {
+    if (isGuiderUser(user)) {
+      homeHref = '/guider/dashboard';
+    }
+    // For travelers and unauthenticated users, home is '/'
+  }
+
   return (
     <AppLayout>
-      <Section variant="muted" className="py-8">
+      <Breadcrumb
+        items={[
+          { label: 'Explore', href: '/explore' },
+          { label: plan.title || 'Plan Details' },
+        ]}
+        homeHref={homeHref}
+      />
+      <Section variant="muted" className="!pt-6 !pb-8 md:!pt-6 md:!pb-8">
         <Container>
-          {/* Back Button */}
-          <div className="mb-6">
-            <Button variant="ghost" onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
@@ -360,10 +369,12 @@ export default function PlanDetailsPage() {
                           <Users className="w-4 h-4 mr-1" />
                           <span>Up to {plan.pricing?.maxParticipants || 0} people</span>
                         </div>
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current" />
-                          <span>{plan.rating?.toFixed(1) || 'New'} ({plan.totalReviews || 0} {plan.totalReviews === 1 ? 'review' : 'reviews'})</span>
-                        </div>
+                        {plan.totalReviews && plan.totalReviews > 0 && plan.rating && plan.rating > 0 && (
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current" />
+                            <span>{plan.rating.toFixed(1)} ({plan.totalReviews} {plan.totalReviews === 1 ? 'review' : 'reviews'})</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
@@ -586,121 +597,121 @@ export default function PlanDetailsPage() {
               )}
 
               {/* Reviews Section */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Reviews</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                      <span className="text-lg font-semibold">
-                        {plan.rating?.toFixed(1) || '0.0'}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        ({plan.totalReviews || 0} {plan.totalReviews === 1 ? 'review' : 'reviews'})
-                      </span>
+              {(isLoadingReviews || (reviews && Array.isArray(reviews) && reviews.length > 0)) && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Reviews</CardTitle>
+                      {plan.totalReviews && plan.totalReviews > 0 && plan.rating && plan.rating > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                          <span className="text-lg font-semibold">
+                            {plan.rating.toFixed(1)}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            ({plan.totalReviews} {plan.totalReviews === 1 ? 'review' : 'reviews'})
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingReviews ? (
-                    <div className="text-center py-8 text-gray-500">Loading reviews...</div>
-                  ) : (reviews && Array.isArray(reviews) && reviews.length > 0) ? (
-                    <div className="space-y-4">
-                      {reviews.map((review) => {
-                        const traveler = typeof review.travelerId === 'object' 
-                          ? review.travelerId 
-                          : null;
-                        const travelerName = traveler 
-                          ? `${traveler.firstName || ''} ${traveler.lastName || ''}`.trim() || 'Anonymous'
-                          : 'Anonymous';
-                        const travelerEmail = traveler?.email || '';
-                        const travelerImage = traveler?.profileImageUrl;
-                        
-                        const booking = typeof review.bookingId === 'object' ? review.bookingId : null;
-                        const bookingDate = booking?.bookingDetails?.date 
-                          ? new Date(booking.bookingDetails.date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })
-                          : null;
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingReviews ? (
+                      <div className="text-center py-8 text-gray-500">Loading reviews...</div>
+                    ) : (reviews && Array.isArray(reviews) && reviews.length > 0) ? (
+                      <div className="space-y-4">
+                        {reviews.map((review) => {
+                          const traveler = typeof review.travelerId === 'object' 
+                            ? review.travelerId 
+                            : null;
+                          const travelerName = traveler 
+                            ? `${traveler.firstName || ''} ${traveler.lastName || ''}`.trim() || 'Anonymous'
+                            : 'Anonymous';
+                          const travelerEmail = traveler?.email || '';
+                          const travelerImage = traveler?.profileImageUrl;
+                          
+                          const booking = typeof review.bookingId === 'object' ? review.bookingId : null;
+                          const bookingDate = booking?.bookingDetails?.date 
+                            ? new Date(booking.bookingDetails.date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })
+                            : null;
 
-                        return (
-                          <div key={review._id} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
-                            <div className="flex items-start gap-3 mb-2">
-                              {travelerImage ? (
-                                <img
-                                  src={travelerImage}
-                                  alt={travelerName}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                  <span className="text-primary-600 font-semibold text-sm">
-                                    {travelerName.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between mb-1">
-                                  <div>
-                                    <p className="font-medium text-gray-900">{travelerName}</p>
-                                    {travelerEmail && (
-                                      <p className="text-xs text-gray-500">{travelerEmail}</p>
-                                    )}
-                                    {bookingDate && (
-                                      <p className="text-xs text-gray-400 mt-1">
-                                        Tour Date: {bookingDate}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className={`w-4 h-4 ${
-                                          i < review.rating
-                                            ? 'text-yellow-400 fill-current'
-                                            : 'text-gray-300'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="ml-1 text-sm font-medium text-gray-700">
-                                      {review.rating}
+                          return (
+                            <div key={review._id} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+                              <div className="flex items-start gap-3 mb-2">
+                                {travelerImage ? (
+                                  <img
+                                    src={travelerImage}
+                                    alt={travelerName}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                    <span className="text-primary-600 font-semibold text-sm">
+                                      {travelerName.charAt(0).toUpperCase()}
                                     </span>
                                   </div>
-                                </div>
-                                <p className="text-xs text-gray-500 mb-2">
-                                  {new Date(review.createdAt).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                  })}
-                                </p>
-                                {review.comment && (
-                                  <p className="text-gray-700 text-sm mt-2 leading-relaxed">{review.comment}</p>
                                 )}
-                                <div className="flex items-center gap-2 mt-2">
-                                  {review.isVerified && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      <CheckCircle className="w-3 h-3 mr-1" />
-                                      Verified Booking
-                                    </Badge>
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between mb-1">
+                                    <div>
+                                      <p className="font-medium text-gray-900">{travelerName}</p>
+                                      {travelerEmail && (
+                                        <p className="text-xs text-gray-500">{travelerEmail}</p>
+                                      )}
+                                      {bookingDate && (
+                                        <p className="text-xs text-gray-400 mt-1">
+                                          Tour Date: {bookingDate}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`w-4 h-4 ${
+                                            i < review.rating
+                                              ? 'text-yellow-400 fill-current'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      ))}
+                                      <span className="ml-1 text-sm font-medium text-gray-700">
+                                        {review.rating}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mb-2">
+                                    {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                    })}
+                                  </p>
+                                  {review.comment && (
+                                    <p className="text-gray-700 text-sm mt-2 leading-relaxed">{review.comment}</p>
                                   )}
+                                  <div className="flex items-center gap-2 mt-2">
+                                    {review.isVerified && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                        Verified Booking
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No reviews yet. Be the first to review this tour!
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Policies */}
               {(plan.cancellationPolicy || plan.termsAndConditions || plan.specialInstructions) && (
@@ -743,9 +754,15 @@ export default function PlanDetailsPage() {
                       {plan.pricing ? formatPrice(plan.pricing.pricePerPerson, plan.pricing.currency) : 'N/A'}
                     </span>
                     {plan.pricing && (
-                      <span className="text-sm text-gray-600">{plan.pricing.currency === 'USD' ? 'USD' : 'INR'}</span>
+                      <span className="text-sm text-gray-600">{plan.pricing.currency || 'INR'}</span>
                     )}
-                    <Info className="w-3 h-3 text-blue-500" />
+                    <div className="relative group">
+                      <Info className="w-3 h-3 text-blue-500 cursor-help" />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                        Includes all services provided by the guider.
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
                   </div>
                   <CardDescription className="text-xs">Includes all fees</CardDescription>
                 </CardHeader>
