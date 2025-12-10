@@ -230,9 +230,9 @@ function ExploreContent() {
                     const guideName = guide.personalInfo?.showcaseName || guide.showcaseName || 'Guide';
                     const city = guide.personalInfo?.city || guide.city || '';
                     const fullName = guide.personalInfo?.fullName;
-                    const languages = (guide as any).tourGuideInfo?.languagesSpoken || [];
-                    const rating = (guide as any).tourGuideInfo?.rating || guide.rating || 0;
-                    const totalReviews = (guide as any).tourGuideInfo?.totalReviews || guide.totalReviews || 0;
+                    const languages = guide.tourGuideInfo?.languagesSpoken || [];
+                    const rating = guide.tourGuideInfo?.rating || guide.rating || 0;
+                    const totalReviews = guide.tourGuideInfo?.totalReviews || guide.totalReviews || 0;
                     const aboutMe = guide.personalInfo?.aboutMe || guide.overview || '';
                     
                     return (
@@ -240,9 +240,9 @@ function ExploreContent() {
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center space-x-3 flex-1 min-w-0">
-                              {(guide as any).personalInfo?.profileImageUrl ? (
+                              {guide.personalInfo?.profileImageUrl ? (
                                 <img
-                                  src={(guide as any).personalInfo.profileImageUrl}
+                                  src={guide.personalInfo.profileImageUrl}
                                   alt={guideName}
                                   className="h-14 w-14 rounded-full object-cover flex-shrink-0"
                                 />
