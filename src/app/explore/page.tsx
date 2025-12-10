@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { guidesService, plansService } from '@/lib/api';
 import type { Guide, Plan } from '@/types';
-import { Search, MapPin, Star, Calendar, User, CheckCircle, Award, Clock, Users, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Star, Calendar, User, CheckCircle, Award, Clock, Users, ArrowRight, Languages } from 'lucide-react';
 import Link from 'next/link';
 import toast from '@/lib/toast';
 import DateRangePicker from '@/components/ui/DateRangePicker';
@@ -226,84 +226,96 @@ function ExploreContent() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {guides.map((guide) => (
-                    <Card key={guide._id} className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-14 w-14">
-                              <AvatarFallback className="bg-primary-100 text-primary-700">
-                                {guide.showcaseName?.charAt(0).toUpperCase() || 'G'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {guide.showcaseName}
-                              </h3>
-                              {guide.accountVerified && (
-                                <div className="flex items-center text-sm text-primary-600 mt-1">
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  <span>Verified</span>
-                                </div>
+                  {guides.map((guide) => {
+                    const guideName = guide.personalInfo?.showcaseName || guide.showcaseName || 'Guide';
+                    const city = guide.personalInfo?.city || guide.city || '';
+                    const fullName = guide.personalInfo?.fullName;
+                    const languages = guide.tourGuideInfo?.languagesSpoken || [];
+                    const rating = guide.tourGuideInfo?.rating || guide.rating || 0;
+                    const totalReviews = guide.tourGuideInfo?.totalReviews || guide.totalReviews || 0;
+                    const aboutMe = guide.personalInfo?.aboutMe || guide.overview || '';
+                    
+                    return (
+                      <Card key={guide._id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              {guide.personalInfo?.profileImageUrl ? (
+                                <img
+                                  src={guide.personalInfo.profileImageUrl}
+                                  alt={guideName}
+                                  className="h-14 w-14 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <Avatar className="h-14 w-14 flex-shrink-0">
+                                  <AvatarFallback className="bg-primary-100 text-primary-700">
+                                    {guideName.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
                               )}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                  {guideName}
+                                </h3>
+                                {fullName && fullName !== guideName && (
+                                  <p className="text-sm text-gray-500 truncate">{fullName}</p>
+                                )}
+                                {guide.accountVerified && (
+                                  <div className="flex items-center text-sm text-primary-600 mt-1">
+                                    <CheckCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                                    <span>Verified</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
+                            {rating > 0 && (
+                              <div className="flex items-center flex-shrink-0 ml-2">
+                                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                                <span className="ml-1 text-sm font-medium text-gray-700">
+                                  {rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          {guide.rating && (
-                            <div className="flex items-center">
-                              <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                              <span className="ml-1 text-sm font-medium text-gray-700">
-                                {guide.rating.toFixed(1)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
 
-                        {guide.guiderType && (
-                          <div className="mb-3">
-                            <Badge variant="secondary">{guide.guiderType}</Badge>
+                          <div className="space-y-2 mb-4">
+                            {city && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">{city}</span>
+                              </div>
+                            )}
+                            {languages.length > 0 && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Languages className="w-4 h-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">
+                                  {languages.slice(0, 2).join(', ')}{languages.length > 2 ? ` +${languages.length - 2}` : ''}
+                                </span>
+                              </div>
+                            )}
+                            {totalReviews > 0 && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Star className="w-4 h-4 mr-2 text-yellow-400 flex-shrink-0" />
+                                <span>{totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
 
-                        <div className="space-y-2 mb-4">
-                          {(guide.city || guide.personalInfo?.city) && (
-                            <div className="flex items-center text-sm text-gray-600">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              <span>{guide.city || guide.personalInfo?.city}</span>
-                            </div>
+                          {aboutMe && (
+                            <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                              {aboutMe}
+                            </p>
                           )}
-                          {guide.totalReviews && (
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Star className="w-4 h-4 mr-2 text-yellow-400" />
-                              <span>{guide.totalReviews} reviews</span>
-                            </div>
-                          )}
-                        </div>
 
-                        {guide.overview && (
-                          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                            {guide.overview}
-                          </p>
-                        )}
-
-                        {guide.badges && guide.badges.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {guide.badges.slice(0, 3).map((badge, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                <Award className="w-3 h-3 mr-1" />
-                                {badge}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-
-                        <Link href={`/guides/${guide._id}`}>
-                          <Button className="w-full">
-                            View Profile
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          <Link href={`/guides/${guide._id}`}>
+                            <Button className="w-full">
+                              View Profile
+                            </Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </>
             ) : (
