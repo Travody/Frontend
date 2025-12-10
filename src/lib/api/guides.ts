@@ -21,6 +21,13 @@ export class GuidesService {
   }
 
   /**
+   * Get guide by ID
+   */
+  async getGuideById(guideId: string): Promise<ApiResponse<Guide>> {
+    return apiClient.get<Guide>(`/guides/${guideId}`, { skipAuth: true });
+  }
+
+  /**
    * Get verification steps configuration
    * @param guiderType - Optional guider type to get config for specific type
    */
