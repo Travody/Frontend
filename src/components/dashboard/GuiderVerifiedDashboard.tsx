@@ -287,16 +287,20 @@ export default function GuiderVerifiedDashboard({ user }: GuiderVerifiedDashboar
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 mt-3">
-                              <span className="text-sm text-gray-600 flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
-                                <Eye className="w-4 h-4 text-gray-400" />
-                                <span className="font-medium">{plan.viewCount || 0}</span>
-                                <span className="text-gray-500">views</span>
-                              </span>
-                              <span className="text-sm text-gray-600 flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
-                                <Users className="w-4 h-4 text-gray-400" />
-                                <span className="font-medium">{plan.totalBookings || 0}</span>
-                                <span className="text-gray-500">bookings</span>
-                              </span>
+                              {plan.status !== 'draft' && (
+                                <>
+                                  <span className="text-sm text-gray-600 flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
+                                    <Eye className="w-4 h-4 text-gray-400" />
+                                    <span className="font-medium">{plan.viewCount || 0}</span>
+                                    <span className="text-gray-500">views</span>
+                                  </span>
+                                  <span className="text-sm text-gray-600 flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
+                                    <Users className="w-4 h-4 text-gray-400" />
+                                    <span className="font-medium">{plan.totalBookings || 0}</span>
+                                    <span className="text-gray-500">bookings</span>
+                                  </span>
+                                </>
+                              )}
                               <span className="text-sm font-semibold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-lg">
                                 ₹{plan.pricing?.pricePerPerson?.toLocaleString('en-IN') || 0}/person
                               </span>

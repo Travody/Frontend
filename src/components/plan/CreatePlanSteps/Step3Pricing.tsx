@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { DollarSign, Users } from 'lucide-react';
+import { Banknote, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -22,10 +22,7 @@ interface Step3PricingProps {
 }
 
 const currencies = [
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' }
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee' }
 ];
 
 export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Step3PricingProps) {
@@ -98,7 +95,7 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label>
-              <DollarSign className="w-4 h-4 inline mr-1" />
+              <Banknote className="w-4 h-4 inline mr-1" />
               Price Per Person *
             </Label>
             <div className="relative">
@@ -128,7 +125,7 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
               Currency *
             </Label>
             <Select
-              value={formData.pricing.currency}
+              value={formData.pricing.currency || 'INR'}
               onValueChange={(value: string) => handleInputChange('currency', value)}
               required
             >
