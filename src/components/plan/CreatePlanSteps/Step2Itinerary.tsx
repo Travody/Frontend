@@ -34,6 +34,8 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
 
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [durationValueInput, setDurationValueInput] = useState<string>('');
+  const [durationError, setDurationError] = useState<string>('');
   const isInitialMount = useRef(true);
 
   // Input fields for adding new items
@@ -46,6 +48,8 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
       itinerary: data.itinerary || {},
       gallery: data.gallery || []
     });
+    setDurationValueInput(duration.value?.toString() || '1');
+    setDurationError('');
 
     // Initialize inputs for each day
     if (duration.unit === 'days') {
@@ -121,6 +125,64 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
       // Reset itinerary when switching between hours and days
       itinerary: field === 'unit' ? {} : prev.itinerary
     }));
+  };
+
+  const handleDurationValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const maxValue = formData.duration.unit === 'hours' ? 24 : 15;
+    
+    // Allow empty input for clearing
+    if (inputValue === '') {
+      setDurationValueInput('');
+      setDurationError('');
+      handleDurationChange('value', 0); // Set to 0 when cleared
+      return;
+    }
+    
+    // Only allow numeric input
+    if (!/^\d+$/.test(inputValue)) {
+      return;
+    }
+    
+    const numValue = parseInt(inputValue);
+    
+    // Prevent entering values greater than max
+    if (numValue > maxValue) {
+      setDurationError(`*Maximum ${formData.duration.unit === 'hours' ? '24 hours' : '15 days'} allowed`);
+      setDurationValueInput(maxValue.toString());
+      handleDurationChange('value', maxValue);
+      return;
+    }
+    
+    // Clear error if value is valid
+    setDurationError('');
+    
+    // Update input and formData if value is valid
+    if (numValue > 0) {
+      setDurationValueInput(inputValue);
+      handleDurationChange('value', numValue);
+    }
+  };
+
+  const handleDurationValueBlur = () => {
+    const numValue = parseInt(durationValueInput);
+    const maxValue = formData.duration.unit === 'hours' ? 24 : 15;
+    
+    if (isNaN(numValue) || numValue < 1) {
+      // Reset to 1 if invalid or empty
+      setDurationValueInput('1');
+      handleDurationChange('value', 1);
+      setDurationError('');
+    } else if (numValue > maxValue) {
+      // Cap at maximum value
+      setDurationValueInput(maxValue.toString());
+      handleDurationChange('value', maxValue);
+      setDurationError(`*Maximum ${formData.duration.unit === 'hours' ? '24 hours' : '15 days'} allowed`);
+    } else {
+      // Ensure the input matches the formData value
+      setDurationValueInput(numValue.toString());
+      setDurationError('');
+    }
   };
 
   const handleFileUpload = async (files: FileList) => {
@@ -266,9 +328,11 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
       
       return (
         <div className="border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-3">
-            Add the places and activities for this {formData.duration.value}-hour tour
-          </p>
+          {formData.duration.value > 0 && (
+            <p className="text-sm text-gray-600 mb-3">
+              Add the places and activities for this {formData.duration.value}-hour tour
+            </p>
+          )}
           
           {/* Existing items list */}
           {items.length > 0 && (
@@ -344,13 +408,25 @@ export default function Step2Itinerary({ data, onSubmit, isLoading, isValid }: S
               Duration Value *
             </label>
             <Input
-              type="number"
+              type="text"
+              inputMode="numeric"
               min="1"
-              max={formData.duration.unit === 'hours' ? 168 : 365}
-              value={formData.duration.value}
-              onChange={(e) => handleDurationChange('value', parseInt(e.target.value) || 1)}
+              max={formData.duration.unit === 'hours' ? 24 : 15}
+              value={durationValueInput}
+              onChange={handleDurationValueChange}
+              onBlur={handleDurationValueBlur}
               required
+              className={durationError ? 'border-red-500 focus:border-red-500 focus-visible:ring-red-500' : ''}
             />
+            {durationError ? (
+              <p className="mt-1 text-xs text-red-500 font-medium">
+                {durationError}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-gray-500">
+                *Maximum {formData.duration.unit === 'hours' ? '24 hours' : '15 days'} allowed
+              </p>
+            )}
           </div>
 
           <div>

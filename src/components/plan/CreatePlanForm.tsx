@@ -477,10 +477,12 @@ export default function CreatePlanForm() {
                   <Users className="w-4 h-4 mr-1" />
                   <span>Up to {(plan as any).pricing?.maxParticipants || (plan as any).maxParticipants || 0} people</span>
                 </div>
-                <div className="flex items-center">
-                  <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                  <span>{plan.rating?.toFixed(1) || 'New'} ({plan.totalReviews || 0} reviews)</span>
-                </div>
+                {(plan as any).status !== 'draft' && (
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                    <span>{plan.rating?.toFixed(1) || 'New'} ({plan.totalReviews || 0} reviews)</span>
+                  </div>
+                )}
               </div>
             </div>
 

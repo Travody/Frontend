@@ -209,7 +209,7 @@ export default function MyPlansPage() {
                           <span>Up to {plan.pricing.maxParticipants}</span>
                         </div>
                       )}
-                      {plan.rating && plan.rating > 0 && (
+                      {plan.rating > 0 && (
                         <div className="flex items-center">
                           <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current" />
                           <span>{plan.rating.toFixed(1)}</span>
@@ -228,17 +228,19 @@ export default function MyPlansPage() {
                     )}
 
                     {/* Plan Metrics */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t">
-                      <div>
-                        <span className="font-medium">Views:</span> {plan.viewCount || 0}
+                    {plan.status !== 'draft' && (
+                      <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t">
+                        <div>
+                          <span className="font-medium">Views:</span> {plan.viewCount || 0}
+                        </div>
+                        <div>
+                          <span className="font-medium">Bookings:</span> {plan.bookingCount || plan.totalBookings || 0}
+                        </div>
+                        <div>
+                          <span className="font-medium">Reviews:</span> {plan.totalReviews || 0}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Bookings:</span> {plan.bookingCount || plan.totalBookings || 0}
-                      </div>
-                      <div>
-                        <span className="font-medium">Reviews:</span> {plan.totalReviews || 0}
-                      </div>
-                    </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 pt-2">

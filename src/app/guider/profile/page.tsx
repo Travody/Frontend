@@ -1,11 +1,13 @@
 'use client';
 
 import { Suspense, useState, useEffect, useRef } from 'react';
-import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircle, Calendar, Languages, Trophy, Globe, Instagram, FileText, Clock, Car, Info, Coins, Edit, Save, X, Search, ChevronDown, Plus, Lock } from 'lucide-react';
+import { User, Building2, MapPin, Award, Star, Phone, Mail, CheckCircle2, XCircle, Calendar, Languages, Trophy, Globe, Instagram, FileText, Clock, Car, Info, Coins, Edit, Save, X, Search, ChevronDown, Plus, Lock, Camera } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { usersService, reviewsService } from '@/lib/api';
+import { usersService, reviewsService, uploadService } from '@/lib/api';
+import { apiClient } from '@/lib/api/api-client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Review } from '@/types';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
@@ -22,6 +24,14 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface GuiderProfileData {
   _id: string;
@@ -40,6 +50,7 @@ interface GuiderProfileData {
     aboutMe?: string;
     certifications?: string[];
     awards?: string[];
+    profileImageUrl?: string;
   };
   businessInfo?: {
     companyName?: string;
@@ -295,6 +306,8 @@ function GuiderProfileContent() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showProfileImageDialog, setShowProfileImageDialog] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -337,6 +350,7 @@ function GuiderProfileContent() {
             newCertification: '',
             awards: data.personalInfo?.awards || [],
             newAward: '',
+            profileImageUrl: data.personalInfo?.profileImageUrl || '',
             // Business Info
             companyName: data.businessInfo?.companyName || '',
             foundingDate: data.businessInfo?.foundingDate ? new Date(data.businessInfo.foundingDate).toISOString().split('T')[0] : '',
@@ -413,6 +427,56 @@ function GuiderProfileContent() {
     });
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    const userId = user?.id || (user as any)?._id;
+    if (!userId) {
+      toast.error('User ID not found. Please refresh the page.');
+      return;
+    }
+
+    try {
+      toast.info('Uploading image...');
+      const response = await uploadService.uploadProfilePicture(file, userId);
+      
+      if (response.success && response.data?.imageUrl) {
+        handleInputChange('profileImageUrl', response.data.imageUrl);
+        toast.success('Profile image uploaded successfully');
+        // Auto-save the image URL
+        if (profileData && token) {
+          try {
+            await usersService.updateGuiderProfile(profileData._id, { profileImageUrl: response.data.imageUrl });
+            const refreshResponse = await usersService.getCurrentUser('guider');
+            if (refreshResponse.success && refreshResponse.data) {
+              setProfileData(refreshResponse.data as any);
+              refreshUser(refreshResponse.data);
+            }
+            setShowProfileImageDialog(false);
+          } catch (error) {
+            console.error('Error saving image:', error);
+          }
+        }
+      } else {
+        toast.error(response.message || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
   const handleSubmit = async (tab: 'personal' | 'business' | 'tour') => {
     if (!profileData || !token) return;
 
@@ -428,6 +492,7 @@ function GuiderProfileContent() {
         if (formData.aboutMe !== undefined) updateData.aboutMe = formData.aboutMe;
         if (formData.certifications) updateData.certifications = formData.certifications;
         if (formData.awards) updateData.awards = formData.awards;
+        if (formData.profileImageUrl !== undefined) updateData.profileImageUrl = formData.profileImageUrl;
       } else if (tab === 'business') {
         if (formData.companyName !== undefined) updateData.companyName = formData.companyName;
         if (formData.foundingDate) updateData.foundingDate = formData.foundingDate;
@@ -461,6 +526,7 @@ function GuiderProfileContent() {
               aboutMe: refreshedData.personalInfo?.aboutMe || '',
               certifications: refreshedData.personalInfo?.certifications || [],
               awards: refreshedData.personalInfo?.awards || [],
+              profileImageUrl: refreshedData.personalInfo?.profileImageUrl || '',
             }));
           }
           // Update user context with refreshed data
@@ -497,6 +563,7 @@ function GuiderProfileContent() {
           aboutMe: data.personalInfo?.aboutMe || '',
           certifications: data.personalInfo?.certifications || [],
           awards: data.personalInfo?.awards || [],
+          profileImageUrl: data.personalInfo?.profileImageUrl || '',
         }));
       } else if (tab === 'business') {
         setFormData((prev: any) => ({
@@ -637,7 +704,6 @@ function GuiderProfileContent() {
     
     return (
       <div className="space-y-6">
-        {renderEditHeader('personal')}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Showcase Name</label>
@@ -851,7 +917,6 @@ function GuiderProfileContent() {
     
     return (
       <div className="space-y-6">
-        {renderEditHeader('business')}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
@@ -991,7 +1056,6 @@ function GuiderProfileContent() {
     
     return (
       <div className="space-y-6">
-        {renderEditHeader('tour')}
         {/* Ratings and Stats - Read Only */}
         {(profileData?.tourGuideInfo?.rating || profileData?.tourGuideInfo?.totalReviews || profileData?.tourGuideInfo?.totalTours) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1449,8 +1513,6 @@ function GuiderProfileContent() {
           </div>
         )}
 
-        {renderEditHeader('account')}
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Email Field */}
           <div>
@@ -1615,7 +1677,6 @@ function GuiderProfileContent() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between mb-4">
-          <Heading as="h2" variant="subsection">Your Reviews</Heading>
           {profileData?.tourGuideInfo?.rating !== undefined && (
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-500 fill-current" />
@@ -1752,8 +1813,21 @@ function GuiderProfileContent() {
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
             <CardContent className="p-8">
               <div className="flex items-center space-x-6">
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                  <User className="w-10 h-10 text-white" />
+                <div 
+                  className="relative group cursor-pointer"
+                  onClick={() => setShowProfileImageDialog(true)}
+                >
+                  <Avatar key={profileData?.personalInfo?.profileImageUrl || 'no-image'} className="w-20 h-20 border-4 border-white/30">
+                    {profileData?.personalInfo?.profileImageUrl && profileData.personalInfo.profileImageUrl.trim() !== '' && (
+                      <AvatarImage src={profileData.personalInfo.profileImageUrl} />
+                    )}
+                    <AvatarFallback className="bg-white/20 text-white text-2xl font-semibold">
+                      {(profileData?.personalInfo?.showcaseName || profileData?.personalInfo?.fullName || 'G').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
                 </div>
                 <div>
                   <Heading as="h1" variant="page" className="mb-2">
@@ -1773,6 +1847,117 @@ function GuiderProfileContent() {
             </CardContent>
           </Card>
 
+          {/* Profile Image Dialog */}
+          <Dialog open={showProfileImageDialog} onOpenChange={setShowProfileImageDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Profile Image</DialogTitle>
+                <DialogDescription>
+                  Update your profile picture
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="flex justify-center">
+                  <Avatar className="w-32 h-32">
+                    {((formData.profileImageUrl && formData.profileImageUrl.trim() !== '') || (profileData?.personalInfo?.profileImageUrl && profileData.personalInfo.profileImageUrl.trim() !== '')) && (
+                      <AvatarImage src={formData.profileImageUrl || profileData?.personalInfo?.profileImageUrl} />
+                    )}
+                    <AvatarFallback className="text-4xl font-semibold">
+                      {(profileData?.personalInfo?.showcaseName || profileData?.personalInfo?.fullName || 'G').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
+                    className="w-full"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Upload New Photo
+                  </Button>
+                  {(formData.profileImageUrl || profileData?.personalInfo?.profileImageUrl) && (
+                    <Button
+                      variant="destructive"
+                      onClick={async () => {
+                        handleInputChange('profileImageUrl', '');
+                        // Update UI immediately - set to undefined to force fallback
+                        if (profileData) {
+                          setProfileData({
+                            ...profileData,
+                            personalInfo: {
+                              ...profileData.personalInfo,
+                              profileImageUrl: undefined,
+                            },
+                          } as any);
+                        }
+                        // Save immediately to remove the image
+                        if (profileData && token) {
+                          try {
+                            await apiClient.patch(`/guides/${profileData._id}/profile`, { profileImageUrl: '' }, { showToast: false });
+                            const refreshResponse = await usersService.getCurrentUser('guider');
+                            if (refreshResponse.success && refreshResponse.data) {
+                              setProfileData(refreshResponse.data as any);
+                              refreshUser(refreshResponse.data);
+                            }
+                            toast.success('Profile image removed');
+                            setShowProfileImageDialog(false);
+                          } catch (error) {
+                            console.error('Error removing image:', error);
+                            toast.error('Failed to remove image');
+                            // Revert on error
+                            const refreshResponse = await usersService.getCurrentUser('guider');
+                            if (refreshResponse.success && refreshResponse.data) {
+                              setProfileData(refreshResponse.data as any);
+                            }
+                          }
+                        }
+                      }}
+                      className="w-full"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove Photo
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowProfileImageDialog(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (profileData && token) {
+                      try {
+                        await usersService.updateGuiderProfile(profileData._id, { profileImageUrl: formData.profileImageUrl || '' });
+                        const refreshResponse = await usersService.getCurrentUser('guider');
+                        if (refreshResponse.success && refreshResponse.data) {
+                          setProfileData(refreshResponse.data as any);
+                          refreshUser(refreshResponse.data);
+                        }
+                        toast.success('Profile image updated');
+                        setShowProfileImageDialog(false);
+                      } catch (error) {
+                        console.error('Error updating image:', error);
+                        toast.error('Failed to update image');
+                      }
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
             <TabsList className={`grid w-full ${profileData?.guiderType === 'Agency' ? 'grid-cols-6' : 'grid-cols-5'}`}>
@@ -1786,18 +1971,228 @@ function GuiderProfileContent() {
                 );
               })}
             </TabsList>
-          </Tabs>
 
-          {/* Tab Content */}
-          <Card>
-            <CardContent className="p-6">
-              {activeTab === 'personal' && renderPersonalInfo()}
-              {activeTab === 'business' && renderBusinessInfo()}
-              {activeTab === 'tour' && renderTourGuideInfo()}
-              {activeTab === 'reviews' && renderReviews()}
-              {activeTab === 'account' && renderAccountInfo()}
-            </CardContent>
-          </Card>
+            {/* Tab Content */}
+            <TabsContent value="personal">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Personal Information</CardTitle>
+                  </div>
+                  {!editingTabs.personal ? (
+                    <Button onClick={() => toggleEditMode('personal')} variant="outline">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          toggleEditMode('personal');
+                          // Reset form data to original values
+                          const data = profileData as any;
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            showcaseName: data.personalInfo?.showcaseName || '',
+                            fullName: data.personalInfo?.fullName || '',
+                            city: data.personalInfo?.city || '',
+                            education: data.personalInfo?.education || '',
+                            aboutMe: data.personalInfo?.aboutMe || '',
+                            certifications: data.personalInfo?.certifications || [],
+                            awards: data.personalInfo?.awards || [],
+                            profileImageUrl: data.personalInfo?.profileImageUrl || '',
+                          }));
+                        }}
+                        variant="outline"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button onClick={() => handleSubmit('personal')} disabled={saving}>
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Save
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {renderPersonalInfo()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {profileData?.guiderType === 'Agency' && (
+            <TabsContent value="business">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Business Information</CardTitle>
+                    </div>
+                    {!editingTabs.business ? (
+                      <Button onClick={() => toggleEditMode('business')} variant="outline">
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            toggleEditMode('business');
+                            const data = profileData as any;
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              companyName: data.businessInfo?.companyName || '',
+                              foundingDate: data.businessInfo?.foundingDate ? new Date(data.businessInfo.foundingDate).toISOString().split('T')[0] : '',
+                              websiteUrl: data.businessInfo?.websiteUrl || '',
+                              socialMediaProfile: data.businessInfo?.socialMediaProfile || '',
+                              hasGSTNumber: data.businessInfo?.hasGSTNumber || false,
+                              gstNumber: data.businessInfo?.gstNumber || '',
+                            }));
+                          }}
+                          variant="outline"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Cancel
+                        </Button>
+                        <Button onClick={() => handleSubmit('business')} disabled={saving}>
+                          {saving ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-2" />
+                              Save
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {renderBusinessInfo()}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          <TabsContent value="tour">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Tour Guide Information</CardTitle>
+                  </div>
+                  {!editingTabs.tour ? (
+                    <Button onClick={() => toggleEditMode('tour')} variant="outline">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          toggleEditMode('tour');
+                          const data = profileData as any;
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            languagesSpoken: data.tourGuideInfo?.languagesSpoken || [],
+                            hasVehicle: data.tourGuideInfo?.hasVehicle || false,
+                            vehicleDescription: data.tourGuideInfo?.vehicleDescription || '',
+                            availabilitySchedule: data.tourGuideInfo?.availabilitySchedule || { type: 'all_days' },
+                          }));
+                        }}
+                        variant="outline"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button onClick={() => handleSubmit('tour')} disabled={saving}>
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Save
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {renderTourGuideInfo()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Reviews</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {renderReviews()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="account">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Account Settings</CardTitle>
+                  </div>
+                  {!editingTabs.account ? (
+                    <Button onClick={() => toggleEditMode('account')} variant="outline">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          toggleEditMode('account');
+                          setNewEmail(profileData?.email || user?.email || '');
+                          setNewPhone(profileData?.mobile || user?.mobile || '');
+                          setShowOtpVerification(false);
+                          setOtp('');
+                          setOtpSent(false);
+                        }}
+                        variant="outline"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {renderAccountInfo()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          </Tabs>
         </Container>
       </Section>
     </AppLayout>

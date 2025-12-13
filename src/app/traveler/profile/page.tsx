@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { usersService, uploadService } from '@/lib/api';
+import { apiClient } from '@/lib/api/api-client';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,6 +91,7 @@ function TravelerProfileContent() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showProfileImageDialog, setShowProfileImageDialog] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -215,6 +217,18 @@ function TravelerProfileContent() {
       if (response.success && response.data?.imageUrl) {
         handleInputChange('profileImageUrl', response.data.imageUrl);
         toast.success('Profile image uploaded successfully');
+        // Auto-save the image URL
+        try {
+          await usersService.updateTravelerProfileImage(response.data.imageUrl);
+          const refreshResponse = await usersService.getCurrentUser('traveler');
+          if (refreshResponse.success && refreshResponse.data) {
+            setProfileData(refreshResponse.data as any);
+            refreshUser(refreshResponse.data);
+          }
+          setShowProfileImageDialog(false);
+        } catch (error) {
+          console.error('Error saving image:', error);
+        }
       } else {
         toast.error(response.message || 'Failed to upload image');
       }
@@ -364,9 +378,6 @@ function TravelerProfileContent() {
         if (formData.firstName) updateData.firstName = formData.firstName;
         if (formData.lastName !== undefined) updateData.lastName = formData.lastName;
         if (formData.city !== undefined) updateData.city = formData.city;
-        if (formData.profileImageUrl) {
-          await usersService.updateTravelerProfileImage(formData.profileImageUrl);
-        }
       } else if (tab === 'travel') {
         if (formData.travelStyle) updateData.travelStyle = formData.travelStyle;
         if (formData.preferredCategories !== undefined) updateData.preferredCategories = formData.preferredCategories;
@@ -424,12 +435,22 @@ function TravelerProfileContent() {
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
             <CardContent className="p-8">
               <div className="flex items-center space-x-6">
-                <Avatar className="w-20 h-20 border-4 border-white/20">
-                  <AvatarImage src={profileData?.profileImageUrl} alt="Profile" />
-                  <AvatarFallback className="bg-white/20 text-white text-2xl">
-                    {profileData?.firstName?.charAt(0) || (user && user.userType === 'traveler' ? user.firstName?.charAt(0) : null) || 'T'}
-                  </AvatarFallback>
-                </Avatar>
+                <div 
+                  className="relative group cursor-pointer"
+                  onClick={() => setShowProfileImageDialog(true)}
+                >
+                  <Avatar key={profileData?.profileImageUrl || 'no-image'} className="w-20 h-20 border-4 border-white/30">
+                    {profileData?.profileImageUrl && profileData.profileImageUrl.trim() !== '' && (
+                      <AvatarImage src={profileData.profileImageUrl} alt="Profile" />
+                    )}
+                    <AvatarFallback className="bg-white/20 text-white text-2xl font-semibold">
+                      {profileData?.firstName?.charAt(0).toUpperCase() || (user && user.userType === 'traveler' ? user.firstName?.charAt(0).toUpperCase() : null) || 'T'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
+                </div>
                 <div>
                   <Heading as="h1" variant="page" className="mb-2">
                     {profileData?.firstName || 'Traveler'} {profileData?.lastName || ''}
@@ -445,6 +466,86 @@ function TravelerProfileContent() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Profile Image Dialog */}
+          <Dialog open={showProfileImageDialog} onOpenChange={setShowProfileImageDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Profile Image</DialogTitle>
+                <DialogDescription>
+                  Update your profile picture
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="flex justify-center">
+                  <Avatar className="w-32 h-32">
+                    {((formData.profileImageUrl && formData.profileImageUrl.trim() !== '') || (profileData?.profileImageUrl && profileData.profileImageUrl.trim() !== '')) && (
+                      <AvatarImage src={formData.profileImageUrl || profileData?.profileImageUrl} />
+                    )}
+                    <AvatarFallback className="text-4xl font-semibold">
+                      {profileData?.firstName?.charAt(0) || (user && user.userType === 'traveler' ? user.firstName?.charAt(0) : null) || 'T'}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
+                    className="w-full"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Upload New Photo
+                  </Button>
+                  {(formData.profileImageUrl || profileData?.profileImageUrl) && (
+                    <Button
+                      variant="destructive"
+                      onClick={async () => {
+                        handleInputChange('profileImageUrl', '');
+                        // Update UI immediately - set to undefined to force fallback
+                        setProfileData((prev) => prev ? { ...prev, profileImageUrl: undefined } : null);
+                        // Save immediately to remove the image
+                        try {
+                          await apiClient.patch('/users/me/profile-picture', { profileImageUrl: '' }, { showToast: false });
+                          const refreshResponse = await usersService.getCurrentUser('traveler');
+                          if (refreshResponse.success && refreshResponse.data) {
+                            setProfileData(refreshResponse.data as any);
+                            refreshUser(refreshResponse.data);
+                          }
+                          toast.success('Profile image removed');
+                          setShowProfileImageDialog(false);
+                        } catch (error) {
+                          console.error('Error removing image:', error);
+                          toast.error('Failed to remove image');
+                          // Revert on error
+                          const refreshResponse = await usersService.getCurrentUser('traveler');
+                          if (refreshResponse.success && refreshResponse.data) {
+                            setProfileData(refreshResponse.data as any);
+                          }
+                        }
+                      }}
+                      className="w-full"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove Photo
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowProfileImageDialog(false)}>
+                  Cancel
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -470,7 +571,6 @@ function TravelerProfileContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>Personal Information</CardTitle>
-                      <CardDescription>Manage your personal details and profile image</CardDescription>
                     </div>
                     {!editingTabs.personal ? (
                       <Button onClick={() => toggleEditMode('personal')} variant="outline">
@@ -498,55 +598,6 @@ function TravelerProfileContent() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Profile Image */}
-                  <div className="space-y-4">
-                    <Label>Profile Image</Label>
-                    {editingTabs.personal ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="w-24 h-24">
-                            <AvatarImage src={formData.profileImageUrl || profileData?.profileImageUrl} />
-                            <AvatarFallback>
-                              <User className="w-12 h-12" />
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="hidden"
-                            />
-                            <Button
-                              type="button"
-                              onClick={() => fileInputRef.current?.click()}
-                              variant="outline"
-                            >
-                              <Camera className="w-4 h-4 mr-2" />
-                              {formData.profileImageUrl ? 'Change Image' : 'Upload Image'}
-                            </Button>
-                          </div>
-                        </div>
-                        <Input
-                          value={formData.profileImageUrl}
-                          onChange={(e) => handleInputChange('profileImageUrl', e.target.value)}
-                          placeholder="Or enter image URL"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <Avatar className="w-24 h-24">
-                          <AvatarImage src={profileData?.profileImageUrl} />
-                          <AvatarFallback>
-                            <User className="w-12 h-12" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="text-gray-600">{profileData?.profileImageUrl ? 'Profile image set' : 'No profile image'}</p>
-                      </div>
-                    )}
-                  </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
@@ -608,7 +659,6 @@ function TravelerProfileContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>Travel Preferences</CardTitle>
-                      <CardDescription>Tell us about your travel style and interests</CardDescription>
                     </div>
                     {!editingTabs.travel ? (
                       <Button onClick={() => toggleEditMode('travel')} variant="outline">
@@ -719,7 +769,6 @@ function TravelerProfileContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>Account Settings</CardTitle>
-                      <CardDescription>Manage your email, phone, and account status</CardDescription>
                     </div>
                     {!editingTabs.account ? (
                       <Button onClick={() => toggleEditMode('account')} variant="outline">

@@ -284,9 +284,28 @@ export const usePlanCreation = (planId?: string) => {
             (plan.availability.type === 'recurring' && plan.availability.recurring?.daysOfWeek && plan.availability.recurring.daysOfWeek.length > 0) ||
             (plan.availability.type === 'specific' && plan.availability.specific && plan.availability.specific.length > 0)
           )),
-          5: true, // Optional step
-          6: true, // Optional step
-          7: true, // Optional step
+          // Step 5: Additional Info - check if ALL fields have data
+          5: !!(
+            (plan.highlights && Array.isArray(plan.highlights) && plan.highlights.length > 0) &&
+            (plan.inclusions && Array.isArray(plan.inclusions) && plan.inclusions.length > 0) &&
+            (plan.exclusions && Array.isArray(plan.exclusions) && plan.exclusions.length > 0) &&
+            (plan.requirements && Array.isArray(plan.requirements) && plan.requirements.length > 0) &&
+            (plan.languages && Array.isArray(plan.languages) && plan.languages.length > 0)
+          ),
+          // Step 6: Logistics - check if ALL fields have data
+          6: !!(
+            (plan.meetingPoint && plan.meetingPoint.trim() !== '') &&
+            (plan.vehicleDetails && plan.vehicleDetails.trim() !== '') &&
+            (plan.contactPersonName && plan.contactPersonName.trim() !== '') &&
+            (plan.contactPersonPhone && plan.contactPersonPhone.trim() !== '') &&
+            (plan.contactPersonEmail && plan.contactPersonEmail.trim() !== '')
+          ),
+          // Step 7: Policies - check if ALL fields have data
+          7: !!(
+            (plan.cancellationPolicy && plan.cancellationPolicy.trim() !== '') &&
+            (plan.termsAndConditions && plan.termsAndConditions.trim() !== '') &&
+            (plan.specialInstructions && plan.specialInstructions.trim() !== '')
+          ),
         };
         setStepCompleted(completed);
 
