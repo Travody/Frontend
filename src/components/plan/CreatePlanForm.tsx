@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanCreation } from '@/hooks/usePlanCreation';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, Save, Globe, Lock, MapPin, Clock, Users, Star, X, Maximize2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Save, Globe, Lock, MapPin, Clock, Users, Star, X, Maximize2, ChevronLeft, ChevronRight, ArrowLeft, ListChecks } from 'lucide-react';
 import toast from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 // Step Components
 import Step1BasicDetails from './CreatePlanSteps/Step1BasicDetails';
@@ -56,7 +57,8 @@ export default function CreatePlanForm() {
     nextStep,
     prevStep,
     isStepValid,
-    areAllStepsCompleted
+    areAllStepsCompleted,
+    areSteps1To4Completed
   } = usePlanCreation(editPlanId || undefined);
 
   const isEditMode = !!editPlanId;
@@ -64,6 +66,8 @@ export default function CreatePlanForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [lastSavedStepData, setLastSavedStepData] = useState<Record<number, any>>({});
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPublishConfirmDialog, setShowPublishConfirmDialog] = useState(false);
 
   // Load plan data when in edit mode
   useEffect(() => {
@@ -210,22 +214,38 @@ export default function CreatePlanForm() {
     }
   };
 
-  const handlePublish = async () => {
+  const handlePublish = () => {
     if (!token || !createdPlan) {
       toast.error('Plan must be created first');
       return;
     }
 
-    if (!areAllStepsCompleted()) {
-      toast.error('Please complete all steps before publishing');
+    if (!areSteps1To4Completed()) {
+      toast.error('Please complete steps 1-4 (Basic Details, Itinerary, Pricing, and Schedule) before publishing');
+      return;
+    }
+
+    // Show confirmation dialog
+    setShowPublishConfirmDialog(true);
+  };
+
+  const handlePublishConfirm = async () => {
+    if (!token || !createdPlan) {
       return;
     }
     
     setIsSaving(true);
+    setShowPublishConfirmDialog(false);
+    
     try {
-      await publishPlan(createdPlan._id, token);
+      const publishedPlan = await publishPlan(createdPlan._id, token);
+      if (publishedPlan) {
+        // Redirect to my plans page
+        router.push('/guider/my-plans');
+      }
     } catch (error) {
       console.error('Error publishing plan:', error);
+      toast.error('Failed to publish plan. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -374,7 +394,7 @@ export default function CreatePlanForm() {
     const previewData = createdPlan || planData;
 
   return (
-      <div className="bg-gray-50 rounded-lg border p-3">
+            <div className="bg-gray-50 rounded-lg border p-2 sm:p-3">
         <div className="flex items-center justify-between mb-2">
           <Heading as="h3" variant="card" className="text-xs">Plan Preview</Heading>
           {createdPlan && (
@@ -454,13 +474,13 @@ export default function CreatePlanForm() {
 
     return (
       <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>Plan Preview</DialogTitle>
             <DialogDescription>Review your plan before publishing</DialogDescription>
           </DialogHeader>
           
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Plan Header */}
             <div>
               <Heading as="h1" variant="page" className="mb-2">{plan.title}</Heading>
@@ -468,7 +488,7 @@ export default function CreatePlanForm() {
                 <MapPin className="w-5 h-5 mr-2" />
                 <span>{plan.city}, {plan.state}</span>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-500">
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
                   <span>{plan.duration?.value || (typeof plan.duration === 'number' ? plan.duration : 0)} {plan.duration?.unit === 'days' ? 'day(s)' : 'hour(s)'}</span>
@@ -486,8 +506,8 @@ export default function CreatePlanForm() {
               </div>
             </div>
 
-            <div className="text-right">
-              <div className="text-3xl font-bold text-primary-600">
+            <div className="text-left sm:text-right">
+              <div className="text-2xl sm:text-3xl font-bold text-primary-600">
                 {formatPrice(
                   (plan as any).pricing?.pricePerPerson || (plan as any).pricePerPerson || 0,
                   (plan as any).pricing?.currency || (plan as any).currency || 'INR'
@@ -511,7 +531,7 @@ export default function CreatePlanForm() {
             {plan.gallery && plan.gallery.length > 0 && (
               <div>
                 <Heading as="h2" variant="subsection" className="mb-4">Photos</Heading>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {plan.gallery.map((image, index) => (
                     <img
                       key={index}
@@ -631,7 +651,7 @@ export default function CreatePlanForm() {
 
             {/* Requirements & Languages */}
             {(plan.requirements || plan.languages) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {plan.requirements && plan.requirements.length > 0 && (
                   <div>
                     <Heading as="h2" variant="subsection" className="mb-4">Requirements</Heading>
@@ -662,7 +682,7 @@ export default function CreatePlanForm() {
             )}
 
             {/* Inclusions & Exclusions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {plan.inclusions && plan.inclusions.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">What's Included</h2>
@@ -792,12 +812,20 @@ export default function CreatePlanForm() {
 
   return (
     <>
-      <div className="h-[calc(100vh-4rem)] bg-gray-50 flex flex-col overflow-hidden">
+      <div className="h-[calc(100vh-4rem)] bg-gray-50 flex flex-col overflow-hidden relative">
+        {/* Mobile Overlay */}
+        {sidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
         {/* Top Header with Publish Button */}
-        <div className="bg-white border-b flex-shrink-0 z-20">
-          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+        <div className="bg-white border-b flex-shrink-0 z-20 relative">
+          <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-2.5 sm:py-3">
+            <div className="flex items-center justify-between gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                 <button
                   onClick={() => {
                     if (isEditMode && createdPlan) {
@@ -806,57 +834,81 @@ export default function CreatePlanForm() {
                       router.push('/guider/my-plans');
                     }
                   }}
-                  className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
                   title={isEditMode ? "Back to Plan Details" : "Back to My Plans"}
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">
                   {isEditMode ? 'Edit Tour Plan' : 'Create New Tour Plan'}
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 {createdPlan && (
                   <>
                     {createdPlan.status === 'published' ? (
-                      <div className="flex items-center px-4 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-md">
-                        <Globe className="w-4 h-4 mr-2" />
-                        Published
+                      <div className="flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-md">
+                        <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2 flex-shrink-0" />
+                        <span className="hidden sm:inline">Published</span>
                       </div>
                     ) : (
                       <Button
                         onClick={handlePublish}
-                        disabled={isSaving || !areAllStepsCompleted()}
-                        title={!areAllStepsCompleted() ? 'Complete all steps to publish' : 'Publish plan to make it visible to travelers'}
+                        disabled={isSaving || !areSteps1To4Completed()}
+                        title={!areSteps1To4Completed() ? 'Complete steps 1-4 (Basic Details, Itinerary, Pricing, and Schedule) to publish' : 'Publish plan to make it visible to travelers'}
                         size="sm"
+                        className="flex"
                       >
-                        <Globe className="w-4 h-4 mr-2" />
-                        Publish Plan
+                        <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2 flex-shrink-0" />
+                        <span className="hidden md:inline">Publish Plan</span>
+                        <span className="hidden sm:inline md:hidden">Publish</span>
                       </Button>
                     )}
                   </>
                 )}
                 
                 {!createdPlan && (
-                  <div className="flex items-center px-4 py-2 text-sm text-gray-500 bg-gray-100 rounded-md">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Complete Step 1
+                  <div className="flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-500 bg-gray-100 rounded-md">
+                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Complete Step 1</span>
                   </div>
                 )}
+                
+                {/* Mobile Menu Toggle */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                  aria-label="Toggle steps menu"
+                >
+                  <ListChecks className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Content Area - Fixed Height with Independent Scrolling */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar - Fixed Width, Scrollable */}
-          <div className="w-72 flex-shrink-0 bg-white border-r flex flex-col overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Right Sidebar - Fixed Width, Scrollable */}
+          <div className={`fixed lg:relative top-[4rem] lg:top-auto bottom-0 lg:bottom-auto right-0 lg:left-0 w-72 z-50 lg:z-auto bg-white border-l lg:border-l-0 lg:border-r flex flex-col overflow-hidden transition-transform duration-300 ${
+            sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+          }`}>
+            {/* Mobile Close Button */}
+            <div className="lg:hidden flex items-center justify-between p-3 border-b">
+              <h2 className="text-sm font-semibold text-gray-900">Steps</h2>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               <div className="p-3 space-y-3">
                 {/* Steps - Compact */}
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900 mb-2">Steps</h2>
+                  <h2 className="hidden lg:block text-sm font-semibold text-gray-900 mb-2">Steps</h2>
                   <div className="space-y-1">
                     {steps.map((step, index) => (
                       <div key={step.step}>
@@ -940,14 +992,14 @@ export default function CreatePlanForm() {
           {/* Right Side - Form Content - Scrollable with Fixed Button */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto">
-              <div className="p-6 lg:p-8">
+              <div className="p-4 sm:p-6 lg:p-8">
                 {renderStepContent()}
               </div>
             </div>
 
             {/* Fixed Bottom Navigation */}
-            <div className="border-t border-gray-200 px-6 lg:px-8 py-3 bg-white flex-shrink-0">
-              <div className="flex items-center justify-between gap-4">
+            <div className="border-t border-gray-200 px-3 sm:px-4 lg:px-8 py-2.5 sm:py-3 bg-white flex-shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
                 {/* Left side - Save Draft */}
                 <Button
                   onClick={handleSaveDraft}
@@ -955,21 +1007,24 @@ export default function CreatePlanForm() {
                   variant="outline"
                   size="sm"
                   title={!isStepValid(1) ? 'Complete Step 1 first to save as draft' : 'Save draft'}
+                  className="w-full sm:w-auto"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Save Draft
+                  <span className="hidden sm:inline">Save Draft</span>
+                  <span className="sm:hidden">Save</span>
                 </Button>
 
                 {/* Center - Navigation buttons */}
-                <div className="flex items-center gap-3 ml-auto">
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto sm:ml-auto">
                   <Button
                     onClick={handlePrevious}
                     disabled={currentStep === 1 || isSaving}
                     variant="outline"
                     size="sm"
+                    className="flex-1 sm:flex-initial"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
-                    Previous
+                    <ChevronLeft className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Previous</span>
                   </Button>
                   
                   {currentStep === steps.length ? (
@@ -978,18 +1033,22 @@ export default function CreatePlanForm() {
                       disabled={!createdPlan || !isStepValid(currentStep) || isSaving}
                       size="sm"
                       title={!createdPlan ? 'Please complete Step 1 first to create the plan' : 'Finish and save plan'}
+                      className="flex-1 sm:flex-initial"
                     >
-                      Finish
-                      <CheckCircle className="w-4 h-4 ml-2" />
+                      <span className="hidden sm:inline">Finish</span>
+                      <span className="sm:hidden">Finish</span>
+                      <CheckCircle className="w-4 h-4 sm:ml-2 ml-1" />
                     </Button>
                   ) : (
                     <Button
                       onClick={handleNext}
                       disabled={!isStepValid(currentStep) || isSaving}
                       size="sm"
+                      className="flex-1 sm:flex-initial"
                     >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-2" />
+                      <span className="hidden sm:inline">Next</span>
+                      <span className="sm:hidden">Next</span>
+                      <ChevronRight className="w-4 h-4 sm:ml-2 ml-1" />
                     </Button>
                   )}
                 </div>
@@ -1001,6 +1060,19 @@ export default function CreatePlanForm() {
 
       {/* Full Preview Modal */}
       {renderFullPreview()}
+
+      {/* Publish Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showPublishConfirmDialog}
+        onClose={() => setShowPublishConfirmDialog(false)}
+        onConfirm={handlePublishConfirm}
+        title="Publish Plan"
+        message="Are you sure you want to publish this plan? Once published, it will be visible to all travelers and they can book it."
+        confirmText="Publish"
+        cancelText="Cancel"
+        variant="info"
+        disabled={isSaving}
+      />
     </>
   );
 }

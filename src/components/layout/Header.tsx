@@ -214,7 +214,7 @@ export default function Header({ user }: HeaderProps) {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
               <SheetHeader className="mb-6">
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
@@ -383,7 +383,7 @@ export default function Header({ user }: HeaderProps) {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+          <SheetContent side="right" className="w-[280px] sm:w-[320px]">
             <SheetHeader className="mb-6">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>

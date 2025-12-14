@@ -1960,17 +1960,19 @@ function GuiderProfileContent() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-            <TabsList className={`grid w-full ${profileData?.guiderType === 'Agency' ? 'grid-cols-6' : 'grid-cols-5'}`}>
+            <div className="w-full overflow-x-auto scrollbar-hide">
+              <TabsList className={`flex sm:grid ${profileData?.guiderType === 'Agency' ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} min-w-max sm:min-w-0 w-full sm:w-auto`}>
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 sm:gap-2">
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     {tab.label}
                   </TabsTrigger>
                 );
               })}
-            </TabsList>
+              </TabsList>
+            </div>
 
             {/* Tab Content */}
             <TabsContent value="personal">

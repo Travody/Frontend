@@ -1,8 +1,50 @@
+import type { Metadata } from 'next';
 import AppLayout from '@/components/layout/AppLayout';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Read Travody\'s Privacy Policy to understand how we collect, use, and protect your personal information when you use our platform.',
+  keywords: [
+    'privacy policy',
+    'data protection',
+    'user privacy',
+    'data security',
+    'personal information',
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: 'Privacy Policy | Travody',
+    description: 'Read Travody\'s Privacy Policy to understand how we collect, use, and protect your personal information.',
+    url: '/privacy',
+    siteName: 'Travody',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Travody Privacy Policy',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy | Travody',
+    description: 'Read Travody\'s Privacy Policy to understand how we protect your personal information.',
+    images: ['/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/privacy',
+  },
+};
 
 export default function PrivacyPage() {
   return (
@@ -140,7 +182,7 @@ export default function PrivacyPage() {
                       <li><strong>Withdraw Consent:</strong> Withdraw consent for data processing</li>
                     </ul>
                     <p className="text-gray-600 mb-4">
-                      To exercise these rights, please contact us at privacy@travody.com.
+                      To exercise these rights, please contact us at support@travody.com.
                     </p>
                   </section>
 
@@ -186,8 +228,7 @@ export default function PrivacyPage() {
                       If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
                     </p>
                     <p className="text-gray-600">
-                      Email: privacy@travody.com<br />
-                      Address: 123 Travel Street, Mumbai, Maharashtra 400001, India
+                      Email: support@travody.com<br />
                     </p>
                   </section>
                 </div>

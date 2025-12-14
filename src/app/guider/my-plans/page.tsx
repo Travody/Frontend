@@ -136,13 +136,15 @@ export default function MyPlansPage() {
 
           {/* Filter Tabs */}
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mb-8">
-            <TabsList className="grid w-full max-w-md grid-cols-5">
+            <div className="w-full max-w-md overflow-x-auto scrollbar-hide">
+              <TabsList className="flex sm:grid sm:grid-cols-5 min-w-max sm:min-w-0 w-full sm:w-auto">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="published">Published</TabsTrigger>
               <TabsTrigger value="draft">Draft</TabsTrigger>
               <TabsTrigger value="paused">Paused</TabsTrigger>
               <TabsTrigger value="archived">Archived</TabsTrigger>
-            </TabsList>
+              </TabsList>
+            </div>
           </Tabs>
 
           {/* Plans Grid */}

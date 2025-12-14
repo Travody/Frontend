@@ -1,8 +1,46 @@
+import type { Metadata } from 'next';
 import AppLayout from '@/components/layout/AppLayout';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, MapPin, Heart, Award, Target, Lightbulb } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description: 'Learn about Travody - connecting travelers with authentic local experiences across India. Discover our mission, vision, and values.',
+  keywords: [
+    'about Travody',
+    'travel platform India',
+    'local guides platform',
+    'authentic travel',
+    'India tourism',
+  ],
+  openGraph: {
+    title: 'About Us | Travody',
+    description: 'Learn about Travody - connecting travelers with authentic local experiences across India.',
+    url: '/about',
+    siteName: 'Travody',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'About Travody',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Us | Travody',
+    description: 'Learn about Travody - connecting travelers with authentic local experiences across India.',
+    images: ['/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/about',
+  },
+};
 
 export default function AboutPage() {
   return (

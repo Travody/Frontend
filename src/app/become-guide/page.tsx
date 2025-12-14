@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Users, DollarSign, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import AppLayout from '@/components/layout/AppLayout';
+
+export const metadata: Metadata = {
+  title: 'Become a Local Guide',
+  description: 'Join Travody as a local guide and share your passion for your city. Earn money by guiding travelers to amazing experiences. Start your journey today.',
+  keywords: [
+    'become tour guide',
+    'guide registration',
+    'local guide signup',
+    'tour guide jobs',
+    'guide opportunities India',
+    'earn as guide',
+    'guide application',
+  ],
+  openGraph: {
+    title: 'Become a Local Guide | Travody',
+    description: 'Join Travody as a local guide and share your passion for your city. Earn money by guiding travelers to amazing experiences.',
+    url: '/become-guide',
+    siteName: 'Travody',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Become a Local Guide on Travody',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Become a Local Guide | Travody',
+    description: 'Join Travody as a local guide and share your passion for your city. Earn money by guiding travelers.',
+    images: ['/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/become-guide',
+  },
+};
 
 const benefits = [
   {

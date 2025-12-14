@@ -90,9 +90,9 @@ export default function Step3Pricing({ data, onSubmit, isLoading, isValid }: Ste
         <p className="text-muted-foreground">Set pricing and maximum group size</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Price and Currency */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <Label>
               <Banknote className="w-4 h-4 inline mr-1" />

@@ -1,8 +1,50 @@
+import type { Metadata } from 'next';
 import AppLayout from '@/components/layout/AppLayout';
 import { Container } from '@/components/ui/container';
 import { Section } from '@/components/ui/section';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions',
+  description: 'Read Travody\'s Terms & Conditions to understand the rules and guidelines for using our platform as a traveler or guide.',
+  keywords: [
+    'terms and conditions',
+    'user agreement',
+    'terms of service',
+    'platform rules',
+    'legal terms',
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: 'Terms & Conditions | Travody',
+    description: 'Read Travody\'s Terms & Conditions to understand the rules and guidelines for using our platform.',
+    url: '/terms',
+    siteName: 'Travody',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Travody Terms & Conditions',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms & Conditions | Travody',
+    description: 'Read Travody\'s Terms & Conditions to understand the rules for using our platform.',
+    images: ['/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/terms',
+  },
+};
 
 export default function TermsPage() {
   return (
@@ -153,8 +195,7 @@ export default function TermsPage() {
                       If you have any questions about these Terms & Conditions, please contact us at:
                     </p>
                     <p className="text-gray-600">
-                      Email: legal@travody.com<br />
-                      Address: 123 Travel Street, Mumbai, Maharashtra 400001, India
+                      Email: support@travody.com<br />
                     </p>
                   </section>
                 </div>

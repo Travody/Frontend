@@ -231,7 +231,8 @@ export default function GuiderBookingsDashboard() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-            <TabsList className="grid w-full max-w-3xl grid-cols-5">
+            <div className="w-full max-w-3xl overflow-x-auto scrollbar-hide">
+              <TabsList className="flex sm:grid sm:grid-cols-5 min-w-max sm:min-w-0 w-full sm:w-auto">
               <TabsTrigger value="all">
                 All ({bookings.length})
               </TabsTrigger>
@@ -247,7 +248,8 @@ export default function GuiderBookingsDashboard() {
               <TabsTrigger value="cancelled">
                 Cancelled ({bookings.filter(b => b.status?.status === 'cancelled').length})
               </TabsTrigger>
-            </TabsList>
+              </TabsList>
+            </div>
           </Tabs>
 
           {/* Bookings List */}

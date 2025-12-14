@@ -549,20 +549,22 @@ function TravelerProfileContent() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
-              <TabsTrigger value="personal" className="flex items-center gap-2">
-                <User className="w-4 h-4" />
+            <div className="w-full max-w-md overflow-x-auto scrollbar-hide mb-6">
+              <TabsList className="flex sm:grid sm:grid-cols-3 min-w-max sm:min-w-0 w-full sm:w-auto">
+              <TabsTrigger value="personal" className="flex items-center gap-1 sm:gap-2">
+                <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 Personal Info
               </TabsTrigger>
-              <TabsTrigger value="travel" className="flex items-center gap-2">
-                <Globe className="w-4 h-4" />
+              <TabsTrigger value="travel" className="flex items-center gap-1 sm:gap-2">
+                <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 Travel Preferences
               </TabsTrigger>
-              <TabsTrigger value="account" className="flex items-center gap-2">
-                <Award className="w-4 h-4" />
+              <TabsTrigger value="account" className="flex items-center gap-1 sm:gap-2">
+                <Award className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 Account
               </TabsTrigger>
-            </TabsList>
+              </TabsList>
+            </div>
 
             {/* Personal Info Tab */}
             <TabsContent value="personal">
