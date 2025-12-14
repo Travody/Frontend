@@ -147,9 +147,9 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
         <p className="text-muted-foreground">Tell us about your amazing tour experience</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Title and Description */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <div>
           <Label htmlFor="title">
             Tour Title *
@@ -180,7 +180,7 @@ export default function Step1BasicDetails({ data, onSubmit, isLoading, isValid }
         </div>
 
         {/* Location */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <Label>
               <MapPin className="w-4 h-4 inline mr-1" />

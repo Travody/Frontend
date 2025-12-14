@@ -63,6 +63,7 @@ export default function GuiderPlanDetailPage() {
   const [showPauseDialog, setShowPauseDialog] = useState(false);
   const [showPauseConfirmDialog, setShowPauseConfirmDialog] = useState(false);
   const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
+  const [showResumeConfirmDialog, setShowResumeConfirmDialog] = useState(false);
   const [pausedToDate, setPausedToDate] = useState('');
   const [pausedToTime, setPausedToTime] = useState('');
 
@@ -121,15 +122,72 @@ export default function GuiderPlanDetailPage() {
     }
   };
 
+  // Check if steps 1-4 are completed (required for publishing based on backend validation)
+  const areSteps1To4Completed = (planData: Plan): boolean => {
+    // Step 1: Basic Details
+    const step1Valid = !!(
+      planData.title &&
+      planData.description &&
+      planData.city &&
+      planData.state
+    );
+
+    // Step 2: Itinerary
+    const step2Valid = !!(
+      planData.duration &&
+      planData.duration.value &&
+      planData.duration.unit &&
+      planData.itinerary &&
+      Object.keys(planData.itinerary).length > 0 &&
+      Object.values(planData.itinerary).some((items: any) => Array.isArray(items) && items.length > 0)
+    );
+
+    // Step 3: Pricing
+    const step3Valid = !!(
+      planData.pricing &&
+      planData.pricing.pricePerPerson &&
+      planData.pricing.currency &&
+      planData.pricing.maxParticipants
+    );
+
+    // Step 4: Schedule/Availability
+    let step4Valid = false;
+    if (planData.availability && planData.availability.type) {
+      if (planData.availability.type === 'all_days') {
+        step4Valid = true;
+      } else if (planData.availability.type === 'recurring') {
+        step4Valid = !!(
+          planData.availability.recurring &&
+          planData.availability.recurring.daysOfWeek &&
+          planData.availability.recurring.daysOfWeek.length > 0
+        );
+      } else if (planData.availability.type === 'specific') {
+        step4Valid = !!(
+          planData.availability.specific &&
+          planData.availability.specific.length > 0
+        );
+      }
+    }
+
+    return step1Valid && step2Valid && step3Valid && step4Valid;
+  };
+
   const handleStatusChange = async (action: 'publish' | 'pause' | 'archive' | 'unarchive') => {
     if (!token || !plan) return;
+
+    // Validate steps 1-4 before publishing
+    if (action === 'publish' && !areSteps1To4Completed(plan)) {
+      toast.error('Please complete steps 1-4 (Basic Details, Itinerary, Pricing, and Schedule) before publishing');
+      return;
+    }
 
     try {
       let response;
       switch (action) {
         case 'publish':
-          response = await plansService.publishPlan(plan._id);
-          break;
+          // Show confirmation dialog for both draft and paused statuses
+          setShowResumeConfirmDialog(true);
+          return;
         case 'pause':
           // Show confirmation dialog first
           setShowPauseConfirmDialog(true);
@@ -143,11 +201,28 @@ export default function GuiderPlanDetailPage() {
           break;
       }
 
-      if (response.success && response.data) {
+      if (response?.success && response.data) {
         setPlan(response.data);
       }
     } catch (error) {
       console.error(`Error ${action}ing plan:`, error);
+    }
+  };
+
+  const handleResumeConfirm = async () => {
+    if (!token || !plan) return;
+
+    const isResuming = plan.status === 'paused';
+
+    try {
+      const response = await plansService.publishPlan(plan._id);
+      if (response.success && response.data) {
+        setPlan(response.data);
+      }
+    } catch (error) {
+      console.error(`Error ${isResuming ? 'resuming' : 'publishing'} plan:`, error);
+    } finally {
+      setShowResumeConfirmDialog(false);
     }
   };
 
@@ -436,7 +511,9 @@ export default function GuiderPlanDetailPage() {
                 {plan.status === 'draft' && (
                   <Button
                     onClick={() => handleStatusChange('publish')}
+                    disabled={!areSteps1To4Completed(plan)}
                     className="bg-green-600 hover:bg-green-700"
+                    title={!areSteps1To4Completed(plan) ? 'Complete steps 1-4 (Basic Details, Itinerary, Pricing, and Schedule) to publish' : 'Publish plan to make it visible to travelers'}
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     Publish Plan
@@ -455,7 +532,9 @@ export default function GuiderPlanDetailPage() {
                 {plan.status === 'paused' && (
                   <Button
                     onClick={() => handleStatusChange('publish')}
+                    disabled={!areSteps1To4Completed(plan)}
                     className="bg-green-600 hover:bg-green-700"
+                    title={!areSteps1To4Completed(plan) ? 'Complete steps 1-4 (Basic Details, Itinerary, Pricing, and Schedule) to resume' : 'Resume plan to make it visible to travelers'}
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     Resume Plan
@@ -506,6 +585,20 @@ export default function GuiderPlanDetailPage() {
             confirmText="Archive"
             cancelText="Cancel"
             variant="default"
+          />
+
+          {/* Resume/Publish Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showResumeConfirmDialog}
+            onClose={() => setShowResumeConfirmDialog(false)}
+            onConfirm={handleResumeConfirm}
+            title={plan?.status === 'paused' ? 'Resume Plan' : 'Publish Plan'}
+            message={plan?.status === 'paused' 
+              ? 'Are you sure you want to resume this plan? Once resumed, it will be visible to all travelers and they can book it.'
+              : 'Are you sure you want to publish this plan? Once published, it will be visible to all travelers and they can book it.'}
+            confirmText={plan?.status === 'paused' ? 'Resume' : 'Publish'}
+            cancelText="Cancel"
+            variant="info"
           />
 
           {/* Pause Dialog */}

@@ -217,6 +217,8 @@ export const usePlanCreation = (planId?: string) => {
     try {
       const response = await plansService.publishPlan(planId);
       if (response.success && response.data) {
+        // Update createdPlan with published plan data
+        setCreatedPlan(response.data);
         return response.data;
       }
       return null;
@@ -406,6 +408,11 @@ export const usePlanCreation = (planId?: string) => {
            stepCompleted[7];
   }, [stepCompleted]);
 
+  // Check if steps 1-4 are completed (required for publishing based on backend validation)
+  const areSteps1To4Completed = useCallback((): boolean => {
+    return isStepValid(1) && isStepValid(2) && isStepValid(3) && isStepValid(4);
+  }, [isStepValid]);
+
   return {
     currentStep,
     isLoading,
@@ -425,6 +432,7 @@ export const usePlanCreation = (planId?: string) => {
     nextStep,
     prevStep,
     isStepValid,
-    areAllStepsCompleted
+    areAllStepsCompleted,
+    areSteps1To4Completed
   };
 };
