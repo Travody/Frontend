@@ -45,18 +45,8 @@ const nextConfig: NextConfig = {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://travody.com';
     
     return [
-      // Redirect www to non-www (or vice versa - adjust based on your preference)
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.travody.com',
-          },
-        ],
-        destination: `${baseUrl}/:path*`,
-        permanent: true,
-      },
+      // Note: Domain-level redirect from travody.com to www.travody.com is handled at DNS/Vercel level
+      // No need to redirect www to non-www here to avoid redirect loops
       
       // Redirect trailing slashes to non-trailing (or vice versa)
       {
