@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Linkedin, Mail } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, Twitter } from 'lucide-react';
 import Link from 'next/link';
 import { Container } from '@/components/ui/container';
 
@@ -87,7 +87,7 @@ export default function Footer() {
               
               <div className="flex items-center gap-4">
                 <a 
-                  href="https://www.facebook.com/travody" 
+                  href="https://www.facebook.com/profile.php?id=61584726076381" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
@@ -96,7 +96,7 @@ export default function Footer() {
                   <Facebook className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://www.instagram.com/travody" 
+                  href="https://www.instagram.com/crewconnect.x/" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
@@ -105,13 +105,22 @@ export default function Footer() {
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://www.linkedin.com/company/travody" 
+                  href="https://www.linkedin.com/in/travody/" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="h-5 w-5" />
+                </a>
+                <a 
+                  href="https://x.com/travody_trips" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary-600 transition-colors"
+                  aria-label="X (Twitter)"
+                >
+                  <Twitter className="h-5 w-5" />
                 </a>
                 <a 
                   href="mailto:support@travody.com" 
