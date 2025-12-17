@@ -58,11 +58,10 @@ export default function StructuredData({ type = 'organization', data }: Structur
     url: baseUrl,
     description: 'Discover India with Local Experts - Connect, Explore, Experience',
     sameAs: [
-      // Add your social media links here
-      // 'https://www.facebook.com/travody',
-      // 'https://www.twitter.com/travody',
-      // 'https://www.instagram.com/travody',
-      // 'https://www.linkedin.com/company/travody',
+      'https://www.facebook.com/profile.php?id=61584726076381',
+      'https://x.com/travody_trips',
+      'https://www.instagram.com/crewconnect.x/',
+      'https://www.linkedin.com/in/travody/',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
