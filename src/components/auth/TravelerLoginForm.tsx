@@ -32,14 +32,15 @@ export default function TravelerLoginForm() {
     try {
       const response = await authService.loginTraveler(formData);
       
-      if (response.success) {
+      if (response.success && response.data) {
         // Check if verification is required
-        if ((response as any).requiresVerification && response.data) {
+        if (response.data.requiresVerification) {
           setShowOtpVerification(true);
           return;
         }
 
-        if (response.data?.token && response.data) {
+        // Check if token exists for verified users
+        if (response.data.token) {
           const userData = {
             id: response.data.id,
             email: response.data.email,
@@ -52,6 +53,9 @@ export default function TravelerLoginForm() {
           
           login(userData, response.data.token);
           router.push('/');
+        } else {
+          // If no token and no requiresVerification, something went wrong
+          console.error('Login response missing token:', response);
         }
       }
     } catch (error) {
@@ -195,7 +199,7 @@ export default function TravelerLoginForm() {
             </div>
 
             {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-              <div className="w-full [&>div]:w-full [&>div>div]:w-full [&>div>div]:min-h-[40px] [&>div>div]:rounded-md [&>div>div]:border [&>div>div]:border-input [&>div>div]:bg-background [&>div>div]:shadow-sm [&>div>div]:transition-colors [&>div>div:hover]:bg-accent [&>div>div:hover]:text-accent-foreground">
+              <div className="w-full google-button-wrapper">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}

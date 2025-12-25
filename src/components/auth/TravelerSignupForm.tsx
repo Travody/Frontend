@@ -29,12 +29,26 @@ export default function TravelerSignupForm() {
     city: ''
   });
 
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input and limit to 10 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setFormData({ ...formData, mobile: value });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await authService.registerTraveler(formData);
+      // Format mobile number with +91 prefix if provided
+      const submitData = {
+        ...formData,
+        mobile: formData.mobile && formData.mobile.length === 10 
+          ? `+91 ${formData.mobile}` 
+          : formData.mobile || undefined
+      };
+      
+      const response = await authService.registerTraveler(submitData);
       
       if (response.success) {
         setShowOtpVerification(true);
@@ -188,17 +202,29 @@ export default function TravelerSignupForm() {
             <div className="space-y-2">
               <Label htmlFor="mobile">Mobile Number (Optional)</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 font-medium z-10">
+                  +91
+                </div>
                 <Input
                   id="mobile"
                   type="tel"
                   value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  placeholder="+91 1234567890"
-                  className="pl-10"
+                  onChange={handlePhoneNumberChange}
+                  placeholder="9876543210"
+                  className="pl-12"
+                  maxLength={10}
                   suppressHydrationWarning
                 />
               </div>
+              {formData.mobile && formData.mobile.length !== 10 ? (
+                <p className="text-xs text-red-500">
+                  Please enter exactly 10 digits
+                </p>
+              ) : formData.mobile ? (
+                <p className="text-xs text-gray-500">
+                  Enter your 10-digit mobile number
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -236,7 +262,7 @@ export default function TravelerSignupForm() {
             </div>
 
             {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-              <div className="w-full [&>div]:w-full [&>div>div]:w-full [&>div>div]:min-h-[40px] [&>div>div]:rounded-md [&>div>div]:border [&>div>div]:border-input [&>div>div]:bg-background [&>div>div]:shadow-sm [&>div>div]:transition-colors [&>div>div:hover]:bg-accent [&>div>div:hover]:text-accent-foreground">
+              <div className="w-full google-button-wrapper">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}

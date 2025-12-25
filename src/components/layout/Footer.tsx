@@ -1,4 +1,5 @@
-import { Facebook, Instagram, Linkedin, Mail, Twitter } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { SiFacebook, SiInstagram, SiX } from 'react-icons/si';
 import Link from 'next/link';
 import { Container } from '@/components/ui/container';
 
@@ -93,25 +94,16 @@ export default function Footer() {
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Facebook"
                 >
-                  <Facebook className="h-5 w-5" />
+                  <SiFacebook className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://www.instagram.com/crewconnect.x/" 
+                  href="https://www.instagram.com/crewconnect.x" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5" />
-                </a>
-                <a 
-                  href="https://www.linkedin.com/in/travody/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-primary-600 transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="h-5 w-5" />
+                  <SiInstagram className="h-5 w-5" />
                 </a>
                 <a 
                   href="https://x.com/travody_trips" 
@@ -120,7 +112,7 @@ export default function Footer() {
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="X (Twitter)"
                 >
-                  <Twitter className="h-5 w-5" />
+                  <SiX className="h-5 w-5" />
                 </a>
                 <a 
                   href="mailto:support@travody.com" 

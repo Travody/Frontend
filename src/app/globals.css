@@ -81,5 +81,31 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Google Login Button Wrapper - Ensures proper styling in production */
+  .google-button-wrapper {
+    width: 100%;
+  }
+  
+  .google-button-wrapper > div {
+    width: 100% !important;
+  }
+  
+  .google-button-wrapper > div > div {
+    width: 100% !important;
+    min-height: 40px !important;
+    border-radius: 0.375rem !important;
+    border: 1px solid hsl(var(--input)) !important;
+    background-color: hsl(var(--background)) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+  }
+  
+  .google-button-wrapper > div > div:hover {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+  }
 }
 
