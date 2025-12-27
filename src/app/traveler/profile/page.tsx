@@ -421,6 +421,12 @@ function TravelerProfileContent() {
     );
   }
 
+  const tabs = [
+    { id: 'personal' as const, label: 'Personal Info', icon: User },
+    { id: 'travel' as const, label: 'Travel Preferences', icon: Globe },
+    { id: 'account' as const, label: 'Account', icon: Award },
+  ];
+
   return (
     <AppLayout>
       <Breadcrumb
@@ -433,10 +439,10 @@ function TravelerProfileContent() {
         <Container>
           {/* Profile Header */}
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-            <CardContent className="p-8">
-              <div className="flex items-center space-x-6">
+            <CardContent className="p-4 md:p-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div 
-                  className="relative group cursor-pointer"
+                  className="relative group cursor-pointer flex-shrink-0"
                   onClick={() => setShowProfileImageDialog(true)}
                 >
                   <Avatar key={profileData?.profileImageUrl || 'no-image'} className="w-20 h-20 border-4 border-white/30">
@@ -451,13 +457,13 @@ function TravelerProfileContent() {
                     <Camera className="w-8 h-8 text-white" />
                   </div>
                 </div>
-                <div>
+                <div className="flex-1 min-w-0 text-center sm:text-left">
                   <Heading as="h1" variant="page" className="mb-2">
                     {profileData?.firstName || 'Traveler'} {profileData?.lastName || ''}
                   </Heading>
-                  <p className="text-white/90">{profileData?.email || user?.email || ''}</p>
+                  <p className="text-white/90 break-words overflow-wrap-anywhere">{profileData?.email || user?.email || ''}</p>
                   {profileData?.isVerified && (
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                       <CheckCircle2 className="w-5 h-5" />
                       <span className="text-sm">Verified Account</span>
                     </div>
@@ -548,21 +554,18 @@ function TravelerProfileContent() {
           </Dialog>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="w-full max-w-md overflow-x-auto scrollbar-hide mb-6">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+            <div className="w-full overflow-x-auto scrollbar-hide">
               <TabsList className="flex sm:grid sm:grid-cols-3 min-w-max sm:min-w-0 w-full sm:w-auto">
-              <TabsTrigger value="personal" className="flex items-center gap-1 sm:gap-2">
-                <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                Personal Info
-              </TabsTrigger>
-              <TabsTrigger value="travel" className="flex items-center gap-1 sm:gap-2">
-                <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                Travel Preferences
-              </TabsTrigger>
-              <TabsTrigger value="account" className="flex items-center gap-1 sm:gap-2">
-                <Award className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                Account
-              </TabsTrigger>
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 sm:gap-2">
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
               </TabsList>
             </div>
 

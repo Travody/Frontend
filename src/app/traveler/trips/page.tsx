@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Star, MapPin, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingsService, reviewsService } from '@/lib/api';
@@ -22,6 +23,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import ReviewDialog from '@/components/reviews/ReviewDialog';
 
 export default function TravelerTripsPage() {
+  const router = useRouter();
   const { token } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -257,7 +259,7 @@ export default function TravelerTripsPage() {
                 const guider = typeof booking.guiderId === 'object' ? booking.guiderId : null;
                 
                 return (
-                <Card key={booking._id} className="hover:shadow-md transition-shadow">
+                <Card key={booking._id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push(`/traveler/trips/${booking._id}`)}>
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row gap-6">
                       <div className="flex-1 space-y-4">
@@ -281,15 +283,15 @@ export default function TravelerTripsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div className="flex items-center text-sm text-gray-600">
                             <Calendar className="w-4 h-4 mr-2" />
-                            <span>{formatDate(booking.bookingDetails.date)}</span>
+                            <span>{booking.bookingDetails?.date ? formatDate(booking.bookingDetails.date) : 'N/A'}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <Users className="w-4 h-4 mr-2" />
-                            <span>{booking.bookingDetails.numberOfParticipants} people</span>
+                            <span>{booking.bookingDetails?.numberOfParticipants || 0} people</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <Clock className="w-4 h-4 mr-2" />
-                            <span>{formatPrice(booking.financial.totalAmount, booking.financial.currency)}</span>
+                            <span>{booking.financial?.totalAmount && booking.financial?.currency ? formatPrice(booking.financial.totalAmount, booking.financial.currency) : 'N/A'}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <MapPin className="w-4 h-4 mr-2" />
@@ -434,7 +436,10 @@ export default function TravelerTripsPage() {
                                             <p className="text-purple-800 text-sm mb-2">{existing.booking.comment}</p>
                                           )}
                                           <Button
-                                            onClick={() => handleAddReview(booking._id, 'booking')}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleAddReview(booking._id, 'booking');
+                                            }}
                                             variant="outline"
                                             size="sm"
                                             className="mt-2"
@@ -444,7 +449,10 @@ export default function TravelerTripsPage() {
                                         </div>
                                       ) : (
                                         <Button
-                                          onClick={() => handleAddReview(booking._id, 'booking')}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddReview(booking._id, 'booking');
+                                          }}
                                           variant="outline"
                                           size="sm"
                                           disabled={!eligibility.canReviewBooking}
@@ -487,7 +495,10 @@ export default function TravelerTripsPage() {
                                             <p className="text-purple-800 text-sm mb-2">{existing.guider.comment}</p>
                                           )}
                                           <Button
-                                            onClick={() => handleAddReview(booking._id, 'guider')}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleAddReview(booking._id, 'guider');
+                                            }}
                                             variant="outline"
                                             size="sm"
                                             className="mt-2"
@@ -497,7 +508,10 @@ export default function TravelerTripsPage() {
                                         </div>
                                       ) : (
                                         <Button
-                                          onClick={() => handleAddReview(booking._id, 'guider')}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddReview(booking._id, 'guider');
+                                          }}
                                           variant="outline"
                                           size="sm"
                                           disabled={!eligibility.canReviewGuider}
@@ -516,7 +530,7 @@ export default function TravelerTripsPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex flex-col gap-2 lg:min-w-[180px]">
+                      <div className="flex flex-col gap-2 lg:min-w-[180px]" onClick={(e) => e.stopPropagation()}>
                         {booking.status.status === 'pending' && (
                           <Button
                             onClick={() => handleCancelBooking(booking._id)}

@@ -130,7 +130,7 @@ export default function Header({ user }: HeaderProps) {
                 <Link 
                   href="/traveler/trips" 
                   className={`text-sm font-medium transition-colors relative group pb-1 ${
-                    pathname?.startsWith('/traveler/trips')
+                    pathname?.startsWith('/traveler/trips') || pathname?.startsWith('/traveler/bookings')
                       ? 'text-primary-600 font-semibold'
                       : 'text-gray-700 hover:text-primary-600'
                   }`}
@@ -268,7 +268,7 @@ export default function Header({ user }: HeaderProps) {
                       <Link 
                         href="/traveler/trips" 
                         className={`block px-3 py-2.5 text-base font-medium rounded-md transition-colors ${
-                          pathname?.startsWith('/traveler/trips')
+                          pathname?.startsWith('/traveler/trips') || pathname?.startsWith('/traveler/bookings')
                             ? 'bg-primary-50 text-primary-600 font-semibold'
                             : 'text-gray-900 hover:bg-gray-100'
                         }`}

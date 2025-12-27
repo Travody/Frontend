@@ -875,7 +875,7 @@ export default function PlanDetailsPage() {
                         </p>
                       </div>
                       {existingBooking && (
-                        <Link href="/traveler/bookings">
+                        <Link href="/traveler/trips">
                           <Button variant="outline" size="sm" className="text-xs">
                             View booking details
                           </Button>

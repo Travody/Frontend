@@ -36,25 +36,30 @@ export default function TravelerAuthPage() {
     
     try {
       const response = await authService.loginTraveler(loginData);
-      if (response.success) {
+      if (response.success && response.data) {
         // Check if verification is required
-        if ((response as any).requiresVerification && response.data) {
+        if (response.data.requiresVerification) {
           setShowOtpVerification(true);
           return;
         }
 
-        if (response.data && response.data.user && response.data.token) {
+        // Check if token exists for verified users
+        if (response.data.token) {
           // Login user with AuthContext
           login({
-            id: response.data.user.id,
-            email: response.data.user.email,
-            firstName: response.data.user.firstName,
-            lastName: response.data.user.lastName,
+            id: response.data.id,
+            email: response.data.email,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
             userType: 'traveler',
-            city: response.data.user.city,
+            city: response.data.city,
+            mobile: response.data.mobile,
           }, response.data.token);
           
           router.push('/');
+        } else {
+          // If no token and no requiresVerification, something went wrong
+          console.error('Login response missing token:', response);
         }
       }
     } catch (error) {

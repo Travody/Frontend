@@ -7,6 +7,21 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    // Safelist Google button wrapper classes to ensure they're included in production
+    'w-full',
+    '[&>div]:w-full',
+    '[&>div>div]:w-full',
+    '[&>div>div]:min-h-[40px]',
+    '[&>div>div]:rounded-md',
+    '[&>div>div]:border',
+    '[&>div>div]:border-input',
+    '[&>div>div]:bg-background',
+    '[&>div>div]:shadow-sm',
+    '[&>div>div]:transition-colors',
+    '[&>div>div]:hover:bg-accent',
+    '[&>div>div]:hover:text-accent-foreground',
+  ],
   theme: {
   	container: {
   		center: true,

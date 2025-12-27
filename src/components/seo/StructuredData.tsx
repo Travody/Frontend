@@ -61,7 +61,6 @@ export default function StructuredData({ type = 'organization', data }: Structur
       'https://www.facebook.com/profile.php?id=61584726076381',
       'https://x.com/travody_trips',
       'https://www.instagram.com/crewconnect.x/',
-      'https://www.linkedin.com/in/travody/',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
