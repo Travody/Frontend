@@ -277,17 +277,22 @@ export default function GuiderBookingsDashboard() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                           <div className="flex items-center text-sm text-gray-600">
                             <Calendar className="w-4 h-4 mr-2" />
                             <span>{booking.bookingDetails?.date ? formatDate(booking.bookingDetails.date) : 'N/A'}</span>
                           </div>
+                          {booking.bookingDetails?.startTime && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Clock className="w-4 h-4 mr-2" />
+                              <span>{booking.bookingDetails.startTime}</span>
+                            </div>
+                          )}
                           <div className="flex items-center text-sm text-gray-600">
                             <Users className="w-4 h-4 mr-2" />
                             <span>{booking.bookingDetails?.numberOfParticipants || 0} people</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
-                            <Clock className="w-4 h-4 mr-2" />
                             <span>{booking.financial?.totalAmount && booking.financial?.currency ? formatPrice(booking.financial.totalAmount, booking.financial.currency) : 'N/A'}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">

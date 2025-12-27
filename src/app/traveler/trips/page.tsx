@@ -283,15 +283,15 @@ export default function TravelerTripsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div className="flex items-center text-sm text-gray-600">
                             <Calendar className="w-4 h-4 mr-2" />
-                            <span>{formatDate(booking.bookingDetails.date)}</span>
+                            <span>{booking.bookingDetails?.date ? formatDate(booking.bookingDetails.date) : 'N/A'}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <Users className="w-4 h-4 mr-2" />
-                            <span>{booking.bookingDetails.numberOfParticipants} people</span>
+                            <span>{booking.bookingDetails?.numberOfParticipants || 0} people</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <Clock className="w-4 h-4 mr-2" />
-                            <span>{formatPrice(booking.financial.totalAmount, booking.financial.currency)}</span>
+                            <span>{booking.financial?.totalAmount && booking.financial?.currency ? formatPrice(booking.financial.totalAmount, booking.financial.currency) : 'N/A'}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
                             <MapPin className="w-4 h-4 mr-2" />
