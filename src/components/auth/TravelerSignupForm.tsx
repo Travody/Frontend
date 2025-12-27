@@ -150,7 +150,6 @@ export default function TravelerSignupForm() {
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     placeholder="Doe"
                     className="pl-10"
-                    required
                     suppressHydrationWarning
                   />
                 </div>
