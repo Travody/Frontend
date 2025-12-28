@@ -34,8 +34,7 @@ function ExploreContent() {
 
   const parseDateRange = (dateRangeValue: string): { fromDate: string; toDate: string } => {
     if (!dateRangeValue) {
-      const today = new Date().toISOString().split('T')[0];
-      return { fromDate: today, toDate: '' };
+      return { fromDate: '', toDate: '' };
     }
     
     const parts = dateRangeValue.split(' to ');
@@ -75,12 +74,10 @@ function ExploreContent() {
   const performSearch = async (locationValue: string, fromDateValue: string, toDateValue: string, type: SearchType) => {
     setIsLoading(true);
     try {
-      const defaultFromDate = fromDateValue || new Date().toISOString().split('T')[0];
-      
       if (type === 'guides') {
         const searchData: any = {};
         if (locationValue) searchData.location = locationValue;
-        if (defaultFromDate) searchData.fromDate = defaultFromDate;
+        if (fromDateValue) searchData.fromDate = fromDateValue;
         if (toDateValue) searchData.toDate = toDateValue;
 
         const response = await guidesService.searchGuides(searchData);
@@ -93,7 +90,7 @@ function ExploreContent() {
       } else {
         const searchData: any = {};
         if (locationValue) searchData.location = locationValue;
-        if (defaultFromDate) searchData.fromDate = defaultFromDate;
+        if (fromDateValue) searchData.fromDate = fromDateValue;
         if (toDateValue) searchData.toDate = toDateValue;
 
         const response = await plansService.searchPlans(searchData);

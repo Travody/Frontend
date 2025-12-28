@@ -1,5 +1,7 @@
-import { Facebook, Instagram, Linkedin, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { SiFacebook, SiInstagram, SiX } from 'react-icons/si';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/container';
 
 export default function Footer() {
@@ -11,9 +13,13 @@ export default function Footer() {
             {/* Company */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600">
-                  <span className="text-base font-bold text-white">T</span>
-                </div>
+                <Image 
+                  src="/logo.svg" 
+                  alt="Travody Logo" 
+                  width={32} 
+                  height={32} 
+                  className="h-8 w-8 rounded-full object-cover"
+                />
                 <span className="text-xl font-bold text-gray-900">Travody</span>
               </div>
               <p className="text-sm text-gray-600">
@@ -87,31 +93,31 @@ export default function Footer() {
               
               <div className="flex items-center gap-4">
                 <a 
-                  href="https://www.facebook.com/travody" 
+                  href="https://www.facebook.com/profile.php?id=61584726076381" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Facebook"
                 >
-                  <Facebook className="h-5 w-5" />
+                  <SiFacebook className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://www.instagram.com/travody" 
+                  href="https://www.instagram.com/crewconnect.x" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5" />
+                  <SiInstagram className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://www.linkedin.com/company/travody" 
+                  href="https://x.com/travody_trips" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary-600 transition-colors"
-                  aria-label="LinkedIn"
+                  aria-label="X (Twitter)"
                 >
-                  <Linkedin className="h-5 w-5" />
+                  <SiX className="h-5 w-5" />
                 </a>
                 <a 
                   href="mailto:support@travody.com" 

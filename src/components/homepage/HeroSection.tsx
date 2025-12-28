@@ -18,8 +18,7 @@ export default function HeroSection() {
 
   const parseDateRange = (dateRangeValue: string): { fromDate: string; toDate: string } => {
     if (!dateRangeValue) {
-      const today = new Date().toISOString().split('T')[0];
-      return { fromDate: today, toDate: '' };
+      return { fromDate: '', toDate: '' };
     }
     
     const parts = dateRangeValue.split(' to ');
@@ -42,7 +41,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
+    <section className="relative min-h-[85vh] flex items-center bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
       {/* Background Image with Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"

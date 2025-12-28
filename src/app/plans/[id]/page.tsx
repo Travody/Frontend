@@ -353,32 +353,32 @@ export default function PlanDetailsPage() {
               {/* Plan Header */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <Heading as="h1" variant="page" className="mb-2">{plan.title}</Heading>
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <Heading as="h1" variant="page" className="mb-2 break-words">{plan.title}</Heading>
                       <div className="flex items-center text-gray-600 mb-3">
-                        <MapPin className="w-5 h-5 mr-2" />
-                        <span>{plan.city}, {plan.state}</span>
+                        <MapPin className="w-5 h-5 mr-2 flex-shrink-0" />
+                        <span className="break-words">{plan.city}, {plan.state}</span>
                       </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
                         <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
+                          <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
                           <span>{plan.duration?.value || 0} {plan.duration?.unit || 'hours'}</span>
                         </div>
                         <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
+                          <Users className="w-4 h-4 mr-1 flex-shrink-0" />
                           <span>Up to {plan.pricing?.maxParticipants || 0} people</span>
                         </div>
                         {plan.totalReviews && plan.totalReviews > 0 && plan.rating && plan.rating > 0 && (
                           <div className="flex items-center">
-                            <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current" />
+                            <Star className="w-4 h-4 mr-1 text-yellow-500 fill-current flex-shrink-0" />
                             <span>{plan.rating.toFixed(1)} ({plan.totalReviews} {plan.totalReviews === 1 ? 'review' : 'reviews'})</span>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-primary-600">
+                    <div className="text-left sm:text-right flex-shrink-0">
+                      <div className="text-2xl sm:text-3xl font-bold text-primary-600">
                         {plan.pricing ? formatPrice(plan.pricing.pricePerPerson, plan.pricing.currency) : 'N/A'}
                       </div>
                       <div className="text-sm text-gray-500">per person</div>
@@ -875,7 +875,7 @@ export default function PlanDetailsPage() {
                         </p>
                       </div>
                       {existingBooking && (
-                        <Link href="/traveler/bookings">
+                        <Link href="/traveler/trips">
                           <Button variant="outline" size="sm" className="text-xs">
                             View booking details
                           </Button>

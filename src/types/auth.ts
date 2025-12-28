@@ -5,7 +5,7 @@
 
 export interface TravelerRegisterData {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   mobile?: string;

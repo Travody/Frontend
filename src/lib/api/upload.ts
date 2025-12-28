@@ -23,7 +23,7 @@ export class UploadService {
     return apiClient.post<{ imageUrl: string }>(
       '/upload/profile-picture',
       formData,
-      { showToast: true }
+      { showToast: false }
     );
   }
 
@@ -69,7 +69,7 @@ export class UploadService {
     return apiClient.post<{ url: string }>(
       '/upload/file',
       formData,
-      { showToast: true }
+      { showToast: false }
     );
   }
 }

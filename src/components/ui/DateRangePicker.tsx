@@ -23,14 +23,19 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
     if (value) {
       const parts = value.split(' to ');
       if (parts.length === 2) {
-        const start = new Date(parts[0]);
-        const end = new Date(parts[1]);
+        // Parse dates in local timezone to avoid timezone shifts
+        const [startYear, startMonth, startDay] = parts[0].trim().split('-').map(Number);
+        const [endYear, endMonth, endDay] = parts[1].trim().split('-').map(Number);
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
         if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
           setStartDate(start);
           setEndDate(end);
         }
       } else {
-        const date = new Date(value);
+        // Parse date in local timezone to avoid timezone shifts
+        const [year, month, day] = value.trim().split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         if (!isNaN(date.getTime())) {
           setStartDate(date);
           setEndDate(null);
@@ -60,7 +65,11 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
   }, [isOpen]);
 
   const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    // Format date in local timezone to avoid timezone shifts
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const formatDisplayValue = (): string => {
@@ -77,18 +86,19 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
       // Start new selection
       setStartDate(date);
       setEndDate(null);
+      // Update onChange immediately for single date selection
+      onChange(formatDate(date));
     } else if (startDate && !endDate) {
       // Complete selection
       if (date < startDate) {
         // If clicked date is before start, swap them
         setEndDate(startDate);
         setStartDate(date);
+        onChange(`${formatDate(date)} to ${formatDate(startDate)}`);
       } else {
         setEndDate(date);
+        onChange(`${formatDate(startDate)} to ${formatDate(date)}`);
       }
-      const finalStart = date < startDate ? date : startDate;
-      const finalEnd = date < startDate ? startDate : date;
-      onChange(`${formatDate(finalStart)} to ${formatDate(finalEnd)}`);
       setIsOpen(false);
     }
   };
@@ -194,20 +204,20 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[580px] left-0 top-full">
-          <div className="flex gap-4">
+        <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 sm:p-4 w-[calc(100vw-2rem)] sm:w-[580px] left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 top-full max-h-[90vh] overflow-y-auto">
+          <div className="flex flex-col sm:flex-row gap-4">
             {/* Month 1 */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
-            <button
-              onClick={prevMonth}
-              className="p-1 hover:bg-gray-100 rounded"
-              type="button"
-              suppressHydrationWarning
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            </button>
-                <h3 className="text-sm font-semibold text-gray-900">
+                <button
+                  onClick={prevMonth}
+                  className="p-1 hover:bg-gray-100 rounded"
+                  type="button"
+                  suppressHydrationWarning
+                >
+                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                </button>
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
                   {monthNames[month1.getMonth()]} {month1.getFullYear()}
                 </h3>
                 <div className="w-6"></div>
@@ -215,7 +225,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
 
               <div className="grid grid-cols-7 gap-0.5 mb-1.5">
                 {dayLabels.map((day) => (
-                  <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
+                  <div key={day} className="text-center text-[10px] sm:text-xs font-medium text-gray-600 py-1">
                     {day}
                   </div>
                 ))}
@@ -224,7 +234,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
               <div className="grid grid-cols-7 gap-0.5">
                 {days1.map((date, idx) => {
                   if (!date) {
-                    return <div key={`empty-${idx}`} className="h-8"></div>;
+                    return <div key={`empty-${idx}`} className="h-8 sm:h-8"></div>;
                   }
 
                   const isPast = date < today;
@@ -240,7 +250,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
                       onMouseEnter={() => handleDateHover(date)}
                       disabled={isPast}
                       className={`
-                        h-8 w-8 rounded text-xs font-medium transition-colors
+                        h-8 sm:h-8 w-full aspect-square rounded text-[10px] sm:text-xs font-medium transition-colors
                         ${isPast ? 'text-gray-300 cursor-not-allowed' : 'text-gray-900 hover:bg-gray-100'}
                         ${inRange ? 'bg-primary-100 text-primary-900' : ''}
                         ${isStart || isEnd ? 'bg-primary-600 text-white font-semibold' : ''}
@@ -258,9 +268,9 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
             </div>
 
             {/* Month 2 */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
                   {monthNames[month2.getMonth()]} {month2.getFullYear()}
                 </h3>
                 <button
@@ -275,7 +285,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
 
               <div className="grid grid-cols-7 gap-0.5 mb-1.5">
                 {dayLabels.map((day) => (
-                  <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
+                  <div key={day} className="text-center text-[10px] sm:text-xs font-medium text-gray-600 py-1">
                     {day}
                   </div>
                 ))}
@@ -284,7 +294,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
               <div className="grid grid-cols-7 gap-0.5">
                 {days2.map((date, idx) => {
                   if (!date) {
-                    return <div key={`empty-${idx}`} className="h-8"></div>;
+                    return <div key={`empty-${idx}`} className="h-8 sm:h-8"></div>;
                   }
 
                   const isPast = date < today;
@@ -300,7 +310,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
                       onMouseEnter={() => handleDateHover(date)}
                       disabled={isPast}
                       className={`
-                        h-8 w-8 rounded text-xs font-medium transition-colors
+                        h-8 sm:h-8 w-full aspect-square rounded text-[10px] sm:text-xs font-medium transition-colors
                         ${isPast ? 'text-gray-300 cursor-not-allowed' : 'text-gray-900 hover:bg-gray-100'}
                         ${inRange ? 'bg-primary-100 text-primary-900' : ''}
                         ${isStart || isEnd ? 'bg-primary-600 text-white font-semibold' : ''}
@@ -318,7 +328,7 @@ export default function DateRangePicker({ value, onChange, placeholder = 'Select
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-gray-200 flex justify-end gap-2">
+          <div className="mt-3 pt-3 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-2">
             <button
               type="button"
               onClick={() => {
