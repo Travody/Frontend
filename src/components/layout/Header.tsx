@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, User, Menu, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
@@ -65,9 +66,13 @@ export default function Header({ user }: HeaderProps) {
               href={user.type === 'guider' ? '/guider/dashboard' : '/'} 
               className="flex items-center space-x-2.5 transition-opacity hover:opacity-80"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 shadow-sm">
-                <span className="text-base font-bold text-white">T</span>
-              </div>
+              <Image 
+                src="/logo.svg" 
+                alt="Travody Logo" 
+                width={32} 
+                height={32} 
+                className="h-8 w-8 rounded-full object-cover"
+              />
               <span className="text-xl font-bold text-gray-900">Travody</span>
             </Link>
           </div>
@@ -317,9 +322,13 @@ export default function Header({ user }: HeaderProps) {
             href="/" 
             className="flex items-center space-x-2.5 transition-opacity hover:opacity-80"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 shadow-sm">
-              <span className="text-base font-bold text-white">T</span>
-            </div>
+            <Image 
+              src="/logo.svg" 
+              alt="Travody Logo" 
+              width={32} 
+              height={32} 
+              className="h-8 w-8 rounded-full object-cover"
+            />
             <span className="text-xl font-bold text-gray-900">Travody</span>
           </Link>
         </div>

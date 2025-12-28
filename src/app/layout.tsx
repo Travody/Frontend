@@ -86,6 +86,15 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   category: "travel",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" },
+      { url: "/favicon.svg", sizes: "16x16", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/favicon.svg", sizes: "180x180", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
