@@ -1811,10 +1811,10 @@ function GuiderProfileContent() {
         <Container>
           {/* Profile Header */}
           <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-            <CardContent className="p-8">
-              <div className="flex items-center space-x-6">
+            <CardContent className="p-4 md:p-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div 
-                  className="relative group cursor-pointer"
+                  className="relative group cursor-pointer flex-shrink-0"
                   onClick={() => setShowProfileImageDialog(true)}
                 >
                   <Avatar key={profileData?.personalInfo?.profileImageUrl || 'no-image'} className="w-20 h-20 border-4 border-white/30">
@@ -1829,15 +1829,15 @@ function GuiderProfileContent() {
                     <Camera className="w-8 h-8 text-white" />
                   </div>
                 </div>
-                <div>
+                <div className="flex-1 min-w-0 text-center sm:text-left">
                   <Heading as="h1" variant="page" className="mb-2">
                     {profileData?.personalInfo?.showcaseName || (user && 'userType' in user && user.userType === 'guider' ? user.showcaseName : '') || 'Guider Profile'}
                   </Heading>
-                  <p className="text-white/90">
+                  <p className="text-white/90 break-words overflow-wrap-anywhere">
                     {profileData?.email || user?.email || ''}
                   </p>
                   {profileData?.accountVerified && (
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                       <CheckCircle2 className="w-5 h-5" />
                       <span className="text-sm">Verified Account</span>
                     </div>
